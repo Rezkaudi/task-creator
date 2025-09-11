@@ -1,55 +1,58 @@
 {
-  "name": "task-creator",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "pkg": {
-    "assets": [
-      "dist/spa/*"
-    ],
-    "scripts": [
-      "dist/server/**/*.js"
-    ]
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build",
-    "build:server": "vite build --config vite.config.server.ts",
-    "start": "node dist/server/node-build.mjs",
-    "test": "vitest --run",
-    "format.fix": "prettier --write .",
-    "typecheck": "tsc"
-  },
-  "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.2",
-    "@mui/material": "^7.3.2",
-    "@vitejs/plugin-react-swc": "^4.0.1",
-    "axios": "^1.11.0",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0",
-    "openai": "^5.20.0",
-    "path-to-regexp": "^8.3.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "zod": "^3.25.76",
-    "zustand": "^5.0.8"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.3.1",
-    "@types/react": "^19.1.12",
-    "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react": "^5.0.2",
-    "concurrently": "^9.2.1",
-    "prettier": "^3.6.2",
-    "typescript": "^5.9.2",
-    "vite": "^7.1.5",
-    "vite-plugin-node": "^7.0.0",
-    "vitest": "^3.2.4"
-  }
+	"name": "et358-vite-react-site",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "conc \"npm run api\" \"npm run frontend\"",
+		"api": "nodemon",
+		"frontend": "vite --port 3200 --open",
+		"build": "tsc && vite build",
+		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+		"preview": "vite preview",
+		"pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
+	},
+	"nodemonConfig": {
+		"watch": [
+			"backend"
+		],
+		"ext": "ts, json",
+		"exec": "tsx backend/api/index.ts"
+	},
+	"dependencies": {
+		"axios": "^1.7.9",
+		"cors": "^2.8.5",
+		"dayjs": "^1.11.10",
+		"easy-peasy": "^6.0.5",
+		"express": "^4.21.2",
+		"lowdb": "^7.0.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-icons": "^5.3.0",
+		"react-router-dom": "^6.18.0",
+		"zod": "^3.24.1"
+	},
+	"devDependencies": {
+		"@types/cors": "^2.8.17",
+		"@types/express": "^5.0.0",
+		"@types/node": "^22.13.1",
+		"@types/react": "^18.2.15",
+		"@types/react-dom": "^18.2.7",
+		"@typescript-eslint/eslint-plugin": "^6.0.0",
+		"@typescript-eslint/parser": "^6.0.0",
+		"@vitejs/plugin-react": "^4.0.3",
+		"autoprefixer": "^10.4.16",
+		"concurrently": "^9.1.2",
+		"eslint": "^8.45.0",
+		"eslint-plugin-react-hooks": "^4.6.0",
+		"eslint-plugin-react-refresh": "^0.4.3",
+		"nodemon": "^3.1.9",
+		"postcss": "^8.4.31",
+		"prettier": "^3.0.3",
+		"sass": "^1.69.5",
+		"tailwindcss": "^3.3.5",
+		"tsx": "^4.19.2",
+		"typescript": "^5.0.2",
+		"vite": "^4.4.5"
+	}
 }

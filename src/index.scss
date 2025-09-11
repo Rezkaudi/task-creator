@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	h1 {
+		font-variant: small-caps;
+	}
+	.btn-small {
+		@apply px-2 py-1 text-sm text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-red-300;
+	}
+}
+
+a.active {
+	color: rgb(232, 232, 141);
+}
+
+body {
+	opacity: 0;
+	animation: fadeIn .3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}

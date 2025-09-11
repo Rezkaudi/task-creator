@@ -1,0 +1,16 @@
+{
+  "flashcards": [
+    {
+      "suuid": "891As1",
+      "category": "git",
+      "front": "show commit history with hash, title, author",
+      "back": "git log --pretty=format:\"%h - %s - %an\" "
+    },
+    {
+      "suuid": "3bCd45",
+      "category": "linux",
+      "front": "navigate to the home directory",
+      "back": "cd ~"
+    }
+  ]
+}
