@@ -5,12 +5,12 @@ import {
 	Flashcard,
 	NewFlashcard,
 	PatchFlashcard,
-} from "../../../share/types";
+} from "../../share/types";
 import * as tools from "../tools";
 import { Database } from "../types";
 
 const projectBasePath = process.cwd();
-const dbPathAndFileName = join(projectBasePath, "backend/data/db.json");
+const dbPathAndFileName = join(projectBasePath, "/data/db.json");
 const adapter = new JSONFile<Database>(dbPathAndFileName);
 const db: Low<Database> = new Low<Database>(adapter, {} as Database);
 await db.read();

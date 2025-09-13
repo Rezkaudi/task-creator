@@ -2,12 +2,12 @@ import express from "express";
 import { flashcardRouter } from "./routers/flashcardRouter";
 import cors from 'cors';
 
-export const app = express();
+const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.get("/", (_req, res) => {
-	res.send(`
+    res.send(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -24,3 +24,5 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/flashcards", flashcardRouter);
+
+export default app;

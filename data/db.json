@@ -1,6 +1,18 @@
 {
   "flashcards": [
     {
+      "suuid": "82Js23",
+      "category": "linux",
+      "front": "how to find out your shell",
+      "back": "echo $0"
+    },
+    {
+      "suuid": "2Jjq4a",
+      "category": "git",
+      "front": "get back file from staging area to working directory, i.e. unstage a file",
+      "back": "git reset [file]"
+    },
+    {
       "suuid": "891As1",
       "category": "git",
       "front": "show commit history with hash, title, author",
