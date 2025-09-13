@@ -1,58 +1,16 @@
 {
-	"name": "et358-vite-react-site",
-	"private": true,
-	"version": "0.0.0",
-	"type": "module",
-	"scripts": {
-		"dev": "conc \"npm run api\" \"npm run frontend\"",
-		"api": "nodemon",
-		"frontend": "vite --port 3200 --open",
-		"build": "tsc && vite build",
-		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-		"preview": "vite preview",
-		"pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
-	},
-	"nodemonConfig": {
-		"watch": [
-			"backend"
-		],
-		"ext": "ts, json",
-		"exec": "tsx api/index.ts"
-	},
-	"dependencies": {
-		"axios": "^1.7.9",
-		"cors": "^2.8.5",
-		"dayjs": "^1.11.10",
-		"easy-peasy": "^6.0.5",
-		"express": "^4.21.2",
-		"lowdb": "^7.0.1",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"react-icons": "^5.3.0",
-		"react-router-dom": "^6.18.0",
-		"zod": "^3.24.1"
-	},
-	"devDependencies": {
-		"@types/cors": "^2.8.17",
-		"@types/express": "^5.0.0",
-		"@types/node": "^22.13.1",
-		"@types/react": "^18.2.15",
-		"@types/react-dom": "^18.2.7",
-		"@typescript-eslint/eslint-plugin": "^6.0.0",
-		"@typescript-eslint/parser": "^6.0.0",
-		"@vitejs/plugin-react": "^4.0.3",
-		"autoprefixer": "^10.4.16",
-		"concurrently": "^9.1.2",
-		"eslint": "^8.45.0",
-		"eslint-plugin-react-hooks": "^4.6.0",
-		"eslint-plugin-react-refresh": "^0.4.3",
-		"nodemon": "^3.1.9",
-		"postcss": "^8.4.31",
-		"prettier": "^3.0.3",
-		"sass": "^1.69.5",
-		"tailwindcss": "^3.3.5",
-		"tsx": "^4.19.2",
-		"typescript": "^5.0.2",
-		"vite": "^4.4.5"
-	}
+  "name": "task-creator",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "install": "npm install --prefix frontend && npm install --prefix backend"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
 }
