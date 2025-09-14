@@ -24,7 +24,10 @@ const cleanText = (text: string): string => {
 export async function extractTasksFromText(text: string): Promise<Task[]> {
     try {
         console.log('🤖 Calling OpenAI API...');
-        console.log(cleanText(text))
+        console.log("text :", cleanText(text))
+        console.log("SYSTEM_PROMPT :", cleanText(text))
+
+
         const completion = await openai.chat.completions.create({
             model: 'gpt-3.5-turbo',
             messages: [
