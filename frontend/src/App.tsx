@@ -10,7 +10,7 @@ const App: React.FC = () => {
 
     const TRELLO_API_KEY = import.meta.env.VITE_TRELLO_API_KEY || '';
     const TRELLO_TOKEN = import.meta.env.VITE_TRELLO_TOKEN || '';
-    const TRELLO_BOARD_ID = import.meta.env.TRELLO_BOARD_ID || '';
+    const TRELLO_BOARD_ID = import.meta.env.VITE_TRELLO_BOARD_ID || '';
 
 
     useEffect(() => {
