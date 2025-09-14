@@ -25,7 +25,7 @@ export async function extractTasksFromText(text: string): Promise<Task[]> {
     try {
         console.log('🤖 Calling OpenAI API...');
         console.log("text :", cleanText(text))
-        console.log("SYSTEM_PROMPT :", cleanText(text))
+        console.log("SYSTEM_PROMPT :", cleanText(SYSTEM_PROMPT))
 
 
         const completion = await openai.chat.completions.create({
