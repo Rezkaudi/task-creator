@@ -13,6 +13,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/', (_req: Request, res: Response) => {
+    res.send('Task Creator API is running');
+});
+
 // Health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString(), key: ENV_CONFIG.OPENAI_API_KEY });

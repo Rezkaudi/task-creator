@@ -9,7 +9,7 @@ const openai = new OpenAI({
 });
 
 const SYSTEM_PROMPT = fs.readFileSync(
-    path.join(__dirname, '../prompt/prompt1.txt'),
+    path.join(__dirname, '../../public/prompt/prompt1.txt'),
     'utf-8'
 );
 
