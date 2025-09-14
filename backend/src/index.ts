@@ -3,13 +3,15 @@ import cors from 'cors';
 // import dotenv from 'dotenv';
 import "dotenv/config";
 import taskRoutes from './routes/taskRoutes';
-import { ENV_CONFIG } from './env.config';
+import { ENV_CONFIG } from './config/env.config';
+import { corsOptions } from './config/cors.config';
 
 
 const app = express();
 
 // Middleware
-app.use(cors());
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
