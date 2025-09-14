@@ -31,18 +31,22 @@ export async function extractTasksFromText(text: string): Promise<Task[]> {
 
 
         const completion = await openai.chat.completions.create({
-            model: 'gpt-3.5-turbo',
+            model: 'o3',
             messages: [
                 { role: 'system', content: cleanText(SYSTEM_PROMPT) },
                 { role: 'user', content: cleanText(text) },
             ],
             response_format: { type: 'json_object' },
-            temperature: 0.7,
+            // temperature: 0.1,
         });
+
+        console.log('📊 GPT Response:', completion.choices[0]?.message);
 
         const responseContent = completion.choices[0]?.message?.content;
 
-        if (!responseContent) {
+        // console.log("responseContent :", responseContent)
+
+        if (!responseContent || responseContent.trim() === '{}' || responseContent.trim() === '{}n') {
             throw new Error('No response from OpenAI');
         }
 
@@ -51,10 +55,14 @@ export async function extractTasksFromText(text: string): Promise<Task[]> {
         // Parse the JSON response
         const parsedResponse = JSON.parse(responseContent);
 
+        // console.log("parsedResponse :", parsedResponse)
+
         // Handle both { tasks: [...] } and direct array responses
         const tasksArray = Array.isArray(parsedResponse)
             ? parsedResponse
             : (parsedResponse.tasks || []);
+
+        // console.log("tasksArray :", tasksArray)
 
         // Validate with Zod
         const validatedTasks = tasksArraySchema.parse(tasksArray);
