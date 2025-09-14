@@ -16,10 +16,11 @@ const SYSTEM_PROMPT = fs.readFileSync(
 
 const cleanText = (text: string): string => {
     return text
-        .replace(/- /g, '')        // Remove bullet points
-        .replace(/ +/g, ' ')       // Replace multiple spaces with single space
-        .trim()                    // Remove leading/trailing spaces
-        .replace(/\n/g, '.');     // Replace newlines with comma + space
+        .replace(/[^\p{L}\p{N}\s,.-]/gu, '') // Keep letters, numbers, spaces, commas, periods, hyphens
+        .replace(/- /g, '')                   // Remove bullet points (dash + space)
+        .replace(/ +/g, ' ')                  // Replace multiple spaces with single space
+        .trim()                               // Remove leading/trailing spaces
+        .replace(/\n/g, ', ');                // Replace newlines with comma + space
 };
 
 export async function extractTasksFromText(text: string): Promise<Task[]> {
