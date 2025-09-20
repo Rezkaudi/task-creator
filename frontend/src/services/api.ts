@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { TaskExtractionRequest, TaskExtractionResponse } from '../shared/types';
+import { AppResponse, TaskExtractionRequest, TaskExtractionResponse } from '../shared/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -23,6 +23,22 @@ export const extractAndCreateTasks = async (
             return {
                 success: false,
                 tasks: [],
+                message: error.response.data.message || 'Failed to process tasks',
+            };
+        }
+        throw error;
+    }
+};
+
+export const getBoardListsFromTrello = async (): Promise<AppResponse> => {
+    try {
+        const response = await apiClient.get<AppResponse>('/trello/board-lists');
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            return {
+                success: false,
+                data: [],
                 message: error.response.data.message || 'Failed to process tasks',
             };
         }
