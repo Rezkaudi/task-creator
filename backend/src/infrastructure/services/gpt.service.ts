@@ -1,3 +1,4 @@
+//src/infrastructure/services/gpt.service.ts
 import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';

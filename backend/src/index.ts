@@ -1,3 +1,4 @@
+//src/index.ts
 import * as dotenv from 'dotenv';
 import { Server } from './infrastructure/web/server';
 import { ENV_CONFIG } from './infrastructure/config/env.config';

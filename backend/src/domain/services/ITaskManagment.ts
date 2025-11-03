@@ -1,3 +1,4 @@
+//src/domain/services/ITaskManagment.ts
 import { Task } from "../entities/task.entity";
 import { TrelloTask } from "../entities/trello-task.entity";
 

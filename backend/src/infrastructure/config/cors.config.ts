@@ -1,22 +1,28 @@
 import { CorsOptions } from 'cors';
 
 export const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://task-creator-app.vercel.app',
-    'https://task-creator-api.vercel.app',
-    "https://api.trello.com"
+  'https://www.figma.com',
+  'https://figma.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'https://task-creator-app.vercel.app',
+  'https://task-creator-api.vercel.app',
+  'https://api.trello.com'
 ];
 
 export const corsOptions: CorsOptions = {
-    origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-        // allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        } else {
-            return callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    console.log('Request Origin:', origin); // للتشخيص
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS Error: Origin not allowed:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200 // للتأكد إن preflight يرجع 200
 };

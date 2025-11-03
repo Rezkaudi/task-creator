@@ -1,3 +1,4 @@
+//src/infrastructure/config/env.config.ts
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -16,5 +17,8 @@ export const ENV_CONFIG = {
 
     // Server Configuration
     PORT: process.env.PORT || "5000",
-    NODE_ENV: process.env.NODE_ENV
+    NODE_ENV: process.env.NODE_ENV,
+
+    CLAUDE_API:process.env.CLAUDE_API,
+    MODEL_CLAUDE:process.env.MODEL_CLAUDE
 }

@@ -1,3 +1,4 @@
+//src/domain/entities/trello-task.entity.ts
 export interface TrelloTask {
     id: string;
     name: string;

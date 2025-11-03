@@ -1,3 +1,4 @@
+///src/application/dto/task.dto.ts
 import { Task } from "../../domain/entities/task.entity";
 
 export interface TaskExtractionRequest {
