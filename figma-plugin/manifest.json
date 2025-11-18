@@ -1,0 +1,16 @@
+{
+  "name": "Task Creator Design Importer",
+  "id": "task-creator-design-importer",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": [
+      "https://task-creator-api.vercel.app",
+      "http://localhost:5000",
+      "http://localhost:8080"
+    ],
+    "reasoning": "Allows the plugin to communicate with the backend API for task creation and design generation."
+  }
+}

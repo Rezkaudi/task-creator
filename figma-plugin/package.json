@@ -1,0 +1,23 @@
+{
+  "name": "task-creator-figma-plugin",
+  "version": "1.0.0",
+  "description": "Figma plugin to import AI-generated designs from Task Creator",
+  "main": "dist/code.js",
+  "scripts": {
+    "build": "tsc && npm run copy-html",
+    "copy-html": "cp src/ui.html dist/ui.html",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "figma",
+    "plugin",
+    "design",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.98.0",
+    "typescript": "^5.8.2"
+  }
+}
