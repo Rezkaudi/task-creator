@@ -9,8 +9,7 @@
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "install": "npm install --prefix frontend && npm install --prefix backend"
   },
-  "dependencies": {},
   "devDependencies": {
-    "concurrently": "^8.0.1"
+    "concurrently": "^8.2.2"
   }
 }
