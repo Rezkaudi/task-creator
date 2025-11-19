@@ -40,7 +40,6 @@ export class Server {
 
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
-
   }
 
   private configureErrorHandling(): void {
