@@ -83,7 +83,11 @@ export class TaskController {
                 return;
             }
 
-            res.json(latestDesignData);
+            res.json({
+                success: true,
+                data: latestDesignData,
+                message: 'Latest design retrieved',
+            });
         } catch (error) {
             console.error('Error retrieving latest design:', error);
             next(error);
