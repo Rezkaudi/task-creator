@@ -7,7 +7,7 @@ import { corsOptions } from '../config/cors.config';
 // routes
 import taskRoutes from './routes/task.routes';
 import trelloRoutes from './routes/trello.routes';
-import designRoutes from '../../../text_to_design_plugin/infrastructure/web/routes/design.routes'; 
+import designRoutes from '../../infrastructure/web/routes/design.routes'; 
 import { setupDependencies } from './dependencies';
 
 export class Server {

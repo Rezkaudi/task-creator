@@ -1,6 +1,6 @@
 // src/infrastructure/services/claude.service.ts - الكود النهائي مع الـ Prompt المثالي
 
-import { IClaudeGenerator } from '../../domain/IClaudeGenerator';
+import { IClaudeGenerator } from '../../../src/domain/services/IClaudeGenerator';
 import fetch from 'node-fetch';
 
 export class ClaudeService implements IClaudeGenerator {

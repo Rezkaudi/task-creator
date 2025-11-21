@@ -1,7 +1,7 @@
 // src/infrastructure/web/controllers/design.controller.ts - الكود النهائي
 
 import { Request, Response } from 'express';
-import { GenerateDesignFromClaudeUseCase } from '../../../application/generate-design-from-claude.use-case';
+import { GenerateDesignFromClaudeUseCase } from '../../../application/use-cases/generate-design-from-claude.use-case';
 import { ClaudeService } from '../../services/claude.service';
 
 

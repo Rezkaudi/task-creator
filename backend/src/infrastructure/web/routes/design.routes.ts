@@ -1,7 +1,7 @@
 // src/infrastructure/web/routes/design.routes.ts
 
 import { Router } from 'express';
-import { DesignController } from '../controllers/design.controller';
+import { DesignController } from '../../../../src/infrastructure/web/controllers/design.controller';
 
 const router = Router();
 const designController = new DesignController();

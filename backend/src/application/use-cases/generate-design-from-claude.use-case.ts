@@ -1,6 +1,6 @@
 // src/application/use-cases/generate-design-from-claude.use-case.ts
 
-import { IClaudeGenerator } from '../domain/IClaudeGenerator';
+import { IClaudeGenerator } from '../../domain/services/IClaudeGenerator';
 
 export class GenerateDesignFromClaudeUseCase {
     constructor(private claudeGenerator: IClaudeGenerator) {}

@@ -14,6 +14,6 @@
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false
   },
-  "include": ["src/**/*", "tests/**/*", "jest.config.js", "text_to_design_plugin/application/generate-design-from-claude.use-case.ts", "text_to_design_plugin/infrastructure/services/claude.service.ts", "text_to_design_plugin/infrastructure/controllers/design.controller.ts", "text_to_design_plugin/infrastructure/web/routes/design.routes.ts", "text_to_design_plugin/domain/IClaudeGenerator.ts"],
+  "include": ["src/**/*", "tests/**/*", "jest.config.js", "src/application/use-cases/generate-design-from-claude.use-case.ts", "text_to_design_plugin/infrastructure/services/claude.service.ts", "text_to_design_plugin/infrastructure/controllers/design.controller.ts", "text_to_design_plugin/infrastructure/web/routes/design.routes.ts", "src/domain/services/IClaudeGenerator.ts"],
   "exclude": ["node_modules"]
 }
