@@ -1,368 +1,169 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8">
     <title>Task Creator Design Importer</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 16px;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            height: 100vh;
-        }
-
-        .container {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .input-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
-        }
-
-        input[type="url"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        input[type="url"]:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: 'Monaco', 'Courier New', monospace;
-            resize: vertical;
-            transition: border-color 0.3s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 12px;
-            margin-top: auto;
-            padding-top: 16px;
-        }
-
-        button {
-            flex: 1;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: #e5e7eb;
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .status {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .status.success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #6ee7b7;
-        }
-
-        .status.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-
-        .status.info {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #93c5fd;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid #f3f4f6;
-            border-top-color: #6366f1;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        .tab {
-            padding: 8px 16px;
-            background: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            color: #6b7280;
-            transition: all 0.3s;
-        }
-
-        .tab.active {
-            color: #6366f1;
-            border-bottom-color: #6366f1;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); height: 100vh; }
+        .container { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); height: 100%; display: flex; flex-direction: column; }
+        h1 { font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+        .input-group { margin-bottom: 16px; }
+        label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+        input[type="url"] { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; }
+        input[type="url"]:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        textarea { width: 100%; min-height: 200px; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: 'Monaco', 'Courier New', monospace; resize: vertical; transition: border-color 0.3s; }
+        textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        .button-group { display: flex; gap: 12px; margin-top: auto; padding-top: 16px; }
+        button { flex: 1; padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%); color: white; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        .btn-secondary:hover:not(:disabled) { background: #e5e7eb; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; display: none; }
+        .status.success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .status.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .status.info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .loading { display: inline-block; width: 16px; height: 16px; border: 3px solid #f3f4f6; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
+        .tab { padding: 8px 16px; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: #6b7280; transition: all 0.3s; }
+        .tab.active { color: #6366f1; border-bottom-color: #6366f1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-
 <body>
     <div class="container">
         <h1>🎨 Design Importer</h1>
-        <p class="subtitle">Automatically import AI-generated designs from Task Creator</p>
-
+        <p class="subtitle">Import designs from API, JSON, or generate with AI</p>
         <div id="status" class="status"></div>
-
         <div class="tabs">
-            <button class="tab active" data-tab="auto">Auto Fetch</button>
-            <button class="tab" data-tab="manual">Manual Import</button>
+            <button class="tab active" data-tab="ai">Generate with AI</button>
+            <button class="tab" data-tab="auto">Fetch from API</button>
+            <button class="tab" data-tab="manual">Paste JSON</button>
         </div>
-
-        <div id="auto-tab" class="tab-content active">
+        <div id="ai-tab" class="tab-content active">
+            <div class="input-group">
+                <label for="ai-prompt">Describe the design you want</label>
+                <textarea id="ai-prompt" placeholder="e.g., 'A login screen for a mobile app with a logo, two input fields, and a login button.'"></textarea>
+            </div>
+        </div>
+        <div id="auto-tab" class="tab-content">
             <div class="input-group">
                 <label for="api-url">API Endpoint URL</label>
-                <input type="url" id="api-url" placeholder="https://task-creator-api.vercel.app/api/tasks/latest-design"
-                    value="http://localhost:5000/api/tasks/latest-design" />
+                <input type="url" id="api-url" value="http://localhost:5000/api/tasks/latest-design" />
             </div>
-            <p style="color: #6b7280; font-size: 13px; margin-bottom: 16px;">
-                The plugin will automatically fetch the latest design from your Task Creator backend.
-            </p>
         </div>
-
         <div id="manual-tab" class="tab-content">
             <div class="input-group">
                 <label for="json-input">Design JSON</label>
                 <textarea id="json-input" placeholder='Paste your design JSON here...'></textarea>
             </div>
         </div>
-
         <div class="button-group">
-            <button id="import-btn" class="btn-primary">
-                Import Design
-            </button>
-            <button id="cancel-btn" class="btn-secondary">
-                Cancel
-            </button>
+            <button id="import-btn" class="btn-primary">Generate & Import</button>
+            <button id="cancel-btn" class="btn-secondary">Cancel</button>
         </div>
     </div>
-
     <script>
-        // Tab switching
-        document.querySelectorAll('.tab').forEach(tab => {
+        const importBtn = document.getElementById('import-btn' );
+        const tabs = document.querySelectorAll('.tab');
+
+        tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const tabName = tab.dataset.tab;
-
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tabs.forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
                 tab.classList.add('active');
                 document.getElementById(`${tabName}-tab`).classList.add('active');
+                importBtn.textContent = tabName === 'ai' ? 'Generate & Import' : 'Import Design';
+                resetButton();
             });
         });
 
-        // Status message helper
         function showStatus(message, type) {
             const statusEl = document.getElementById('status');
             statusEl.textContent = message;
             statusEl.className = `status ${type}`;
             statusEl.style.display = 'block';
-
-            if (type === 'success') {
-                setTimeout(() => {
-                    statusEl.style.display = 'none';
-                }, 5000);
-            }
         }
 
-        // Import button handler
-        document.getElementById('import-btn').addEventListener('click', async () => {
+        function resetButton() {
+            importBtn.disabled = false;
+            const currentTab = document.querySelector('.tab.active').dataset.tab;
+            importBtn.innerHTML = currentTab === 'ai' ? 'Generate & Import' : 'Import Design';
+        }
+
+        importBtn.addEventListener('click', async () => {
             const activeTab = document.querySelector('.tab.active').dataset.tab;
-            const importBtn = document.getElementById('import-btn');
-
             importBtn.disabled = true;
-            importBtn.innerHTML = '<span class="loading"></span> Importing...';
-
+            importBtn.innerHTML = `<span class="loading"></span> Working...`;
             try {
-                let designData;
-
-                if (activeTab === 'auto') {
-                    // Fetch from API
+                if (activeTab === 'ai') {
+                    const prompt = document.getElementById('ai-prompt').value.trim();
+                    if (!prompt) throw new Error('Please describe the design to generate.');
+                    showStatus('Generating design with AI...', 'info');
+                    parent.postMessage({ pluginMessage: { type: 'generate-design-from-text', prompt } }, '*');
+                } else if (activeTab === 'auto') {
                     const apiUrl = document.getElementById('api-url').value;
-
-                    if (!apiUrl) {
-                        throw new Error('Please enter an API URL');
-                    }
-
+                    if (!apiUrl) throw new Error('Please enter an API URL');
                     showStatus('Fetching design from API...', 'info');
-
                     const response = await fetch(apiUrl);
-
-                    if (!response.ok) {
-                        throw new Error(`API request failed: ${response.statusText}`);
-                    }
-
+                    if (!response.ok) throw new Error(`API request failed: ${response.statusText}`);
                     const result = await response.json();
-
-                    if (!result.success || !result.data) {
-                        throw new Error(result.message || 'No design data received');
-                    }
-
-                    designData = result.data;
+                    if (!result.success || !result.data) throw new Error(result.message || 'No design data received');
+                    parent.postMessage({ pluginMessage: { type: 'import-design', designData: result.data } }, '*');
                 } else {
-                    // Manual JSON input
                     const jsonInput = document.getElementById('json-input').value.trim();
-
-                    if (!jsonInput) {
-                        throw new Error('Please paste design JSON');
-                    }
-
-                    designData = JSON.parse(jsonInput);
+                    if (!jsonInput) throw new Error('Please paste design JSON');
+                    const designData = JSON.parse(jsonInput);
+                    parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
                 }
-
-                // Send to plugin code
-                parent.postMessage({
-                    pluginMessage: {
-                        type: 'import-design',
-                        designData
-                    }
-                }, '*');
-
-                showStatus('Importing design into Figma...', 'info');
-
             } catch (error) {
-                console.error('Import error:', error);
                 showStatus(error.message, 'error');
-                importBtn.disabled = false;
-                importBtn.textContent = 'Import Design';
+                resetButton();
             }
         });
 
-        // Cancel button handler
         document.getElementById('cancel-btn').addEventListener('click', () => {
             parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
         });
 
-        // Listen for messages from plugin code
-        window.onmessage = (event) => {
+        window.onmessage = async (event) => {
             const msg = event.data.pluginMessage;
-            const importBtn = document.getElementById('import-btn');
-
-            if (msg.type === 'import-success') {
+            if (msg.type === 'call-backend-for-claude') {
+                try {
+                    const designData = await callBackendForClaude(msg.prompt);
+                    parent.postMessage({ pluginMessage: { type: 'design-generated-from-ai', designData } }, '*');
+                } catch (error) {
+                    parent.postMessage({ pluginMessage: { type: 'import-error', error: error.message } }, '*');
+                }
+            } else if (msg.type === 'import-success') {
                 showStatus('✅ Design imported successfully!', 'success');
-                importBtn.disabled = false;
-                importBtn.textContent = 'Import Design';
-
-                // Close plugin after short delay
-                setTimeout(() => {
-                    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-                }, 2000);
+                resetButton();
+                setTimeout(() => parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*'), 2000);
             } else if (msg.type === 'import-error') {
                 showStatus(`❌ ${msg.error}`, 'error');
-                importBtn.disabled = false;
-                importBtn.textContent = 'Import Design';
+                resetButton();
             }
         };
+
+        async function callBackendForClaude(userPrompt) {
+            const BACKEND_URL = 'http://localhost:5000/api/designs/generate-from-text'; 
+            const response = await fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: userPrompt } )
+            });
+            if (!response.ok) {
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || 'Failed to get response from backend.');
+            }
+            return await response.json();
+        }
     </script>
 </body>
-
 </html>

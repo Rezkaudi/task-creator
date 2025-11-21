@@ -1,25 +1,24 @@
+// src/infrastructure/web/server.ts - الكود المصحح
+
 import cors from 'cors';
-
 import express, { Application, Request, Response, NextFunction } from 'express';
-
 import { corsOptions } from '../config/cors.config';
 
 // routes
 import taskRoutes from './routes/task.routes';
 import trelloRoutes from './routes/trello.routes';
+import designRoutes from '../../../text_to_design_plugin/infrastructure/web/routes/design.routes'; 
 import { setupDependencies } from './dependencies';
-
 
 export class Server {
   private app: Application;
   private port: number;
   private container: any;
 
-
   constructor(port: number) {
     this.app = express();
     this.port = port;
-    this.container = setupDependencies()
+    this.container = setupDependencies();
     this.configureMiddleware();
     this.configureRoutes();
     this.configureErrorHandling();
@@ -32,19 +31,18 @@ export class Server {
   }
 
   private configureRoutes(): void {
-
     // Health check
     this.app.get('/', (_, res) => {
       res.send('Task Creator API is running');
     });
 
+    this.app.use('/api/designs', designRoutes); 
+    
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
   }
 
   private configureErrorHandling(): void {
-
-    // 500 handler
     this.app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       console.error('Error:', err);
       res.status(500).json({
@@ -53,14 +51,12 @@ export class Server {
       });
     });
 
-    // 404 handler
     this.app.use((_req: Request, res: Response) => {
       res.status(404).json({
         success: false,
         message: 'Route not found',
       });
     });
-
   }
 
   public async start(): Promise<void> {
