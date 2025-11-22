@@ -1,6 +1,7 @@
 {
   "name": "Task Creator Design Importer",
-  "id": "task-creator-design-importer",
+  "id": "1572976306714112720",
+  "documentAccess": "dynamic-page",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",
@@ -9,7 +10,8 @@
     "allowedDomains": [
       "https://task-creator-api.vercel.app",
       "http://localhost:5000",
-      "http://localhost:8080"
+      "http://localhost:8080",
+      "https://api.anthropic.com"
     ],
     "reasoning": "Allows the plugin to communicate with the backend API for task creation and design generation."
   }
