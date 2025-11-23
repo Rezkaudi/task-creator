@@ -1,77 +1,320 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>Task Creator Design Importer</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); height: 100vh; }
-        .container { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); height: 100%; display: flex; flex-direction: column; }
-        h1 { font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
-        .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
-        .input-group { margin-bottom: 16px; }
-        label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px; }
-        input[type="url"] { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; }
-        input[type="url"]:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
-        textarea { width: 100%; min-height: 200px; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: 'Monaco', 'Courier New', monospace; resize: vertical; transition: border-color 0.3s; }
-        textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
-        .button-group { display: flex; gap: 12px; margin-top: auto; padding-top: 16px; }
-        button { flex: 1; padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%); color: white; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
-        .btn-secondary { background: #f3f4f6; color: #374151; }
-        .btn-secondary:hover:not(:disabled) { background: #e5e7eb; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .status { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; display: none; }
-        .status.success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-        .status.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .status.info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-        .loading { display: inline-block; width: 16px; height: 16px; border: 3px solid #f3f4f6; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
-        .tab { padding: 8px 16px; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: #6b7280; transition: all 0.3s; }
-        .tab.active { color: #6366f1; border-bottom-color: #6366f1; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 16px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        input[type="url"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 150px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            resize: none;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        textarea.error {
+            border-color: #ef4444;
+        }
+
+        textarea.valid {
+            border-color: #22c55e;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e5e7eb;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+            word-break: break-word;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+            display: block;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            display: block;
+        }
+
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+            display: block;
+        }
+
+        .status.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #f3f4f6;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s;
+            margin-bottom: -2px;
+        }
+
+        .tab:hover {
+            color: #6366f1;
+        }
+
+        .tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .json-stats {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        .json-stats.error {
+            color: #ef4444;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🎨 Design Importer</h1>
         <p class="subtitle">Import designs from API, JSON, or generate with AI</p>
         <div id="status" class="status"></div>
         <div class="tabs">
-            <button class="tab active" data-tab="ai">Generate with AI</button>
-            <button class="tab" data-tab="auto">Fetch from API</button>
-            <button class="tab" data-tab="manual">Paste JSON</button>
+            <button class="tab active" data-tab="ai">🤖 AI Generate</button>
+            <button class="tab" data-tab="auto">🔗 Fetch API</button>
+            <button class="tab" data-tab="manual">📋 Paste JSON</button>
         </div>
         <div id="ai-tab" class="tab-content active">
             <div class="input-group">
                 <label for="ai-prompt">Describe the design you want</label>
-                <textarea id="ai-prompt" placeholder="e.g., 'A login screen for a mobile app with a logo, two input fields, and a login button.'"></textarea>
+                <textarea id="ai-prompt"
+                    placeholder="e.g., 'A modern login page with email and password fields, a blue login button, and a forgot password link. Include a logo at the top.'"></textarea>
+                <p class="helper-text">Be specific about colors, layout, and elements you want.</p>
             </div>
         </div>
         <div id="auto-tab" class="tab-content">
             <div class="input-group">
                 <label for="api-url">API Endpoint URL</label>
-                <input type="url" id="api-url" value="http://localhost:5000/api/tasks/latest-design" />
+                <input type="url" id="api-url" value="http://localhost:5000/api/tasks/latest-design"
+                    placeholder="https://api.example.com/design" />
+                <p class="helper-text">Enter the URL that returns Figma-compatible JSON.</p>
             </div>
         </div>
         <div id="manual-tab" class="tab-content">
             <div class="input-group">
                 <label for="json-input">Design JSON</label>
-                <textarea id="json-input" placeholder='Paste your design JSON here...'></textarea>
+                <textarea id="json-input" placeholder='Paste your Figma design JSON here...
+
+Example format:
+{
+  "name": "My Frame",
+  "type": "FRAME",
+  "x": 0,
+  "y": 0,
+  "width": 400,
+  "height": 300,
+  "fills": [{"type": "SOLID", "color": {"r": 1, "g": 1, "b": 1}}]
+}'></textarea>
+                <div id="json-stats" class="json-stats"></div>
             </div>
         </div>
         <div class="button-group">
-            <button id="import-btn" class="btn-primary">Generate & Import</button>
+            <button id="import-btn" class="btn-primary">🚀 Generate & Import</button>
             <button id="cancel-btn" class="btn-secondary">Cancel</button>
         </div>
     </div>
     <script>
-        const importBtn = document.getElementById('import-btn' );
+        const importBtn = document.getElementById('import-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
         const tabs = document.querySelectorAll('.tab');
+        const jsonInput = document.getElementById('json-input');
+        const jsonStats = document.getElementById('json-stats');
+        const statusEl = document.getElementById('status');
 
+        // Tab switching
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const tabName = tab.dataset.tab;
@@ -79,91 +322,329 @@
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 tab.classList.add('active');
                 document.getElementById(`${tabName}-tab`).classList.add('active');
-                importBtn.textContent = tabName === 'ai' ? 'Generate & Import' : 'Import Design';
+
+                // Update button text
+                const buttonTexts = {
+                    'ai': '🚀 Generate & Import',
+                    'auto': '📥 Fetch & Import',
+                    'manual': '📋 Import JSON'
+                };
+                importBtn.textContent = buttonTexts[tabName] || 'Import';
                 resetButton();
+                hideStatus();
             });
         });
 
+        // JSON validation on input
+        jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function validateJsonInput() {
+            const value = jsonInput.value.trim();
+            if (!value) {
+                jsonInput.classList.remove('error', 'valid');
+                jsonStats.textContent = '';
+                jsonStats.classList.remove('error');
+                return null;
+            }
+
+            try {
+                const parsed = JSON.parse(value);
+                const stats = analyzeJsonStructure(parsed);
+                jsonInput.classList.remove('error');
+                jsonInput.classList.add('valid');
+                jsonStats.classList.remove('error');
+                jsonStats.textContent = stats;
+                return parsed;
+            } catch (e) {
+                jsonInput.classList.remove('valid');
+                jsonInput.classList.add('error');
+                jsonStats.classList.add('error');
+                jsonStats.textContent = `❌ Invalid JSON: ${e.message}`;
+                return null;
+            }
+        }
+
+        function analyzeJsonStructure(data) {
+            let nodeCount = 0;
+            let frameCount = 0;
+            let textCount = 0;
+            let otherCount = 0;
+
+            function countNodes(node) {
+                if (!node || typeof node !== 'object') return;
+
+                if (Array.isArray(node)) {
+                    node.forEach(countNodes);
+                    return;
+                }
+
+                if (node.type) {
+                    nodeCount++;
+                    if (node.type === 'FRAME' || node.type === 'GROUP') frameCount++;
+                    else if (node.type === 'TEXT') textCount++;
+                    else otherCount++;
+                }
+
+                if (node.children && Array.isArray(node.children)) {
+                    node.children.forEach(countNodes);
+                }
+                if (node.data) countNodes(node.data);
+            }
+
+            countNodes(data);
+
+            if (nodeCount === 0) {
+                return '⚠️ No Figma nodes detected in JSON';
+            }
+
+            return `✅ Valid JSON: ${nodeCount} node${nodeCount !== 1 ? 's' : ''} (${frameCount} frame${frameCount !== 1 ? 's' : ''}, ${textCount} text, ${otherCount} other)`;
+        }
+
         function showStatus(message, type) {
-            const statusEl = document.getElementById('status');
             statusEl.textContent = message;
             statusEl.className = `status ${type}`;
-            statusEl.style.display = 'block';
+        }
+
+        function hideStatus() {
+            statusEl.className = 'status';
+            statusEl.textContent = '';
         }
 
         function resetButton() {
             importBtn.disabled = false;
             const currentTab = document.querySelector('.tab.active').dataset.tab;
-            importBtn.innerHTML = currentTab === 'ai' ? 'Generate & Import' : 'Import Design';
+            const buttonTexts = {
+                'ai': '🚀 Generate & Import',
+                'auto': '📥 Fetch & Import',
+                'manual': '📋 Import JSON'
+            };
+            importBtn.innerHTML = buttonTexts[currentTab] || 'Import';
         }
 
+        function setLoading(message = 'Working...') {
+            importBtn.disabled = true;
+            importBtn.innerHTML = `<span class="loading"></span> ${message}`;
+        }
+
+        // Main import button click handler
         importBtn.addEventListener('click', async () => {
             const activeTab = document.querySelector('.tab.active').dataset.tab;
-            importBtn.disabled = true;
-            importBtn.innerHTML = `<span class="loading"></span> Working...`;
+
             try {
                 if (activeTab === 'ai') {
-                    const prompt = document.getElementById('ai-prompt').value.trim();
-                    if (!prompt) throw new Error('Please describe the design to generate.');
-                    showStatus('Generating design with AI...', 'info');
-                    parent.postMessage({ pluginMessage: { type: 'generate-design-from-text', prompt } }, '*');
+                    await handleAiGeneration();
                 } else if (activeTab === 'auto') {
-                    const apiUrl = document.getElementById('api-url').value;
-                    if (!apiUrl) throw new Error('Please enter an API URL');
-                    showStatus('Fetching design from API...', 'info');
-                    const response = await fetch(apiUrl);
-                    if (!response.ok) throw new Error(`API request failed: ${response.statusText}`);
-                    const result = await response.json();
-                    if (!result.success || !result.data) throw new Error(result.message || 'No design data received');
-                    parent.postMessage({ pluginMessage: { type: 'import-design', designData: result.data } }, '*');
+                    await handleApiFetch();
                 } else {
-                    const jsonInput = document.getElementById('json-input').value.trim();
-                    if (!jsonInput) throw new Error('Please paste design JSON');
-                    const designData = JSON.parse(jsonInput);
-                    parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
+                    await handleManualJson();
                 }
             } catch (error) {
-                showStatus(error.message, 'error');
+                showStatus(`❌ ${error.message}`, 'error');
                 resetButton();
             }
         });
 
-        document.getElementById('cancel-btn').addEventListener('click', () => {
+        async function handleAiGeneration() {
+            const prompt = document.getElementById('ai-prompt').value.trim();
+            if (!prompt) {
+                throw new Error('Please describe the design you want to generate.');
+            }
+            if (prompt.length < 10) {
+                throw new Error('Please provide a more detailed description (at least 10 characters).');
+            }
+
+            setLoading('Generating with AI...');
+            showStatus('🤖 Generating design with AI. This may take a moment...', 'info');
+            parent.postMessage({ pluginMessage: { type: 'generate-design-from-text', prompt } }, '*');
+        }
+
+        async function handleApiFetch() {
+            const apiUrl = document.getElementById('api-url').value.trim();
+            if (!apiUrl) {
+                throw new Error('Please enter an API URL.');
+            }
+
+            // Basic URL validation
+            try {
+                new URL(apiUrl);
+            } catch (e) {
+                throw new Error('Please enter a valid URL (e.g., https://api.example.com/design)');
+            }
+
+            setLoading('Fetching design...');
+            showStatus('📡 Fetching design from API...', 'info');
+
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (contentType && !contentType.includes('application/json')) {
+                showStatus('⚠️ Response may not be JSON. Attempting to parse anyway...', 'warning');
+            }
+
+            let result;
+            try {
+                result = await response.json();
+            } catch (e) {
+                throw new Error('Failed to parse API response as JSON.');
+            }
+
+            // Handle various response formats
+            let designData = result;
+            if (result.success === false) {
+                throw new Error(result.message || result.error || 'API returned an error.');
+            }
+            if (result.data) {
+                designData = result.data;
+            } else if (result.design) {
+                designData = result.design;
+            } else if (result.result) {
+                designData = result.result;
+            }
+
+            if (!designData || (typeof designData === 'object' && Object.keys(designData).length === 0)) {
+                throw new Error('No design data received from API.');
+            }
+
+            showStatus('✅ Design fetched! Importing to Figma...', 'info');
+            parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
+        }
+
+        async function handleManualJson() {
+            const jsonValue = jsonInput.value.trim();
+            if (!jsonValue) {
+                throw new Error('Please paste your design JSON.');
+            }
+
+            let designData;
+            try {
+                designData = JSON.parse(jsonValue);
+            } catch (e) {
+                throw new Error(`Invalid JSON: ${e.message}`);
+            }
+
+            // Validate that it looks like Figma data
+            const hasValidStructure = validateFigmaStructure(designData);
+            if (!hasValidStructure) {
+                showStatus('⚠️ JSON may not be valid Figma format. Attempting import anyway...', 'warning');
+            }
+
+            setLoading('Importing...');
+            showStatus('📋 Importing design to Figma...', 'info');
+            parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
+        }
+
+        function validateFigmaStructure(data) {
+            if (!data || typeof data !== 'object') return false;
+
+            function checkNode(node) {
+                if (Array.isArray(node)) {
+                    return node.some(checkNode);
+                }
+                if (node && typeof node === 'object') {
+                    if (node.type && typeof node.type === 'string') return true;
+                    if (node.data) return checkNode(node.data);
+                    if (node.children) return checkNode(node.children);
+                }
+                return false;
+            }
+
+            return checkNode(data);
+        }
+
+        // Cancel button
+        cancelBtn.addEventListener('click', () => {
             parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
         });
 
+        // Handle messages from the plugin backend
         window.onmessage = async (event) => {
             const msg = event.data.pluginMessage;
-            if (msg.type === 'call-backend-for-claude') {
-                try {
-                    const designData = await callBackendForClaude(msg.prompt);
-                    parent.postMessage({ pluginMessage: { type: 'design-generated-from-ai', designData } }, '*');
-                } catch (error) {
-                    parent.postMessage({ pluginMessage: { type: 'import-error', error: error.message } }, '*');
-                }
-            } else if (msg.type === 'import-success') {
-                showStatus('✅ Design imported successfully!', 'success');
-                resetButton();
-                setTimeout(() => parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*'), 2000);
-            } else if (msg.type === 'import-error') {
-                showStatus(`❌ ${msg.error}`, 'error');
-                resetButton();
+            if (!msg) return;
+
+            switch (msg.type) {
+                case 'call-backend-for-claude':
+                    try {
+                        const designData = await callBackendForClaude(msg.prompt);
+                        parent.postMessage({ pluginMessage: { type: 'design-generated-from-ai', designData } }, '*');
+                    } catch (error) {
+                        showStatus(`❌ AI Generation failed: ${error.message}`, 'error');
+                        resetButton();
+                    }
+                    break;
+
+                case 'import-success':
+                    showStatus('✅ Design imported successfully!', 'success');
+                    resetButton();
+                    setTimeout(() => {
+                        parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+                    }, 2500);
+                    break;
+
+                case 'import-error':
+                    showStatus(`❌ Import failed: ${msg.error}`, 'error');
+                    resetButton();
+                    break;
             }
         };
 
         async function callBackendForClaude(userPrompt) {
-            const BACKEND_URL = 'http://localhost:5000/api/designs/generate-from-text'; 
-            const response = await fetch(BACKEND_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: userPrompt } )
-            });
-            if (!response.ok) {
-                const errorResult = await response.json();
-                throw new Error(errorResult.message || 'Failed to get response from backend.');
+            const BACKEND_URL = 'http://localhost:5000/api/designs/generate-from-text';
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+
+            try {
+                const response = await fetch(BACKEND_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: userPrompt }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    let errorMessage = `Server error: ${response.status}`;
+                    try {
+                        const errorResult = await response.json();
+                        errorMessage = errorResult.message || errorResult.error || errorMessage;
+                    } catch (e) {
+                        // Use default error message
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const result = await response.json();
+
+                // Handle various response formats from the backend
+                if (result.design) return result.design;
+                if (result.data) return result.data;
+                if (result.type) return result; // Direct node data
+
+                return result;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timed out. Please try again.');
+                }
+                throw error;
             }
-            return await response.json();
         }
     </script>
 </body>
+
 </html>

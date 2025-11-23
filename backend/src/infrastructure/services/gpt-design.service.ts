@@ -60,10 +60,6 @@ export class GPTDesignService implements IDesignGenerator {
             // Handle both array and single object responses
             const design: FigmaDesign[] = designData.pages || designData;
 
-            // // Validate the design has required properties
-            // if (!design[0].name || !design[0].type || design[0].children === undefined) {
-            //     throw new Error('Invalid design structure received from GPT');
-            // }
             console.log("design :", design)
 
             return design;

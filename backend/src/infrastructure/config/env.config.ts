@@ -7,6 +7,9 @@ export const ENV_CONFIG = {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENAI_MODEL: process.env.OPENAI_MODEL || 'o3',
 
+    CLOUDE_API_KEY: process.env.CLAUDE_API,
+    CLOUDE_MODEL: process.env.MODEL_CLAUDE || 'claude-sonnet-4-20250514',
+
     // Trello API Configuration
     TRELLO_API_BASE_URL: 'https://api.trello.com/1',
     TRELLO_API_KEY: process.env.TRELLO_API_KEY,
