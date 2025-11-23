@@ -1,11 +1,12 @@
-// src/infrastructure/web/routes/design.routes.ts
-
 import { Router } from 'express';
-import { DesignController } from '../../../../src/infrastructure/web/controllers/design.controller';
+import { DesignController } from '../controllers/design.controller';
 
-const router = Router();
-const designController = new DesignController();
+const designRoutes = (designController: DesignController): Router => {
+    const router = Router();
 
-router.post('/generate-from-text', designController.generateFromText);
+    router.post('/generate-from-text', (req, res) => designController.generateFromText(req, res));
 
-export default router;
+    return router;
+};
+
+export default designRoutes;

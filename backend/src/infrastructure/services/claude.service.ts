@@ -1,42 +1,28 @@
-// src/infrastructure/services/claude.service.ts - الكود النهائي مع الـ Prompt المثالي
-
-import { IClaudeGenerator } from '../../../src/domain/services/IClaudeGenerator';
 import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
+import { IClaudeGenerator } from '../../domain/services/IClaudeGenerator';
+import { ENV_CONFIG } from '../config/env.config';
 
 export class ClaudeService implements IClaudeGenerator {
     private readonly apiKey: string;
+    private readonly cloudeModel: string;
+
+    private systemPrompt: string;
     private readonly apiUrl = 'https://api.anthropic.com/v1/messages';
 
-    constructor( ) {
-        this.apiKey = 'process.env.CLAUDE_API';
-        if (!this.apiKey) {
-            throw new Error('CLAUDE_API_KEY is missing!');
-        }
+    constructor() {
+        this.apiKey = ENV_CONFIG.CLOUDE_API_KEY!
+        this.cloudeModel = ENV_CONFIG.CLOUDE_MODEL
+
+        this.systemPrompt = fs.readFileSync(
+            path.join(__dirname, '../../../public/prompt/text-to-design-prompt.txt'),
+            'utf-8'
+        );
     }
 
     async generateDesign(prompt: string): Promise<any> {
 
-        
-
-        const jsonExample = {
-            "name": "Example",
-            "type": "FRAME",
-            "fills": [{"type": "SOLID", "color": {"r": 1, "g": 1, "b": 1}}],
-            "children": [
-                {"name": "Child Text", "type": "TEXT", "characters": "Hello"}
-            ]
-        };
-
-        const systemPrompt = `You are a world-class Figma design expert. Your task is to generate a valid JSON object that represents a Figma design based on a user's prompt.
-
-        **CRITICAL INSTRUCTIONS:**
-        1.  **Strictly Adhere to the Schema:** The JSON you generate MUST follow the exact structure, property names, and data types shown in this example: ${JSON.stringify(jsonExample)}. Do not invent new properties or deviate from this schema.
-        2.  **Valid Node Types:** You must only use node types that are present in the example (e.g., FRAME, TEXT, ELLIPSE, RECTANGLE). Do NOT use invented types like "BUTTON". A button must be a FRAME or RECTANGLE with a TEXT node inside it.
-        3.  **Root Element:** The top-level element must always be a single object with "type": "FRAME".
-        4.  **Raw JSON Only:** Your entire response must be ONLY the JSON object. It must start with { and end with }. Do not include any explanatory text, comments, or markdown like \`\`\`json.`;
-        
-
-        
         try {
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
@@ -46,9 +32,9 @@ export class ClaudeService implements IClaudeGenerator {
                     'anthropic-version': '2023-06-01'
                 },
                 body: JSON.stringify({
-                    model: "claude-sonnet-4-20250514", 
-                    max_tokens: 4096,
-                    system: systemPrompt,
+                    model: this.cloudeModel,
+                    system: this.systemPrompt,
+                    max_tokens: 16384,
                     messages: [{ role: 'user', content: `Generate a Figma design JSON for: "${prompt}"` }]
                 })
             });
@@ -64,23 +50,18 @@ export class ClaudeService implements IClaudeGenerator {
             }
 
             const result = JSON.parse(responseBodyText);
-            
+            console.log("result :", result)
+
             if (!result.content || !result.content[0] || !result.content[0].text) {
                 throw new Error("Parsed JSON response from Claude is invalid or empty.");
             }
 
             const rawTextResponse = result.content[0].text;
-            const firstBrace = rawTextResponse.indexOf('{');
-            const lastBrace = rawTextResponse.lastIndexOf('}');
+            console.log("rawTextResponse :", rawTextResponse)
 
-            if (firstBrace === -1 || lastBrace === -1) {
-                console.error("Claude's text content did not contain JSON:", rawTextResponse);
-                throw new Error("AI response text did not contain a valid JSON object.");
-            }
-            
-            const jsonString = rawTextResponse.substring(firstBrace, lastBrace + 1);
-            
-            return JSON.parse(jsonString);
+            const jsonDesign = JSON.parse(rawTextResponse);
+
+            return jsonDesign
 
         } catch (error) {
             console.error("An error occurred in ClaudeService:", error);

@@ -1,5 +1,3 @@
-// src/infrastructure/web/server.ts - الكود المصحح
-
 import cors from 'cors';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import { corsOptions } from '../config/cors.config';
@@ -7,7 +5,8 @@ import { corsOptions } from '../config/cors.config';
 // routes
 import taskRoutes from './routes/task.routes';
 import trelloRoutes from './routes/trello.routes';
-import designRoutes from '../../infrastructure/web/routes/design.routes'; 
+import designRoutes from './routes/design.routes';
+
 import { setupDependencies } from './dependencies';
 
 export class Server {
@@ -36,10 +35,11 @@ export class Server {
       res.send('Task Creator API is running');
     });
 
-    this.app.use('/api/designs', designRoutes); 
-    
+
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
+    this.app.use('/api/designs', designRoutes(this.container.designController));
+
   }
 
   private configureErrorHandling(): void {

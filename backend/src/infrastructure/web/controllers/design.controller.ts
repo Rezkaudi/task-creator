@@ -1,20 +1,18 @@
-// src/infrastructure/web/controllers/design.controller.ts - الكود النهائي
-
 import { Request, Response } from 'express';
-import { GenerateDesignFromClaudeUseCase } from '../../../application/use-cases/generate-design-from-claude.use-case';
-import { ClaudeService } from '../../services/claude.service';
 
+import { GenerateDesignFromClaudeUseCase } from '../../../application/use-cases/generate-design-from-claude.use-case';
 
 export class DesignController {
+    constructor(
+        private readonly generateDesignUseCase: GenerateDesignFromClaudeUseCase,
+    ) { }
+
     async generateFromText(req: Request, res: Response): Promise<void> {
         const { prompt } = req.body;
-        const claudeService = new ClaudeService();
-        const generateDesignUseCase = new GenerateDesignFromClaudeUseCase(claudeService);
 
         try {
-            const designData = await generateDesignUseCase.execute(prompt);
-            
-           
+            const designData = await this.generateDesignUseCase.execute(prompt);
+
             res.status(200).json(designData);
 
         } catch (error) {
