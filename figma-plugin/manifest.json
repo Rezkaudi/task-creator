@@ -8,7 +8,7 @@
   "editorType": ["figma"],
   "networkAccess": {
     "allowedDomains": [
-      "https://task-creator-api.vercel.app",
+      "https://task-creator-api.onrender.com",
       "http://localhost:5000",
       "http://localhost:8080",
       "https://api.anthropic.com"

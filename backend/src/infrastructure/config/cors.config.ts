@@ -6,7 +6,7 @@ export const allowedOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:8000',
     'https://task-creator-app.vercel.app',
-    'https://task-creator-api.vercel.app',
+    'https://task-creator-api.onrender.com',
     "https://api.trello.com"
 ];
 
