@@ -2,7 +2,7 @@
   "name": "task-creator",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "api/index.ts",
   "scripts": {
     "start": "node dist/src/index.js",
     "dev": "nodemon src/index.ts",
