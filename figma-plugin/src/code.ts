@@ -580,23 +580,39 @@ async function createTextNode(nodeData: FigmaNodeData): Promise<TextNode> {
     }
 
     // Text auto resize
-    if (nodeData.textAutoResize) {
-        textNode.textAutoResize = nodeData.textAutoResize;
-    }
+    // MODIFICATION: Major overhaul of text sizing logic for Auto Layout.
+// This is the core fix for text truncation.
+// The logic now correctly sets textAutoResize based on whether the text is inside an Auto Layout container
+// and whether a fixed width has been provided.
+const isParentAutoLayout = nodeData.layoutAlign || typeof nodeData.layoutGrow === 'number';
 
-    // Apply fills (text color)
-    applyFills(textNode, nodeData.fills);
-
-    // Resize text box if dimensions provided
+if (isParentAutoLayout) {
+    // If inside Auto Layout and a width is provided, set to 'HEIGHT' to allow wrapping.
     if (nodeData.width && nodeData.width > 0) {
-        // Set auto resize mode to allow width setting
-        if (textNode.textAutoResize === 'WIDTH_AND_HEIGHT') {
-            textNode.textAutoResize = 'HEIGHT';
-        }
-        textNode.resize(nodeData.width, textNode.height);
+        textNode.textAutoResize = 'HEIGHT';
+        textNode.resize(nodeData.width, textNode.height || 1); // Set initial width, height will be calculated.
+    } else {
+        // If no width is provided, let it expand horizontally.
+        textNode.textAutoResize = 'WIDTH_AND_HEIGHT';
     }
+} else {
+    // If not in Auto Layout, use the old logic.
+    if (nodeData.width && nodeData.height) {
+        textNode.textAutoResize = 'NONE';
+        textNode.resize(nodeData.width, nodeData.height);
+    } else if (nodeData.width) {
+        textNode.textAutoResize = 'HEIGHT';
+        textNode.resize(nodeData.width, textNode.height || 1);
+    } else {
+        textNode.textAutoResize = 'WIDTH_AND_HEIGHT';
+    }
+}
 
-    return textNode;
+// Apply fills (text color)
+applyFills(textNode, nodeData.fills);
+
+return textNode;
+
 }
 
 async function createEllipseNode(nodeData: FigmaNodeData): Promise<EllipseNode> {
