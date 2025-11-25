@@ -137,6 +137,16 @@
             background: #e5e7eb;
         }
 
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -204,6 +214,7 @@
             margin-bottom: 16px;
             border-bottom: 2px solid #e5e7eb;
             flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
         .tab {
@@ -254,18 +265,71 @@
             color: #9ca3af;
             margin-top: 4px;
         }
+
+        .export-options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .export-options button {
+            flex: 1;
+        }
+
+        .export-output {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .export-output textarea {
+            flex: 1;
+            min-height: 200px;
+        }
+
+        .copy-btn-wrapper {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .copy-btn-wrapper button {
+            flex: none;
+            padding: 8px 16px;
+        }
+
+        .selection-info {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .selection-info strong {
+            color: #6366f1;
+        }
+
+        .export-stats {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>🎨 Design Importer</h1>
-        <p class="subtitle">Import designs from API, JSON, or generate with AI</p>
+        <h1>🎨 Design Tool</h1>
+        <p class="subtitle">Import, Export, or Generate designs with AI</p>
         <div id="status" class="status"></div>
         <div class="tabs">
             <button class="tab active" data-tab="ai">🤖 AI Generate</button>
             <button class="tab" data-tab="auto">🔗 Fetch API</button>
             <button class="tab" data-tab="manual">📋 Paste JSON</button>
+            <button class="tab" data-tab="export">📤 Export</button>
         </div>
         <div id="ai-tab" class="tab-content active">
             <div class="input-group">
@@ -301,7 +365,26 @@ Example format:
                 <div id="json-stats" class="json-stats"></div>
             </div>
         </div>
-        <div class="button-group">
+        <div id="export-tab" class="tab-content">
+            <div id="selection-info" class="selection-info">
+                <strong>No selection.</strong> Select layers to export specific elements, or export the entire page.
+            </div>
+            <div class="export-options">
+                <button id="export-selected-btn" class="btn-primary" disabled>📦 Export Selected</button>
+                <button id="export-all-btn" class="btn-success">📄 Export All (Page)</button>
+            </div>
+            <div class="export-output">
+                <label for="export-output">Exported JSON</label>
+                <textarea id="export-output" readonly
+                    placeholder="Click 'Export Selected' or 'Export All' to generate JSON..."></textarea>
+                <div id="export-stats" class="export-stats"></div>
+                <div class="copy-btn-wrapper">
+                    <button id="copy-json-btn" class="btn-secondary" disabled>📋 Copy to Clipboard</button>
+                    <button id="download-json-btn" class="btn-secondary" disabled>💾 Download JSON</button>
+                </div>
+            </div>
+        </div>
+        <div class="button-group" id="main-button-group">
             <button id="import-btn" class="btn-primary">🚀 Generate & Import</button>
             <button id="cancel-btn" class="btn-secondary">Cancel</button>
         </div>
@@ -313,6 +396,18 @@ Example format:
         const jsonInput = document.getElementById('json-input');
         const jsonStats = document.getElementById('json-stats');
         const statusEl = document.getElementById('status');
+        const mainButtonGroup = document.getElementById('main-button-group');
+
+        // Export elements
+        const exportSelectedBtn = document.getElementById('export-selected-btn');
+        const exportAllBtn = document.getElementById('export-all-btn');
+        const exportOutput = document.getElementById('export-output');
+        const copyJsonBtn = document.getElementById('copy-json-btn');
+        const downloadJsonBtn = document.getElementById('download-json-btn');
+        const selectionInfo = document.getElementById('selection-info');
+        const exportStats = document.getElementById('export-stats');
+
+        let currentExportData = null;
 
         // Tab switching
         tabs.forEach(tab => {
@@ -323,16 +418,96 @@ Example format:
                 tab.classList.add('active');
                 document.getElementById(`${tabName}-tab`).classList.add('active');
 
-                // Update button text
+                // Update button text and visibility
                 const buttonTexts = {
                     'ai': '🚀 Generate & Import',
                     'auto': '📥 Fetch & Import',
-                    'manual': '📋 Import JSON'
+                    'manual': '📋 Import JSON',
+                    'export': null // Hide main button for export tab
                 };
-                importBtn.textContent = buttonTexts[tabName] || 'Import';
+
+                if (tabName === 'export') {
+                    mainButtonGroup.style.display = 'none';
+                    // Request selection update when switching to export tab
+                    parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
+                } else {
+                    mainButtonGroup.style.display = 'flex';
+                    importBtn.textContent = buttonTexts[tabName] || 'Import';
+                }
+
                 resetButton();
                 hideStatus();
             });
+        });
+
+        // Export Selected button
+        exportSelectedBtn.addEventListener('click', () => {
+            exportSelectedBtn.disabled = true;
+            exportSelectedBtn.innerHTML = '<span class="loading"></span> Exporting...';
+            showStatus('📦 Exporting selected layers...', 'info');
+            parent.postMessage({ pluginMessage: { type: 'export-selected' } }, '*');
+        });
+
+        // Export All button
+        exportAllBtn.addEventListener('click', () => {
+            exportAllBtn.disabled = true;
+            exportAllBtn.innerHTML = '<span class="loading"></span> Exporting...';
+            showStatus('📄 Exporting all layers on page...', 'info');
+            parent.postMessage({ pluginMessage: { type: 'export-all' } }, '*');
+        });
+
+        // Copy to clipboard
+        copyJsonBtn.addEventListener('click', async () => {
+            if (!currentExportData) return;
+
+            try {
+                await navigator.clipboard.writeText(JSON.stringify(currentExportData, null, 2));
+                showStatus('✅ JSON copied to clipboard!', 'success');
+                copyJsonBtn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    copyJsonBtn.textContent = '📋 Copy to Clipboard';
+                }, 2000);
+            } catch (err) {
+                // Fallback for browsers that don't support clipboard API
+                const textarea = document.createElement('textarea');
+                textarea.value = JSON.stringify(currentExportData, null, 2);
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showStatus('✅ JSON copied to clipboard!', 'success');
+                copyJsonBtn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    copyJsonBtn.textContent = '📋 Copy to Clipboard';
+                }, 2000);
+            }
+        });
+
+        // Download JSON
+        downloadJsonBtn.addEventListener('click', () => {
+            if (!currentExportData) return;
+
+            const jsonString = JSON.stringify(currentExportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            // Generate filename from design name or timestamp
+            let filename = 'figma-design';
+            if (Array.isArray(currentExportData) && currentExportData.length > 0 && currentExportData[0].name) {
+                filename = currentExportData[0].name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+            } else if (currentExportData.name) {
+                filename = currentExportData.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+            }
+            a.download = `${filename}-${Date.now()}.json`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showStatus('✅ JSON file downloaded!', 'success');
         });
 
         // JSON validation on input
@@ -433,9 +608,27 @@ Example format:
             importBtn.innerHTML = buttonTexts[currentTab] || 'Import';
         }
 
+        function resetExportButtons() {
+            exportSelectedBtn.innerHTML = '📦 Export Selected';
+            exportAllBtn.innerHTML = '📄 Export All (Page)';
+            exportAllBtn.disabled = false;
+            // exportSelectedBtn state depends on selection
+        }
+
         function setLoading(message = 'Working...') {
             importBtn.disabled = true;
             importBtn.innerHTML = `<span class="loading"></span> ${message}`;
+        }
+
+        function updateExportOutput(data) {
+            currentExportData = data;
+            exportOutput.value = JSON.stringify(data, null, 2);
+            copyJsonBtn.disabled = false;
+            downloadJsonBtn.disabled = false;
+
+            // Calculate stats
+            const stats = analyzeJsonStructure(data);
+            exportStats.textContent = stats;
         }
 
         // Main import button click handler
@@ -599,8 +792,35 @@ Example format:
                     showStatus(`❌ Import failed: ${msg.error}`, 'error');
                     resetButton();
                     break;
+
+                case 'selection-changed':
+                    updateSelectionInfo(msg.selection);
+                    break;
+
+                case 'export-success':
+                    showStatus(`✅ Exported ${msg.nodeCount} node${msg.nodeCount !== 1 ? 's' : ''} successfully!`, 'success');
+                    updateExportOutput(msg.data);
+                    resetExportButtons();
+                    break;
+
+                case 'export-error':
+                    showStatus(`❌ Export failed: ${msg.error}`, 'error');
+                    resetExportButtons();
+                    break;
             }
         };
+
+        function updateSelectionInfo(selection) {
+            if (!selection || selection.count === 0) {
+                selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export specific elements, or export the entire page.';
+                exportSelectedBtn.disabled = true;
+            } else {
+                const names = selection.names.slice(0, 3).join(', ');
+                const moreText = selection.count > 3 ? ` and ${selection.count - 3} more` : '';
+                selectionInfo.innerHTML = `<strong>${selection.count} layer${selection.count !== 1 ? 's' : ''} selected:</strong> ${names}${moreText}`;
+                exportSelectedBtn.disabled = false;
+            }
+        }
 
         async function callBackendForClaude(userPrompt) {
             const BACKEND_URL = 'https://task-creator-api.onrender.com/api/designs/generate-from-text';
@@ -644,6 +864,11 @@ Example format:
                 throw error;
             }
         }
+
+        // Request initial selection info when the plugin loads
+        setTimeout(() => {
+            parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
+        }, 100);
     </script>
 </body>
 
