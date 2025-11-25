@@ -191,16 +191,14 @@ async function exportSelectedNodes() {
         throw new Error('No exportable layers found in selection.');
     }
 
-    // If only one node selected, return it directly; otherwise return array
-    const result = exportedNodes.length === 1 ? exportedNodes[0] : exportedNodes;
-
+    // Always return an array of objects
     figma.ui.postMessage({
         type: 'export-success',
-        data: result,
+        data: exportedNodes,
         nodeCount: totalNodeCount
     });
 
-    figma.notify(`✅ Exported ${totalNodeCount} node${totalNodeCount !== 1 ? 's' : ''}!`);
+    figma.notify(`✅ Exported ${exportedNodes.length} layer${exportedNodes.length !== 1 ? 's' : ''} (${totalNodeCount} total nodes)!`);
 }
 
 async function exportAllNodes() {
@@ -225,16 +223,14 @@ async function exportAllNodes() {
         throw new Error('No exportable layers found on page.');
     }
 
-    // If only one top-level node, return it directly; otherwise return array
-    const result = exportedNodes.length === 1 ? exportedNodes[0] : exportedNodes;
-
+    // Always return an array of objects
     figma.ui.postMessage({
         type: 'export-success',
-        data: result,
+        data: exportedNodes,
         nodeCount: totalNodeCount
     });
 
-    figma.notify(`✅ Exported ${totalNodeCount} node${totalNodeCount !== 1 ? 's' : ''} from page!`);
+    figma.notify(`✅ Exported ${exportedNodes.length} layer${exportedNodes.length !== 1 ? 's' : ''} (${totalNodeCount} total nodes) from page!`);
 }
 
 function countNodes(node: FigmaNodeData): number {
