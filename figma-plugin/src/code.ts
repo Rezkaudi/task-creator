@@ -1,4 +1,4 @@
-// code.ts - Fixed and Enhanced Version
+// code.ts - With Export Functionality
 
 // --- Interfaces for strict type checking ---
 interface FigmaColor {
@@ -75,9 +75,9 @@ interface FigmaNodeData {
     textAlignVertical?: 'TOP' | 'CENTER' | 'BOTTOM';
     lineHeight?: LineHeightData;
     letterSpacing?: LetterSpacingData;
-    textCase?: 'ORIGINAL' | 'UPPER' | 'LOWER' | 'TITLE';
+    textCase?: 'ORIGINAL' | 'UPPER' | 'LOWER' | 'TITLE' | 'SMALL_CAPS' | 'SMALL_CAPS_FORCED';
     textDecoration?: 'NONE' | 'STRIKETHROUGH' | 'UNDERLINE';
-    layoutMode?: 'NONE' | 'HORIZONTAL' | 'VERTICAL';
+    layoutMode?: 'NONE' | 'HORIZONTAL' | 'VERTICAL' | 'GRID';
     primaryAxisSizingMode?: 'FIXED' | 'AUTO';
     counterAxisSizingMode?: 'FIXED' | 'AUTO';
     primaryAxisAlignItems?: 'MIN' | 'CENTER' | 'MAX' | 'SPACE_BETWEEN';
@@ -90,7 +90,7 @@ interface FigmaNodeData {
     strokeWeight?: number;
     strokes?: FigmaFillData[];
     strokeAlign?: 'INSIDE' | 'OUTSIDE' | 'CENTER';
-    strokeCap?: 'NONE' | 'ROUND' | 'SQUARE' | 'ARROW_LINES' | 'ARROW_EQUILATERAL';
+    strokeCap?: 'NONE' | 'ROUND' | 'SQUARE' | 'ARROW_LINES' | 'ARROW_EQUILATERAL' | 'DIAMOND_FILLED' | 'TRIANGLE_FILLED' | 'CIRCLE_FILLED';
     strokeJoin?: 'MITER' | 'BEVEL' | 'ROUND';
     dashPattern?: number[];
     opacity?: number;
@@ -101,17 +101,14 @@ interface FigmaNodeData {
     visible?: boolean;
     locked?: boolean;
     rotation?: number;
-    // Additional properties for specific node types
     arcData?: { startingAngle: number; endingAngle: number; innerRadius: number };
     pointCount?: number;
     innerRadius?: number;
-    // Auto-layout specific
     layoutWrap?: 'NO_WRAP' | 'WRAP';
     counterAxisSpacing?: number;
     layoutGrow?: number;
     layoutAlign?: 'INHERIT' | 'STRETCH' | 'MIN' | 'CENTER' | 'MAX';
     layoutPositioning?: 'AUTO' | 'ABSOLUTE';
-    // Text specific
     textAutoResize?: 'NONE' | 'WIDTH_AND_HEIGHT' | 'HEIGHT' | 'TRUNCATE';
     paragraphIndent?: number;
     paragraphSpacing?: number;
@@ -121,6 +118,22 @@ interface FigmaNodeData {
 
 figma.showUI(__html__, { width: 500, height: 700, themeColors: true });
 
+// Listen for selection changes
+figma.on('selectionchange', () => {
+    sendSelectionInfo();
+});
+
+function sendSelectionInfo() {
+    const selection = figma.currentPage.selection;
+    figma.ui.postMessage({
+        type: 'selection-changed',
+        selection: {
+            count: selection.length,
+            names: selection.map(n => n.name)
+        }
+    });
+}
+
 figma.ui.onmessage = async (msg: { type: string, [key: string]: any }) => {
     const messageType = msg.type;
 
@@ -128,6 +141,9 @@ figma.ui.onmessage = async (msg: { type: string, [key: string]: any }) => {
         'design-generated-from-ai': () => importAiDesign(msg.designData),
         'generate-design-from-text': () => figma.ui.postMessage({ type: 'call-backend-for-claude', prompt: msg.prompt }),
         'import-design': () => importStandardDesign(msg.designData),
+        'export-selected': () => exportSelectedNodes(),
+        'export-all': () => exportAllNodes(),
+        'get-selection-info': () => sendSelectionInfo(),
         'cancel': () => figma.closePlugin(),
     };
 
@@ -142,10 +158,586 @@ figma.ui.onmessage = async (msg: { type: string, [key: string]: any }) => {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : `Failed to process: ${messageType}`;
             console.error(`Error during ${messageType}:`, error);
-            figma.ui.postMessage({ type: 'import-error', error: errorMessage });
+            if (messageType.startsWith('export')) {
+                figma.ui.postMessage({ type: 'export-error', error: errorMessage });
+            } else {
+                figma.ui.postMessage({ type: 'import-error', error: errorMessage });
+            }
         }
     }
 };
+
+// --- Export Functions ---
+
+async function exportSelectedNodes() {
+    const selection = figma.currentPage.selection;
+
+    if (selection.length === 0) {
+        throw new Error('No layers selected. Please select at least one layer to export.');
+    }
+
+    const exportedNodes: FigmaNodeData[] = [];
+    let totalNodeCount = 0;
+
+    for (const node of selection) {
+        const exported = exportNode(node);
+        if (exported) {
+            exportedNodes.push(exported);
+            totalNodeCount += countNodes(exported);
+        }
+    }
+
+    if (exportedNodes.length === 0) {
+        throw new Error('No exportable layers found in selection.');
+    }
+
+    // Always return an array of objects
+    figma.ui.postMessage({
+        type: 'export-success',
+        data: exportedNodes,
+        nodeCount: totalNodeCount
+    });
+
+    figma.notify(`✅ Exported ${exportedNodes.length} layer${exportedNodes.length !== 1 ? 's' : ''} (${totalNodeCount} total nodes)!`);
+}
+
+async function exportAllNodes() {
+    const pageChildren = figma.currentPage.children;
+
+    if (pageChildren.length === 0) {
+        throw new Error('No layers on current page to export.');
+    }
+
+    const exportedNodes: FigmaNodeData[] = [];
+    let totalNodeCount = 0;
+
+    for (const node of pageChildren) {
+        const exported = exportNode(node);
+        if (exported) {
+            exportedNodes.push(exported);
+            totalNodeCount += countNodes(exported);
+        }
+    }
+
+    if (exportedNodes.length === 0) {
+        throw new Error('No exportable layers found on page.');
+    }
+
+    // Always return an array of objects
+    figma.ui.postMessage({
+        type: 'export-success',
+        data: exportedNodes,
+        nodeCount: totalNodeCount
+    });
+
+    figma.notify(`✅ Exported ${exportedNodes.length} layer${exportedNodes.length !== 1 ? 's' : ''} (${totalNodeCount} total nodes) from page!`);
+}
+
+function countNodes(node: FigmaNodeData): number {
+    let count = 1;
+    if (node.children) {
+        for (const child of node.children) {
+            count += countNodes(child);
+        }
+    }
+    return count;
+}
+
+function exportNode(node: SceneNode): FigmaNodeData | null {
+    if (!node.visible && node.type !== 'COMPONENT') {
+        // Skip invisible nodes unless they're components
+        // return null;
+    }
+
+    const baseData: Partial<FigmaNodeData> = {
+        name: node.name,
+        type: mapNodeType(node.type),
+        x: Math.round(node.x * 100) / 100,
+        y: Math.round(node.y * 100) / 100,
+    };
+
+    // Add dimensions for nodes that have width/height
+    if ('width' in node && 'height' in node) {
+        baseData.width = Math.round(node.width * 100) / 100;
+        baseData.height = Math.round(node.height * 100) / 100;
+    }
+
+    // Add common properties
+    if ('opacity' in node && node.opacity !== 1) {
+        baseData.opacity = node.opacity;
+    }
+
+    if ('visible' in node && !node.visible) {
+        baseData.visible = false;
+    }
+
+    if ('locked' in node && node.locked) {
+        baseData.locked = true;
+    }
+
+    if ('rotation' in node && node.rotation !== 0) {
+        baseData.rotation = node.rotation;
+    }
+
+    if ('blendMode' in node && node.blendMode !== 'NORMAL' && node.blendMode !== 'PASS_THROUGH') {
+        baseData.blendMode = node.blendMode;
+    }
+
+    // Add fills
+    if ('fills' in node && node.fills !== figma.mixed) {
+        const fills = exportFills(node.fills as readonly Paint[]);
+        if (fills && fills.length > 0) {
+            baseData.fills = fills;
+        }
+    }
+
+    // Add strokes
+    if ('strokes' in node) {
+        const strokes = exportFills(node.strokes as readonly Paint[]);
+        if (strokes && strokes.length > 0) {
+            baseData.strokes = strokes;
+        }
+        if ('strokeWeight' in node && node.strokeWeight !== figma.mixed && node.strokeWeight !== 1) {
+            baseData.strokeWeight = node.strokeWeight as number;
+        }
+        if ('strokeAlign' in node && node.strokeAlign !== 'INSIDE') {
+            baseData.strokeAlign = node.strokeAlign;
+        }
+    }
+
+    // Add corner radius
+    if ('cornerRadius' in node) {
+        if (node.cornerRadius !== figma.mixed && node.cornerRadius !== 0) {
+            baseData.cornerRadius = node.cornerRadius;
+        } else if (node.cornerRadius === figma.mixed) {
+            // Individual corner radii
+            if ('topLeftRadius' in node) {
+                if (node.topLeftRadius !== 0) baseData.topLeftRadius = node.topLeftRadius;
+                if ((node as any).topRightRadius !== 0) baseData.topRightRadius = (node as any).topRightRadius;
+                if ((node as any).bottomLeftRadius !== 0) baseData.bottomLeftRadius = (node as any).bottomLeftRadius;
+                if ((node as any).bottomRightRadius !== 0) baseData.bottomRightRadius = (node as any).bottomRightRadius;
+            }
+        }
+    }
+
+    // Add effects
+    if ('effects' in node && node.effects.length > 0) {
+        const effects = exportEffects(node.effects);
+        if (effects && effects.length > 0) {
+            baseData.effects = effects;
+        }
+    }
+
+    // Add constraints
+    if ('constraints' in node) {
+        const constraints = node.constraints;
+        if (constraints.horizontal !== 'MIN' || constraints.vertical !== 'MIN') {
+            baseData.constraints = constraints;
+        }
+    }
+
+    // Handle specific node types
+    switch (node.type) {
+        case 'FRAME':
+        case 'COMPONENT':
+        case 'COMPONENT_SET':
+        case 'INSTANCE':
+            return exportFrameNode(node as FrameNode | ComponentNode | InstanceNode, baseData);
+
+        case 'GROUP':
+            return exportGroupNode(node as GroupNode, baseData);
+
+        case 'RECTANGLE':
+            return { ...baseData, type: 'RECTANGLE' } as FigmaNodeData;
+
+        case 'ELLIPSE':
+            return exportEllipseNode(node as EllipseNode, baseData);
+
+        case 'TEXT':
+            return exportTextNode(node as TextNode, baseData);
+
+        case 'LINE':
+            return exportLineNode(node as LineNode, baseData);
+
+        case 'VECTOR':
+            return { ...baseData, type: 'VECTOR' } as FigmaNodeData;
+
+        case 'POLYGON':
+            return exportPolygonNode(node as PolygonNode, baseData);
+
+        case 'STAR':
+            return exportStarNode(node as StarNode, baseData);
+
+        case 'BOOLEAN_OPERATION':
+            return exportBooleanNode(node as BooleanOperationNode, baseData);
+
+        default:
+            // For unsupported types, try to export as generic node
+            console.warn(`Unsupported node type: ${node.type}`);
+            return { ...baseData, type: 'FRAME' } as FigmaNodeData;
+    }
+}
+
+function mapNodeType(type: string): FigmaNodeData['type'] {
+    const typeMap: { [key: string]: FigmaNodeData['type'] } = {
+        'FRAME': 'FRAME',
+        'GROUP': 'GROUP',
+        'RECTANGLE': 'RECTANGLE',
+        'TEXT': 'TEXT',
+        'ELLIPSE': 'ELLIPSE',
+        'VECTOR': 'VECTOR',
+        'LINE': 'LINE',
+        'POLYGON': 'POLYGON',
+        'STAR': 'STAR',
+        'COMPONENT': 'COMPONENT',
+        'COMPONENT_SET': 'FRAME',
+        'INSTANCE': 'INSTANCE',
+        'BOOLEAN_OPERATION': 'BOOLEAN_OPERATION',
+    };
+    return typeMap[type] || 'FRAME';
+}
+
+function exportFrameNode(node: FrameNode | ComponentNode | InstanceNode, baseData: Partial<FigmaNodeData>): FigmaNodeData {
+    const frameData: Partial<FigmaNodeData> = { ...baseData };
+
+    // Map component types
+    if (node.type === 'COMPONENT') {
+        frameData.type = 'COMPONENT';
+    } else if (node.type === 'INSTANCE') {
+        frameData.type = 'INSTANCE';
+    } else {
+        frameData.type = 'FRAME';
+    }
+
+    // Clips content
+    if ('clipsContent' in node && node.clipsContent !== true) {
+        frameData.clipsContent = node.clipsContent;
+    }
+
+    // Auto-layout properties (skip GRID as it's not fully supported in JSON export)
+    if (node.layoutMode !== 'NONE' && node.layoutMode !== 'GRID') {
+        frameData.layoutMode = node.layoutMode;
+
+        if (node.itemSpacing !== 0) {
+            frameData.itemSpacing = node.itemSpacing;
+        }
+
+        if (node.paddingTop !== 0) frameData.paddingTop = node.paddingTop;
+        if (node.paddingRight !== 0) frameData.paddingRight = node.paddingRight;
+        if (node.paddingBottom !== 0) frameData.paddingBottom = node.paddingBottom;
+        if (node.paddingLeft !== 0) frameData.paddingLeft = node.paddingLeft;
+
+        if (node.primaryAxisAlignItems !== 'MIN') {
+            frameData.primaryAxisAlignItems = node.primaryAxisAlignItems;
+        }
+        if (node.counterAxisAlignItems !== 'MIN') {
+            frameData.counterAxisAlignItems = node.counterAxisAlignItems;
+        }
+        if (node.primaryAxisSizingMode !== 'FIXED') {
+            frameData.primaryAxisSizingMode = node.primaryAxisSizingMode;
+        }
+        if (node.counterAxisSizingMode !== 'FIXED') {
+            frameData.counterAxisSizingMode = node.counterAxisSizingMode;
+        }
+
+        // Layout wrap (newer Figma feature)
+        if ('layoutWrap' in node && (node as any).layoutWrap !== 'NO_WRAP') {
+            frameData.layoutWrap = (node as any).layoutWrap;
+        }
+        if ('counterAxisSpacing' in node && (node as any).counterAxisSpacing !== 0) {
+            frameData.counterAxisSpacing = (node as any).counterAxisSpacing;
+        }
+    }
+
+    // Export children
+    if ('children' in node && node.children.length > 0) {
+        const children: FigmaNodeData[] = [];
+        for (const child of node.children) {
+            const exportedChild = exportNode(child);
+            if (exportedChild) {
+                children.push(exportedChild);
+            }
+        }
+        if (children.length > 0) {
+            frameData.children = children;
+        }
+    }
+
+    return frameData as FigmaNodeData;
+}
+
+function exportGroupNode(node: GroupNode, baseData: Partial<FigmaNodeData>): FigmaNodeData {
+    const groupData: Partial<FigmaNodeData> = {
+        ...baseData,
+        type: 'GROUP'
+    };
+
+    // Export children
+    if (node.children.length > 0) {
+        const children: FigmaNodeData[] = [];
+        for (const child of node.children) {
+            const exportedChild = exportNode(child);
+            if (exportedChild) {
+                children.push(exportedChild);
+            }
+        }
+        if (children.length > 0) {
+            groupData.children = children;
+        }
+    }
+
+    return groupData as FigmaNodeData;
+}
+
+function exportTextNode(node: TextNode, baseData: Partial<FigmaNodeData>): FigmaNodeData {
+    const textData: Partial<FigmaNodeData> = {
+        ...baseData,
+        type: 'TEXT',
+        characters: node.characters
+    };
+
+    // Font properties (handle mixed fonts)
+    if (node.fontSize !== figma.mixed) {
+        textData.fontSize = node.fontSize;
+    }
+
+    if (node.fontName !== figma.mixed) {
+        textData.fontName = {
+            family: node.fontName.family,
+            style: node.fontName.style
+        };
+    }
+
+    // Text alignment
+    if (node.textAlignHorizontal !== 'LEFT') {
+        textData.textAlignHorizontal = node.textAlignHorizontal;
+    }
+    if (node.textAlignVertical !== 'TOP') {
+        textData.textAlignVertical = node.textAlignVertical;
+    }
+
+    // Line height
+    if (node.lineHeight !== figma.mixed) {
+        if (node.lineHeight.unit === 'AUTO') {
+            textData.lineHeight = { unit: 'AUTO' };
+        } else {
+            textData.lineHeight = {
+                unit: node.lineHeight.unit,
+                value: node.lineHeight.value
+            };
+        }
+    }
+
+    // Letter spacing
+    if (node.letterSpacing !== figma.mixed && node.letterSpacing.value !== 0) {
+        textData.letterSpacing = {
+            unit: node.letterSpacing.unit,
+            value: node.letterSpacing.value
+        };
+    }
+
+    // Text decoration (handle mixed)
+    if (node.textDecoration !== figma.mixed && node.textDecoration !== 'NONE') {
+        textData.textDecoration = node.textDecoration;
+    }
+
+    // Text case (handle mixed and all valid values)
+    if (node.textCase !== figma.mixed && node.textCase !== 'ORIGINAL') {
+        const validTextCases = ['UPPER', 'LOWER', 'TITLE', 'SMALL_CAPS', 'SMALL_CAPS_FORCED'];
+        if (validTextCases.includes(node.textCase)) {
+            textData.textCase = node.textCase as FigmaNodeData['textCase'];
+        }
+    }
+
+    // Text auto resize
+    if (node.textAutoResize !== 'WIDTH_AND_HEIGHT') {
+        textData.textAutoResize = node.textAutoResize;
+    }
+
+    // Paragraph settings
+    if (node.paragraphIndent !== 0) {
+        textData.paragraphIndent = node.paragraphIndent;
+    }
+    if (node.paragraphSpacing !== 0) {
+        textData.paragraphSpacing = node.paragraphSpacing;
+    }
+
+    return textData as FigmaNodeData;
+}
+
+function exportEllipseNode(node: EllipseNode, baseData: Partial<FigmaNodeData>): FigmaNodeData {
+    const ellipseData: Partial<FigmaNodeData> = {
+        ...baseData,
+        type: 'ELLIPSE'
+    };
+
+    // Arc data for partial ellipses
+    if (node.arcData.startingAngle !== 0 ||
+        node.arcData.endingAngle !== 2 * Math.PI ||
+        node.arcData.innerRadius !== 0) {
+        ellipseData.arcData = {
+            startingAngle: node.arcData.startingAngle,
+            endingAngle: node.arcData.endingAngle,
+            innerRadius: node.arcData.innerRadius
+        };
+    }
+
+    return ellipseData as FigmaNodeData;
+}
+
+function exportLineNode(node: LineNode, baseData: Partial<FigmaNodeData>): FigmaNodeData {
+    const lineData: Partial<FigmaNodeData> = {
+        ...baseData,
+        type: 'LINE'
+    };
+
+    // Handle strokeCap (can be figma.mixed)
+    if (node.strokeCap !== figma.mixed && node.strokeCap !== 'NONE') {
+        const validStrokeCaps = ['ROUND', 'SQUARE', 'ARROW_LINES', 'ARROW_EQUILATERAL', 'DIAMOND_FILLED', 'TRIANGLE_FILLED', 'CIRCLE_FILLED'];
+        if (validStrokeCaps.includes(node.strokeCap)) {
+            lineData.strokeCap = node.strokeCap as FigmaNodeData['strokeCap'];
+        }
+    }
+
+    if (node.dashPattern.length > 0) {
+        lineData.dashPattern = [...node.dashPattern];
+    }
+
+    return lineData as FigmaNodeData;
+}
+
+function exportPolygonNode(node: PolygonNode, baseData: Partial<FigmaNodeData>): FigmaNodeData {
+    const polygonData: Partial<FigmaNodeData> = {
+        ...baseData,
+        type: 'POLYGON'
+    };
+
+    if (node.pointCount !== 3) {
+        polygonData.pointCount = node.pointCount;
+    }
+
+    return polygonData as FigmaNodeData;
+}
+
+function exportStarNode(node: StarNode, baseData: Partial<FigmaNodeData>): FigmaNodeData {
+    const starData: Partial<FigmaNodeData> = {
+        ...baseData,
+        type: 'STAR'
+    };
+
+    if (node.pointCount !== 5) {
+        starData.pointCount = node.pointCount;
+    }
+
+    if (node.innerRadius !== 0.382) { // Default inner radius for 5-point star
+        starData.innerRadius = node.innerRadius;
+    }
+
+    return starData as FigmaNodeData;
+}
+
+function exportBooleanNode(node: BooleanOperationNode, baseData: Partial<FigmaNodeData>): FigmaNodeData {
+    const booleanData: Partial<FigmaNodeData> = {
+        ...baseData,
+        type: 'BOOLEAN_OPERATION'
+    };
+
+    // Export children
+    if (node.children.length > 0) {
+        const children: FigmaNodeData[] = [];
+        for (const child of node.children) {
+            const exportedChild = exportNode(child);
+            if (exportedChild) {
+                children.push(exportedChild);
+            }
+        }
+        if (children.length > 0) {
+            booleanData.children = children;
+        }
+    }
+
+    return booleanData as FigmaNodeData;
+}
+
+function exportFills(paints: readonly Paint[]): FigmaFillData[] | null {
+    if (!paints || paints.length === 0) return null;
+
+    const fills: FigmaFillData[] = [];
+
+    for (const paint of paints) {
+        if (paint.type === 'SOLID') {
+            fills.push({
+                type: 'SOLID',
+                visible: paint.visible !== false,
+                opacity: paint.opacity ?? 1,
+                blendMode: paint.blendMode || 'NORMAL',
+                color: {
+                    r: Math.round(paint.color.r * 1000) / 1000,
+                    g: Math.round(paint.color.g * 1000) / 1000,
+                    b: Math.round(paint.color.b * 1000) / 1000
+                }
+            });
+        } else if (paint.type.startsWith('GRADIENT')) {
+            fills.push({
+                type: paint.type as FigmaFillData['type'],
+                visible: paint.visible !== false,
+                opacity: paint.opacity ?? 1,
+                blendMode: paint.blendMode || 'NORMAL',
+                gradientStops: (paint as GradientPaint).gradientStops.map(stop => ({
+                    position: stop.position,
+                    color: {
+                        r: Math.round(stop.color.r * 1000) / 1000,
+                        g: Math.round(stop.color.g * 1000) / 1000,
+                        b: Math.round(stop.color.b * 1000) / 1000,
+                        a: stop.color.a
+                    }
+                })),
+                gradientTransform: (paint as GradientPaint).gradientTransform as number[][]
+            });
+        }
+        // Skip image fills as they can't be easily exported to JSON
+    }
+
+    return fills.length > 0 ? fills : null;
+}
+
+function exportEffects(effects: readonly Effect[]): EffectData[] | null {
+    if (!effects || effects.length === 0) return null;
+
+    const exportedEffects: EffectData[] = [];
+
+    for (const effect of effects) {
+        if (effect.type === 'DROP_SHADOW' || effect.type === 'INNER_SHADOW') {
+            const shadowEffect = effect as DropShadowEffect | InnerShadowEffect;
+            exportedEffects.push({
+                type: effect.type,
+                visible: effect.visible,
+                radius: shadowEffect.radius,
+                color: {
+                    r: Math.round(shadowEffect.color.r * 1000) / 1000,
+                    g: Math.round(shadowEffect.color.g * 1000) / 1000,
+                    b: Math.round(shadowEffect.color.b * 1000) / 1000,
+                    a: shadowEffect.color.a
+                },
+                offset: {
+                    x: shadowEffect.offset.x,
+                    y: shadowEffect.offset.y
+                },
+                spread: shadowEffect.spread,
+                blendMode: shadowEffect.blendMode
+            });
+        } else if (effect.type === 'LAYER_BLUR' || effect.type === 'BACKGROUND_BLUR') {
+            const blurEffect = effect as BlurEffect;
+            exportedEffects.push({
+                type: effect.type,
+                visible: effect.visible,
+                radius: blurEffect.radius
+            });
+        }
+    }
+
+    return exportedEffects.length > 0 ? exportedEffects : null;
+}
 
 // --- Design Import Functions ---
 
@@ -580,39 +1172,31 @@ async function createTextNode(nodeData: FigmaNodeData): Promise<TextNode> {
     }
 
     // Text auto resize
-    // MODIFICATION: Major overhaul of text sizing logic for Auto Layout.
-// This is the core fix for text truncation.
-// The logic now correctly sets textAutoResize based on whether the text is inside an Auto Layout container
-// and whether a fixed width has been provided.
-const isParentAutoLayout = nodeData.layoutAlign || typeof nodeData.layoutGrow === 'number';
+    const isParentAutoLayout = nodeData.layoutAlign || typeof nodeData.layoutGrow === 'number';
 
-if (isParentAutoLayout) {
-    // If inside Auto Layout and a width is provided, set to 'HEIGHT' to allow wrapping.
-    if (nodeData.width && nodeData.width > 0) {
-        textNode.textAutoResize = 'HEIGHT';
-        textNode.resize(nodeData.width, textNode.height || 1); // Set initial width, height will be calculated.
+    if (isParentAutoLayout) {
+        if (nodeData.width && nodeData.width > 0) {
+            textNode.textAutoResize = 'HEIGHT';
+            textNode.resize(nodeData.width, textNode.height || 1);
+        } else {
+            textNode.textAutoResize = 'WIDTH_AND_HEIGHT';
+        }
     } else {
-        // If no width is provided, let it expand horizontally.
-        textNode.textAutoResize = 'WIDTH_AND_HEIGHT';
+        if (nodeData.width && nodeData.height) {
+            textNode.textAutoResize = 'NONE';
+            textNode.resize(nodeData.width, nodeData.height);
+        } else if (nodeData.width) {
+            textNode.textAutoResize = 'HEIGHT';
+            textNode.resize(nodeData.width, textNode.height || 1);
+        } else {
+            textNode.textAutoResize = 'WIDTH_AND_HEIGHT';
+        }
     }
-} else {
-    // If not in Auto Layout, use the old logic.
-    if (nodeData.width && nodeData.height) {
-        textNode.textAutoResize = 'NONE';
-        textNode.resize(nodeData.width, nodeData.height);
-    } else if (nodeData.width) {
-        textNode.textAutoResize = 'HEIGHT';
-        textNode.resize(nodeData.width, textNode.height || 1);
-    } else {
-        textNode.textAutoResize = 'WIDTH_AND_HEIGHT';
-    }
-}
 
-// Apply fills (text color)
-applyFills(textNode, nodeData.fills);
+    // Apply fills (text color)
+    applyFills(textNode, nodeData.fills);
 
-return textNode;
-
+    return textNode;
 }
 
 async function createEllipseNode(nodeData: FigmaNodeData): Promise<EllipseNode> {
