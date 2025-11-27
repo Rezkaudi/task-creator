@@ -4,12 +4,24 @@
     "module": "commonjs",
     "lib": ["ES2017", "DOM"],
     "outDir": "./dist",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["@figma/plugin-typings"]
+    "types": ["@figma/plugin-typings"],
+    "baseUrl": "./src",
+    "paths": {
+      "@domain/*": ["domain/*"],
+      "@application/*": ["application/*"],
+      "@infrastructure/*": ["infrastructure/*"],
+      "@presentation/*": ["presentation/*"],
+      "@shared/*": ["shared/*"]
+    },
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "code.ts"],
   "exclude": ["node_modules", "dist"]
 }
