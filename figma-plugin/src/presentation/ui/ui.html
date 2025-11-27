@@ -342,7 +342,7 @@
     <div id="auto-tab" class="tab-content">
       <div class="input-group">
         <label for="api-url">API Endpoint URL</label>
-        <input type="url" id="api-url" value="http://localhost:5000/api/tasks/latest-design"
+        <input type="url" id="api-url" value="https://task-creator-api.onrender.com/api/tasks/latest-design"
           placeholder="https://api.example.com/design" />
         <p class="helper-text">Enter the URL that returns Figma-compatible JSON.</p>
       </div>
@@ -823,7 +823,7 @@ Example format:
     }
 
     async function callBackendForClaude(userPrompt) {
-      const BACKEND_URL = 'http://localhost:5000/api/designs/generate-from-text';
+      const BACKEND_URL = 'https://task-creator-api.onrender.com/api/designs/generate-from-text';
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
