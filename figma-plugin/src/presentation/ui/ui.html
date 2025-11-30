@@ -58,7 +58,8 @@
       margin-bottom: 8px;
     }
 
-    input[type="url"] {
+    input[type="url"],
+    input[type="text"] {
       width: 100%;
       padding: 12px;
       border: 2px solid #e5e7eb;
@@ -67,7 +68,8 @@
       transition: border-color 0.3s;
     }
 
-    input[type="url"]:focus {
+    input[type="url"]:focus,
+    input[type="text"]:focus {
       outline: none;
       border-color: #6366f1;
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
@@ -76,7 +78,7 @@
     textarea {
       width: 100%;
       flex: 1;
-      min-height: 150px;
+      min-height: 120px;
       padding: 12px;
       border: 2px solid #e5e7eb;
       border-radius: 8px;
@@ -145,6 +147,22 @@
     .btn-success:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-small {
+      padding: 8px 12px;
+      font-size: 12px;
+      flex: none;
     }
 
     button:disabled {
@@ -285,7 +303,7 @@
 
     .export-output textarea {
       flex: 1;
-      min-height: 200px;
+      min-height: 150px;
     }
 
     .copy-btn-wrapper {
@@ -317,20 +335,143 @@
       color: #6b7280;
       margin-top: 8px;
     }
+
+    /* Version list styles */
+    .versions-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .versions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .versions-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .versions-list {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .version-item {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .version-item:last-child {
+      border-bottom: none;
+    }
+
+    .version-item:hover {
+      background: #f9fafb;
+    }
+
+    .version-item.selected {
+      background: #eef2ff;
+      border-left: 3px solid #6366f1;
+    }
+
+    .version-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .version-number {
+      font-weight: 700;
+      color: #6366f1;
+      font-size: 14px;
+    }
+
+    .version-date {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .version-description {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .version-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .version-actions button {
+      flex: 1;
+    }
+
+    .save-version-form {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .save-version-form label {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .save-version-form input {
+      margin-bottom: 12px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+    }
+
+    .refresh-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
     <h1>🎨 Design Tool</h1>
-    <p class="subtitle">Import, Export, or Generate designs with AI</p>
+    <p class="subtitle">Import, Export, Generate, and Version Control</p>
     <div id="status" class="status"></div>
     <div class="tabs">
       <button class="tab active" data-tab="ai">🤖 AI Generate</button>
       <button class="tab" data-tab="auto">🔗 Fetch API</button>
       <button class="tab" data-tab="manual">📋 Paste JSON</button>
       <button class="tab" data-tab="export">📤 Export</button>
+      <button class="tab" data-tab="versions">💾 Versions</button>
     </div>
+
+    <!-- AI Generate Tab -->
     <div id="ai-tab" class="tab-content active">
       <div class="input-group">
         <label for="ai-prompt">Describe the design you want</label>
@@ -339,6 +480,8 @@
         <p class="helper-text">Be specific about colors, layout, and elements you want.</p>
       </div>
     </div>
+
+    <!-- Auto Fetch Tab -->
     <div id="auto-tab" class="tab-content">
       <div class="input-group">
         <label for="api-url">API Endpoint URL</label>
@@ -347,24 +490,17 @@
         <p class="helper-text">Enter the URL that returns Figma-compatible JSON.</p>
       </div>
     </div>
+
+    <!-- Manual JSON Tab -->
     <div id="manual-tab" class="tab-content">
       <div class="input-group">
         <label for="json-input">Design JSON</label>
-        <textarea id="json-input" placeholder='Paste your Figma design JSON here...
-
-Example format:
-{
-  "name": "My Frame",
-  "type": "FRAME",
-  "x": 0,
-  "y": 0,
-  "width": 400,
-  "height": 300,
-  "fills": [{"type": "SOLID", "color": {"r": 1, "g": 1, "b": 1}}]
-}'></textarea>
+        <textarea id="json-input" placeholder='Paste your Figma design JSON here...'></textarea>
         <div id="json-stats" class="json-stats"></div>
       </div>
     </div>
+
+    <!-- Export Tab -->
     <div id="export-tab" class="tab-content">
       <div id="selection-info" class="selection-info">
         <strong>No selection.</strong> Select layers to export specific elements, or export the entire page.
@@ -375,21 +511,68 @@ Example format:
       </div>
       <div class="export-output">
         <label for="export-output">Exported JSON</label>
-        <textarea id="export-output" readonly
-          placeholder="Click 'Export Selected' or 'Export All' to generate JSON..."></textarea>
+        <textarea id="export-output" readonly placeholder="Click 'Export' to generate JSON..."></textarea>
         <div id="export-stats" class="export-stats"></div>
         <div class="copy-btn-wrapper">
-          <button id="copy-json-btn" class="btn-secondary" disabled>📋 Copy to Clipboard</button>
-          <button id="download-json-btn" class="btn-secondary" disabled>💾 Download JSON</button>
+          <button id="copy-json-btn" class="btn-secondary" disabled>📋 Copy</button>
+          <button id="download-json-btn" class="btn-secondary" disabled>💾 Download</button>
+          <button id="save-to-db-btn" class="btn-primary" disabled>💾 Save to DB</button>
         </div>
       </div>
     </div>
+
+    <!-- Versions Tab -->
+    <div id="versions-tab" class="tab-content">
+      <div class="versions-container">
+        <div class="versions-header">
+          <h3>📚 Saved Design Versions</h3>
+          <button id="refresh-versions-btn" class="btn-secondary refresh-btn">🔄 Refresh</button>
+        </div>
+        <div id="versions-list" class="versions-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the database.</div>
+          </div>
+        </div>
+        <div id="selected-version-actions" class="version-actions" style="display: none;">
+          <button id="import-version-btn" class="btn-primary">📥 Import to Figma</button>
+          <button id="delete-version-btn" class="btn-danger">🗑️ Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main button group -->
     <div class="button-group" id="main-button-group">
       <button id="import-btn" class="btn-primary">🚀 Generate & Import</button>
       <button id="cancel-btn" class="btn-secondary">Cancel</button>
     </div>
   </div>
+
+  <!-- Save to DB Modal -->
+  <div id="save-modal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div
+      style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 400px;">
+      <h3 style="margin-bottom: 16px; font-size: 18px; color: #374151;">💾 Save Design Version</h3>
+      <label for="save-description"
+        style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #374151;">Description</label>
+      <textarea id="save-description"
+        style="width: 100%; height: 80px; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"
+        placeholder="Enter a description for this version (e.g., 'Initial homepage design', 'Updated with new color scheme')"></textarea>
+      <div style="display: flex; gap: 12px;">
+        <button id="confirm-save-btn" class="btn-primary" style="flex: 1;">Save</button>
+        <button id="cancel-save-btn" class="btn-secondary" style="flex: 1;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Configuration
+    const API_BASE_URL = 'https://task-creator-api.onrender.com';
+    // For local development:
+    // const API_BASE_URL = 'http://localhost:5000';
+
+    // Elements
     const importBtn = document.getElementById('import-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const tabs = document.querySelectorAll('.tab');
@@ -404,10 +587,26 @@ Example format:
     const exportOutput = document.getElementById('export-output');
     const copyJsonBtn = document.getElementById('copy-json-btn');
     const downloadJsonBtn = document.getElementById('download-json-btn');
+    const saveToDbBtn = document.getElementById('save-to-db-btn');
     const selectionInfo = document.getElementById('selection-info');
     const exportStats = document.getElementById('export-stats');
 
+    // Version elements
+    const versionsList = document.getElementById('versions-list');
+    const refreshVersionsBtn = document.getElementById('refresh-versions-btn');
+    const selectedVersionActions = document.getElementById('selected-version-actions');
+    const importVersionBtn = document.getElementById('import-version-btn');
+    const deleteVersionBtn = document.getElementById('delete-version-btn');
+
+    // Modal elements
+    const saveModal = document.getElementById('save-modal');
+    const saveDescription = document.getElementById('save-description');
+    const confirmSaveBtn = document.getElementById('confirm-save-btn');
+    const cancelSaveBtn = document.getElementById('cancel-save-btn');
+
     let currentExportData = null;
+    let selectedVersionId = null;
+    let versionsCache = [];
 
     // Tab switching
     tabs.forEach(tab => {
@@ -418,18 +617,19 @@ Example format:
         tab.classList.add('active');
         document.getElementById(`${tabName}-tab`).classList.add('active');
 
-        // Update button text and visibility
         const buttonTexts = {
           'ai': '🚀 Generate & Import',
           'auto': '📥 Fetch & Import',
           'manual': '📋 Import JSON',
-          'export': null // Hide main button for export tab
+          'export': null,
+          'versions': null
         };
 
-        if (tabName === 'export') {
+        if (tabName === 'export' || tabName === 'versions') {
           mainButtonGroup.style.display = 'none';
-          // Request selection update when switching to export tab
-          parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
+          if (tabName === 'versions') {
+            loadVersions();
+          }
         } else {
           mainButtonGroup.style.display = 'flex';
           importBtn.textContent = buttonTexts[tabName] || 'Import';
@@ -440,7 +640,203 @@ Example format:
       });
     });
 
-    // Export Selected button
+    // ==================== VERSION MANAGEMENT ====================
+
+    async function loadVersions() {
+      try {
+        showStatus('📡 Loading versions...', 'info');
+        refreshVersionsBtn.disabled = true;
+        refreshVersionsBtn.innerHTML = '<span class="loading"></span>';
+
+        const response = await fetch(`${API_BASE_URL}/api/design-versions`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to load versions');
+        }
+
+        versionsCache = data.versions;
+        renderVersionsList(data.versions);
+        hideStatus();
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+        versionsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <div class="empty-state-text">Failed to load versions.<br>Check your connection and try again.</div>
+          </div>
+        `;
+      } finally {
+        refreshVersionsBtn.disabled = false;
+        refreshVersionsBtn.innerHTML = '🔄 Refresh';
+      }
+    }
+
+    function renderVersionsList(versions) {
+      if (!versions || versions.length === 0) {
+        versionsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the database.</div>
+          </div>
+        `;
+        selectedVersionActions.style.display = 'none';
+        return;
+      }
+
+      versionsList.innerHTML = versions.map(v => `
+        <div class="version-item ${selectedVersionId === v.id ? 'selected' : ''}" data-id="${v.id}">
+          <div class="version-header">
+            <span class="version-number">v${v.version}</span>
+            <span class="version-date">${formatDate(v.createdAt)}</span>
+          </div>
+          <div class="version-description">${escapeHtml(v.description)}</div>
+        </div>
+      `).join('');
+
+      // Add click handlers
+      document.querySelectorAll('.version-item').forEach(item => {
+        item.addEventListener('click', () => selectVersion(parseInt(item.dataset.id)));
+      });
+    }
+
+    function selectVersion(id) {
+      selectedVersionId = id;
+      document.querySelectorAll('.version-item').forEach(item => {
+        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
+      });
+      selectedVersionActions.style.display = 'flex';
+    }
+
+    async function saveVersionToDb(description, designJson) {
+      try {
+        showStatus('💾 Saving to database...', 'info');
+        confirmSaveBtn.disabled = true;
+        confirmSaveBtn.innerHTML = '<span class="loading"></span> Saving...';
+
+        const response = await fetch(`${API_BASE_URL}/api/design-versions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description, designJson })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to save version');
+        }
+
+        showStatus(`✅ Saved as version ${data.version.version}!`, 'success');
+        saveModal.style.display = 'none';
+        saveDescription.value = '';
+
+        // Refresh versions list if on that tab
+        if (document.querySelector('.tab[data-tab="versions"]').classList.contains('active')) {
+          loadVersions();
+        }
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+      } finally {
+        confirmSaveBtn.disabled = false;
+        confirmSaveBtn.innerHTML = 'Save';
+      }
+    }
+
+    async function importVersionFromDb(id) {
+      try {
+        showStatus('📥 Loading version...', 'info');
+        importVersionBtn.disabled = true;
+        importVersionBtn.innerHTML = '<span class="loading"></span> Loading...';
+
+        const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to load version');
+        }
+
+        showStatus('✅ Importing to Figma...', 'info');
+        parent.postMessage({
+          pluginMessage: {
+            type: 'import-version',
+            designJson: data.version.designJson
+          }
+        }, '*');
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+        importVersionBtn.disabled = false;
+        importVersionBtn.innerHTML = '📥 Import to Figma';
+      }
+    }
+
+    async function deleteVersion(id) {
+      if (!confirm('Are you sure you want to delete this version? This cannot be undone.')) {
+        return;
+      }
+
+      try {
+        showStatus('🗑️ Deleting version...', 'info');
+        deleteVersionBtn.disabled = true;
+        deleteVersionBtn.innerHTML = '<span class="loading"></span>';
+
+        const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to delete version');
+        }
+
+        showStatus('✅ Version deleted!', 'success');
+        selectedVersionId = null;
+        selectedVersionActions.style.display = 'none';
+        loadVersions();
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+      } finally {
+        deleteVersionBtn.disabled = false;
+        deleteVersionBtn.innerHTML = '🗑️ Delete';
+      }
+    }
+
+    // Version button handlers
+    refreshVersionsBtn.addEventListener('click', loadVersions);
+    importVersionBtn.addEventListener('click', () => {
+      if (selectedVersionId) importVersionFromDb(selectedVersionId);
+    });
+    deleteVersionBtn.addEventListener('click', () => {
+      if (selectedVersionId) deleteVersion(selectedVersionId);
+    });
+
+    // Save to DB button
+    saveToDbBtn.addEventListener('click', () => {
+      if (!currentExportData) {
+        showStatus('⚠️ No design data to save. Export first.', 'warning');
+        return;
+      }
+      saveModal.style.display = 'block';
+      saveDescription.focus();
+    });
+
+    // Modal handlers
+    confirmSaveBtn.addEventListener('click', () => {
+      const description = saveDescription.value.trim();
+      if (!description) {
+        showStatus('⚠️ Please enter a description', 'warning');
+        return;
+      }
+      saveVersionToDb(description, currentExportData);
+    });
+
+    cancelSaveBtn.addEventListener('click', () => {
+      saveModal.style.display = 'none';
+      saveDescription.value = '';
+    });
+
+    // ==================== EXPORT FUNCTIONS ====================
+
     exportSelectedBtn.addEventListener('click', () => {
       exportSelectedBtn.disabled = true;
       exportSelectedBtn.innerHTML = '<span class="loading"></span> Exporting...';
@@ -448,7 +844,6 @@ Example format:
       parent.postMessage({ pluginMessage: { type: 'export-selected' } }, '*');
     });
 
-    // Export All button
     exportAllBtn.addEventListener('click', () => {
       exportAllBtn.disabled = true;
       exportAllBtn.innerHTML = '<span class="loading"></span> Exporting...';
@@ -456,136 +851,44 @@ Example format:
       parent.postMessage({ pluginMessage: { type: 'export-all' } }, '*');
     });
 
-    // Copy to clipboard
     copyJsonBtn.addEventListener('click', async () => {
       if (!currentExportData) return;
-
       try {
         await navigator.clipboard.writeText(JSON.stringify(currentExportData, null, 2));
-        showStatus('✅ JSON copied to clipboard!', 'success');
+        showStatus('✅ Copied to clipboard!', 'success');
         copyJsonBtn.textContent = '✅ Copied!';
-        setTimeout(() => {
-          copyJsonBtn.textContent = '📋 Copy to Clipboard';
-        }, 2000);
+        setTimeout(() => copyJsonBtn.textContent = '📋 Copy', 2000);
       } catch (err) {
-        // Fallback for browsers that don't support clipboard API
         const textarea = document.createElement('textarea');
         textarea.value = JSON.stringify(currentExportData, null, 2);
         document.body.appendChild(textarea);
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        showStatus('✅ JSON copied to clipboard!', 'success');
-        copyJsonBtn.textContent = '✅ Copied!';
-        setTimeout(() => {
-          copyJsonBtn.textContent = '📋 Copy to Clipboard';
-        }, 2000);
+        showStatus('✅ Copied to clipboard!', 'success');
       }
     });
 
-    // Download JSON
     downloadJsonBtn.addEventListener('click', () => {
       if (!currentExportData) return;
-
       const jsonString = JSON.stringify(currentExportData, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-
-      // Generate filename from design name or timestamp
       let filename = 'figma-design';
-      if (Array.isArray(currentExportData) && currentExportData.length > 0 && currentExportData[0].name) {
+      if (Array.isArray(currentExportData) && currentExportData[0]?.name) {
         filename = currentExportData[0].name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-      } else if (currentExportData.name) {
-        filename = currentExportData.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
       }
       a.download = `${filename}-${Date.now()}.json`;
-
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-
-      showStatus('✅ JSON file downloaded!', 'success');
+      showStatus('✅ Downloaded!', 'success');
     });
 
-    // JSON validation on input
-    jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
-
-    function debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
-    }
-
-    function validateJsonInput() {
-      const value = jsonInput.value.trim();
-      if (!value) {
-        jsonInput.classList.remove('error', 'valid');
-        jsonStats.textContent = '';
-        jsonStats.classList.remove('error');
-        return null;
-      }
-
-      try {
-        const parsed = JSON.parse(value);
-        const stats = analyzeJsonStructure(parsed);
-        jsonInput.classList.remove('error');
-        jsonInput.classList.add('valid');
-        jsonStats.classList.remove('error');
-        jsonStats.textContent = stats;
-        return parsed;
-      } catch (e) {
-        jsonInput.classList.remove('valid');
-        jsonInput.classList.add('error');
-        jsonStats.classList.add('error');
-        jsonStats.textContent = `❌ Invalid JSON: ${e.message}`;
-        return null;
-      }
-    }
-
-    function analyzeJsonStructure(data) {
-      let nodeCount = 0;
-      let frameCount = 0;
-      let textCount = 0;
-      let otherCount = 0;
-
-      function countNodes(node) {
-        if (!node || typeof node !== 'object') return;
-
-        if (Array.isArray(node)) {
-          node.forEach(countNodes);
-          return;
-        }
-
-        if (node.type) {
-          nodeCount++;
-          if (node.type === 'FRAME' || node.type === 'GROUP') frameCount++;
-          else if (node.type === 'TEXT') textCount++;
-          else otherCount++;
-        }
-
-        if (node.children && Array.isArray(node.children)) {
-          node.children.forEach(countNodes);
-        }
-        if (node.data) countNodes(node.data);
-      }
-
-      countNodes(data);
-
-      if (nodeCount === 0) {
-        return '⚠️ No Figma nodes detected in JSON';
-      }
-
-      return `✅ Valid JSON: ${nodeCount} node${nodeCount !== 1 ? 's' : ''} (${frameCount} frame${frameCount !== 1 ? 's' : ''}, ${textCount} text, ${otherCount} other)`;
-    }
+    // ==================== UTILITY FUNCTIONS ====================
 
     function showStatus(message, type) {
       statusEl.textContent = message;
@@ -612,7 +915,6 @@ Example format:
       exportSelectedBtn.innerHTML = '📦 Export Selected';
       exportAllBtn.innerHTML = '📄 Export All (Page)';
       exportAllBtn.disabled = false;
-      // exportSelectedBtn state depends on selection
     }
 
     function setLoading(message = 'Working...') {
@@ -625,24 +927,95 @@ Example format:
       exportOutput.value = JSON.stringify(data, null, 2);
       copyJsonBtn.disabled = false;
       downloadJsonBtn.disabled = false;
-
-      // Calculate stats
+      saveToDbBtn.disabled = false;
       const stats = analyzeJsonStructure(data);
       exportStats.textContent = stats;
     }
 
-    // Main import button click handler
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+      };
+    }
+
+    function validateJsonInput() {
+      const value = jsonInput.value.trim();
+      if (!value) {
+        jsonInput.classList.remove('error', 'valid');
+        jsonStats.textContent = '';
+        return null;
+      }
+      try {
+        const parsed = JSON.parse(value);
+        const stats = analyzeJsonStructure(parsed);
+        jsonInput.classList.remove('error');
+        jsonInput.classList.add('valid');
+        jsonStats.classList.remove('error');
+        jsonStats.textContent = stats;
+        return parsed;
+      } catch (e) {
+        jsonInput.classList.remove('valid');
+        jsonInput.classList.add('error');
+        jsonStats.classList.add('error');
+        jsonStats.textContent = `❌ Invalid JSON: ${e.message}`;
+        return null;
+      }
+    }
+
+    function analyzeJsonStructure(data) {
+      let nodeCount = 0, frameCount = 0, textCount = 0, otherCount = 0;
+      function countNodes(node) {
+        if (!node || typeof node !== 'object') return;
+        if (Array.isArray(node)) { node.forEach(countNodes); return; }
+        if (node.type) {
+          nodeCount++;
+          if (node.type === 'FRAME' || node.type === 'GROUP') frameCount++;
+          else if (node.type === 'TEXT') textCount++;
+          else otherCount++;
+        }
+        if (node.children) node.children.forEach(countNodes);
+        if (node.data) countNodes(node.data);
+      }
+      countNodes(data);
+      if (nodeCount === 0) return '⚠️ No Figma nodes detected';
+      return `✅ ${nodeCount} nodes (${frameCount} frames, ${textCount} text, ${otherCount} other)`;
+    }
+
+    function updateSelectionInfo(selection) {
+      if (!selection || selection.count === 0) {
+        selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export, or export entire page.';
+        exportSelectedBtn.disabled = true;
+      } else {
+        const names = selection.names.slice(0, 3).join(', ');
+        const more = selection.count > 3 ? ` and ${selection.count - 3} more` : '';
+        selectionInfo.innerHTML = `<strong>${selection.count} layer${selection.count !== 1 ? 's' : ''} selected:</strong> ${names}${more}`;
+        exportSelectedBtn.disabled = false;
+      }
+    }
+
+    // ==================== MAIN IMPORT HANDLERS ====================
+
+    jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
+
     importBtn.addEventListener('click', async () => {
       const activeTab = document.querySelector('.tab.active').dataset.tab;
-
       try {
-        if (activeTab === 'ai') {
-          await handleAiGeneration();
-        } else if (activeTab === 'auto') {
-          await handleApiFetch();
-        } else {
-          await handleManualJson();
-        }
+        if (activeTab === 'ai') await handleAiGeneration();
+        else if (activeTab === 'auto') await handleApiFetch();
+        else await handleManualJson();
       } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
         resetButton();
@@ -651,120 +1024,68 @@ Example format:
 
     async function handleAiGeneration() {
       const prompt = document.getElementById('ai-prompt').value.trim();
-      if (!prompt) {
-        throw new Error('Please describe the design you want to generate.');
-      }
-      if (prompt.length < 10) {
-        throw new Error('Please provide a more detailed description (at least 10 characters).');
-      }
-
+      if (!prompt) throw new Error('Please describe the design you want.');
+      if (prompt.length < 10) throw new Error('Please provide more detail (at least 10 characters).');
       setLoading('Generating with AI...');
-      showStatus('🤖 Generating design with AI. This may take a moment...', 'info');
+      showStatus('🤖 Generating design with AI...', 'info');
       parent.postMessage({ pluginMessage: { type: 'generate-design-from-text', prompt } }, '*');
     }
 
     async function handleApiFetch() {
       const apiUrl = document.getElementById('api-url').value.trim();
-      if (!apiUrl) {
-        throw new Error('Please enter an API URL.');
-      }
-
-      // Basic URL validation
-      try {
-        new URL(apiUrl);
-      } catch (e) {
-        throw new Error('Please enter a valid URL (e.g., https://api.example.com/design)');
-      }
-
+      if (!apiUrl) throw new Error('Please enter an API URL.');
+      try { new URL(apiUrl); } catch (e) { throw new Error('Please enter a valid URL'); }
       setLoading('Fetching design...');
-      showStatus('📡 Fetching design from API...', 'info');
-
+      showStatus('📡 Fetching from API...', 'info');
       const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (contentType && !contentType.includes('application/json')) {
-        showStatus('⚠️ Response may not be JSON. Attempting to parse anyway...', 'warning');
-      }
-
-      let result;
-      try {
-        result = await response.json();
-      } catch (e) {
-        throw new Error('Failed to parse API response as JSON.');
-      }
-
-      // Handle various response formats
-      let designData = result;
-      if (result.success === false) {
-        throw new Error(result.message || result.error || 'API returned an error.');
-      }
-      if (result.data) {
-        designData = result.data;
-      } else if (result.design) {
-        designData = result.design;
-      } else if (result.result) {
-        designData = result.result;
-      }
-
-      if (!designData || (typeof designData === 'object' && Object.keys(designData).length === 0)) {
-        throw new Error('No design data received from API.');
-      }
-
-      showStatus('✅ Design fetched! Importing to Figma...', 'info');
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      let result = await response.json();
+      let designData = result.data || result.design || result.result || result;
+      if (!designData || Object.keys(designData).length === 0) throw new Error('No design data received.');
+      showStatus('✅ Importing to Figma...', 'info');
       parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
     }
 
     async function handleManualJson() {
       const jsonValue = jsonInput.value.trim();
-      if (!jsonValue) {
-        throw new Error('Please paste your design JSON.');
-      }
-
+      if (!jsonValue) throw new Error('Please paste your design JSON.');
       let designData;
-      try {
-        designData = JSON.parse(jsonValue);
-      } catch (e) {
-        throw new Error(`Invalid JSON: ${e.message}`);
-      }
-
-      // Validate that it looks like Figma data
-      const hasValidStructure = validateFigmaStructure(designData);
-      if (!hasValidStructure) {
-        showStatus('⚠️ JSON may not be valid Figma format. Attempting import anyway...', 'warning');
-      }
-
+      try { designData = JSON.parse(jsonValue); } catch (e) { throw new Error(`Invalid JSON: ${e.message}`); }
       setLoading('Importing...');
-      showStatus('📋 Importing design to Figma...', 'info');
+      showStatus('📋 Importing to Figma...', 'info');
       parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
     }
 
-    function validateFigmaStructure(data) {
-      if (!data || typeof data !== 'object') return false;
-
-      function checkNode(node) {
-        if (Array.isArray(node)) {
-          return node.some(checkNode);
+    async function callBackendForClaude(userPrompt) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/designs/generate-from-text`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: userPrompt }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          let errorMessage = `Server error: ${response.status}`;
+          try { const err = await response.json(); errorMessage = err.message || err.error || errorMessage; } catch (e) { }
+          throw new Error(errorMessage);
         }
-        if (node && typeof node === 'object') {
-          if (node.type && typeof node.type === 'string') return true;
-          if (node.data) return checkNode(node.data);
-          if (node.children) return checkNode(node.children);
-        }
-        return false;
+        const result = await response.json();
+        return result.design || result.data || result;
+      } catch (error) {
+        if (error.name === 'AbortError') throw new Error('Request timed out.');
+        throw error;
       }
-
-      return checkNode(data);
     }
 
-    // Cancel button
     cancelBtn.addEventListener('click', () => {
       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
     });
 
-    // Handle messages from the plugin backend
+    // ==================== PLUGIN MESSAGES ====================
+
     window.onmessage = async (event) => {
       const msg = event.data.pluginMessage;
       if (!msg) return;
@@ -783,14 +1104,15 @@ Example format:
         case 'import-success':
           showStatus('✅ Design imported successfully!', 'success');
           resetButton();
-          setTimeout(() => {
-            parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-          }, 2500);
+          importVersionBtn.disabled = false;
+          importVersionBtn.innerHTML = '📥 Import to Figma';
           break;
 
         case 'import-error':
           showStatus(`❌ Import failed: ${msg.error}`, 'error');
           resetButton();
+          importVersionBtn.disabled = false;
+          importVersionBtn.innerHTML = '📥 Import to Figma';
           break;
 
         case 'selection-changed':
@@ -798,7 +1120,7 @@ Example format:
           break;
 
         case 'export-success':
-          showStatus(`✅ Exported ${msg.nodeCount} node${msg.nodeCount !== 1 ? 's' : ''} successfully!`, 'success');
+          showStatus(`✅ Exported ${msg.nodeCount} nodes!`, 'success');
           updateExportOutput(msg.data);
           resetExportButtons();
           break;
@@ -810,62 +1132,7 @@ Example format:
       }
     };
 
-    function updateSelectionInfo(selection) {
-      if (!selection || selection.count === 0) {
-        selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export specific elements, or export the entire page.';
-        exportSelectedBtn.disabled = true;
-      } else {
-        const names = selection.names.slice(0, 3).join(', ');
-        const moreText = selection.count > 3 ? ` and ${selection.count - 3} more` : '';
-        selectionInfo.innerHTML = `<strong>${selection.count} layer${selection.count !== 1 ? 's' : ''} selected:</strong> ${names}${moreText}`;
-        exportSelectedBtn.disabled = false;
-      }
-    }
-
-    async function callBackendForClaude(userPrompt) {
-      const BACKEND_URL = 'https://task-creator-api.onrender.com/api/designs/generate-from-text';
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
-
-      try {
-        const response = await fetch(BACKEND_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: userPrompt }),
-          signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          let errorMessage = `Server error: ${response.status}`;
-          try {
-            const errorResult = await response.json();
-            errorMessage = errorResult.message || errorResult.error || errorMessage;
-          } catch (e) {
-            // Use default error message
-          }
-          throw new Error(errorMessage);
-        }
-
-        const result = await response.json();
-
-        // Handle various response formats from the backend
-        if (result.design) return result.design;
-        if (result.data) return result.data;
-        if (result.type) return result; // Direct node data
-
-        return result;
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          throw new Error('Request timed out. Please try again.');
-        }
-        throw error;
-      }
-    }
-
-    // Request initial selection info when the plugin loads
+    // Initial setup
     setTimeout(() => {
       parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
     }, 100);

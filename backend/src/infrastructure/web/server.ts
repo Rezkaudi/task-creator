@@ -6,6 +6,7 @@ import { corsOptions } from '../config/cors.config';
 import taskRoutes from './routes/task.routes';
 import trelloRoutes from './routes/trello.routes';
 import designRoutes from './routes/design.routes';
+import designVersionRoutes from './routes/design-version.routes';
 
 import { setupDependencies } from './dependencies';
 
@@ -25,8 +26,8 @@ export class Server {
 
   private configureMiddleware(): void {
     this.app.use(cors(corsOptions));
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(express.json({ limit: '50mb' })); // Increased limit for large design JSON
+    this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   }
 
   private configureRoutes(): void {
@@ -35,11 +36,11 @@ export class Server {
       res.send('Task Creator API is running');
     });
 
-
+    // Routes
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
-
+    this.app.use('/api/design-versions', designVersionRoutes(this.container.designVersionController));
   }
 
   private configureErrorHandling(): void {
@@ -61,7 +62,7 @@ export class Server {
 
   public async start(): Promise<void> {
     this.app.listen(this.port, () => {
-      console.log(`Server running on port ${this.port}`);
+      console.log(`🚀 Server running on port ${this.port}`);
     });
   }
 

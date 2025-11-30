@@ -1,12 +1,17 @@
 {
   "name": "task-creator",
   "version": "1.0.0",
-  "description": "",
+  "description": "Task Creator API with Design Version Management",
   "main": "dist/src/index.js",
   "scripts": {
     "start": "node dist/src/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "tsc && cp -r ./public ./dist"
+    "build": "tsc && cp -r ./public ./dist",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npm run typeorm -- migration:generate ./src/infrastructure/database/migrations/migrations -d ./src/infrastructure/database/data-source.ts",
+    "migration:run": "npm run typeorm migration:run -- -d ./src/infrastructure/database/data-source.ts",
+    "migration:revert": "npm run typeorm migration:revert -- -d ./src/infrastructure/database/data-source.ts",
+    "migration:show": "npm run typeorm migration:show -- -d ./src/infrastructure/database/data-source.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +31,9 @@
     "express-validator": "^7.2.1",
     "node-fetch": "^3.3.2",
     "openai": "^5.20.0",
+    "pg": "^8.14.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20",
     "zod": "^3.24.1"
   },
   "devDependencies": {

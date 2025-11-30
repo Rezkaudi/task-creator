@@ -18,7 +18,7 @@ export class PluginMessageHandler {
     private readonly importAIDesignUseCase: ImportAIDesignUseCase,
     private readonly exportSelectedUseCase: ExportSelectedUseCase,
     private readonly exportAllUseCase: ExportAllUseCase
-  ) {}
+  ) { }
 
   /**
    * Initialize the message handler
@@ -55,6 +55,12 @@ export class PluginMessageHandler {
 
       case 'cancel':
         this.uiPort.close();
+        break;
+
+      // Version management is handled directly in UI (HTTP calls)
+      // These are just for importing version JSON to canvas
+      case 'import-version':
+        await this.handleImportVersion(message.designJson);
         break;
 
       default:
@@ -130,6 +136,21 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({
         type: 'export-error',
         error: result.error || 'Export failed',
+      });
+    }
+  }
+
+  private async handleImportVersion(designJson: unknown): Promise<void> {
+    const result = await this.importDesignUseCase.execute(designJson);
+
+    if (result.success) {
+      this.notificationPort.notify('✅ Version imported successfully!');
+      this.uiPort.postMessage({ type: 'import-success' });
+    } else {
+      this.notificationPort.notifyError(result.error || 'Import failed');
+      this.uiPort.postMessage({
+        type: 'import-error',
+        error: result.error || 'Import failed',
       });
     }
   }

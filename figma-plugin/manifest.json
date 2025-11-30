@@ -13,6 +13,6 @@
       "http://localhost:8080",
       "https://api.anthropic.com"
     ],
-    "reasoning": "Allows the plugin to communicate with the backend API for task creation and design generation."
+    "reasoning": "Allows the plugin to communicate with the backend API for task creation, design generation, and version management."
   }
 }
