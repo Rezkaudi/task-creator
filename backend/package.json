@@ -17,7 +17,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node-fetch": "^2.6.13",
     "axios": "^1.12.1",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
@@ -29,7 +28,6 @@
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
     "express-validator": "^7.2.1",
-    "node-fetch": "^3.3.2",
     "openai": "^5.20.0",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",
