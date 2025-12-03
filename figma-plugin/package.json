@@ -4,8 +4,8 @@
   "description": "Figma plugin to import AI-generated designs from Task Creator - Clean Architecture",
   "main": "dist/code.js",
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --outfile=dist/code.js --target=es2017 && npm run copy-html",
-    "copy-html": "cp src/presentation/ui/ui.html dist/ui.html",
+    "build": "esbuild src/main.ts --bundle --outfile=dist/code.js --target=es2017 && npm run copy-ui",
+    "copy-ui": "cp src/presentation/ui/ui.html dist/ui.html && cp src/presentation/ui/ui.css dist/ui.css && cp src/presentation/ui/ui.js dist/ui.js",
     "watch": "npm run build -- --watch",
     "clean": "rm -rf dist",
     "rebuild": "npm run clean && npm run build"
@@ -21,6 +21,7 @@
   "license": "MIT",
   "devDependencies": {
     "@figma/plugin-typings": "^1.119.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "esbuild": "^0.27.1"
   }
 }

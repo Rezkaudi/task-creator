@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 import { IClaudeGenerator, ConversationMessage, DesignGenerationResult } from '../../domain/services/IClaudeGenerator';
@@ -17,7 +16,7 @@ export class ClaudeService implements IClaudeGenerator {
     private systemPrompt: string;
     private readonly apiUrl = 'https://api.anthropic.com/v1/messages';
 
-    constructor( ) {
+    constructor() {
         this.apiKey = ENV_CONFIG.CLOUDE_API_KEY!;
         this.cloudeModel = ENV_CONFIG.CLOUDE_MODEL;
 
@@ -135,7 +134,7 @@ export class ClaudeService implements IClaudeGenerator {
 
 Here is the JSON data:
 ${JSON.stringify(designJson, null, 2)}`;
-        
+
         const response = await fetch(this.apiUrl, {
             method: 'POST',
             headers: {
@@ -165,12 +164,12 @@ ${JSON.stringify(designJson, null, 2)}`;
         if (htmlContent.startsWith('```html')) {
             htmlContent = htmlContent.substring(7, htmlContent.length - 3).trim();
         } else if (htmlContent.startsWith('```')) {
-             htmlContent = htmlContent.substring(3, htmlContent.length - 3).trim();
+            htmlContent = htmlContent.substring(3, htmlContent.length - 3).trim();
         }
-        
+
         return htmlContent;
     }
-  
+
 
     private buildConversationMessages(
         currentMessage: string,
@@ -212,7 +211,7 @@ The login page was created using the blue button with the search email and passw
 ...
 }`;
     }
-    
+
     private extractDesignFromResponse(response: string): any {
         try {
             const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -225,7 +224,7 @@ The login page was created using the blue button with the search email and passw
             return null;
         }
     }
-   
+
     private extractMessageFromResponse(response: string): string {
         try {
             const beforeJson = response.split('{')[0].trim();
