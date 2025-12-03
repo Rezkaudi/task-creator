@@ -20,7 +20,7 @@ export interface DesignVersionFull extends DesignVersionInfo {
 }
 
 /**
- * Messages that can be sent to the UI
+ * Messages that can be sent to the UI (UIMessage)
  */
 export type UIMessage =
   | { type: 'selection-changed'; selection: SelectionInfo }
@@ -36,10 +36,12 @@ export type UIMessage =
   | { type: 'version-deleted'; id: number }
   | { type: 'version-delete-error'; error: string }
   | { type: 'version-loaded'; version: DesignVersionFull }
-  | { type: 'version-load-error'; error: string };
+  | { type: 'version-load-error'; error: string }
+  | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null }
+  | { type: 'ai-chat-error'; error: string };
 
 /**
- * Messages received from the UI
+ * Messages received from the UI (PluginMessage)
  */
 export type PluginMessage =
   | { type: 'design-generated-from-ai'; designData: unknown }
@@ -49,6 +51,8 @@ export type PluginMessage =
   | { type: 'export-all' }
   | { type: 'get-selection-info' }
   | { type: 'cancel' }
+  | { type: 'ai-chat-message'; message: string; history?: Array<{ role: string; content: string }> }
+  | { type: 'import-design-from-chat'; designData: unknown }
   // Version management messages
   | { type: 'load-versions' }
   | { type: 'save-version'; description: string; designJson: any }
@@ -57,26 +61,11 @@ export type PluginMessage =
   | { type: 'import-version'; designJson: any };
 
 /**
- * UI Port interface for communication with the UI layer
+ * UI Port interface
  */
 export interface IUIPort {
-  /**
-   * Send a message to the UI
-   */
   postMessage(message: UIMessage): void;
-
-  /**
-   * Show the UI window
-   */
   show(options: { width: number; height: number; themeColors: boolean }): void;
-
-  /**
-   * Close the plugin
-   */
   close(): void;
-
-  /**
-   * Register a message handler
-   */
   onMessage(handler: (message: PluginMessage) => void): void;
 }

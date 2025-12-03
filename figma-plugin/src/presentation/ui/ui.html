@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Task Creator Design Importer</title>
+  <title>Design Tool Pro - Complete</title>
   <style>
     * {
       box-sizing: border-box;
@@ -455,12 +455,218 @@
       padding: 6px 12px;
       font-size: 12px;
     }
+
+    /* AI Chat Styles */
+    #ai-chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 300px;
+      max-height: calc(100vh - 280px);
+    }
+
+    .message {
+      display: flex;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message.assistant {
+      justify-content: flex-start;
+    }
+
+    .message-content {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .message-content {
+      background: white;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Design Preview */
+    .design-preview {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .design-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .design-preview-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6366f1;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .expand-btn,
+    .import-to-figma-btn {
+      padding: 6px 12px;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .expand-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .import-to-figma-btn {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+
+    .expand-btn:hover,
+    .import-to-figma-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .design-preview-visual {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-top: 8px;
+      min-height: 180px;
+      max-height: 350px;
+      overflow: auto;
+      position: relative;
+    }
+
+    .loading-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    #chat-input-container {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      transition: border-color 0.3s;
+    }
+
+    #chat-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    #chat-send-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      height: 44px;
+    }
+
+    #chat-send-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .chat-hint {
+      font-size: 11px;
+      color: #9ca3af;
+      text-align: center;
+      margin-top: 6px;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>🎨 Design Tool</h1>
+    <h1>🎨 Design Tool Pro</h1>
     <p class="subtitle">Import, Export, Generate, and Version Control</p>
     <div id="status" class="status"></div>
     <div class="tabs">
@@ -471,13 +677,22 @@
       <button class="tab" data-tab="versions">💾 Versions</button>
     </div>
 
-    <!-- AI Generate Tab -->
+    <!-- AI Chat Tab -->
     <div id="ai-tab" class="tab-content active">
-      <div class="input-group">
-        <label for="ai-prompt">Describe the design you want</label>
-        <textarea id="ai-prompt"
-          placeholder="e.g., 'A modern login page with email and password fields, a blue login button, and a forgot password link. Include a logo at the top.'"></textarea>
-        <p class="helper-text">Be specific about colors, layout, and elements you want.</p>
+      <div id="ai-chat-container">
+        <div id="chat-messages">
+          <div class="message assistant">
+            <div class="message-content">
+              <div>Hi! Describe your design and I'll create it for you. 🎨</div>
+            </div>
+          </div>
+        </div>
+        <div id="chat-input-container">
+          <textarea id="chat-input" placeholder="e.g. Create a login page with email and password fields..."
+            rows="1"></textarea>
+          <button id="chat-send-btn">Send</button>
+        </div>
+        <div class="chat-hint">Press Enter to send • Shift + Enter for new line</div>
       </div>
     </div>
 
@@ -495,7 +710,18 @@
     <div id="manual-tab" class="tab-content">
       <div class="input-group">
         <label for="json-input">Design JSON</label>
-        <textarea id="json-input" placeholder='Paste your Figma design JSON here...'></textarea>
+        <textarea id="json-input" placeholder='Paste your Figma design JSON here...
+
+Example format:
+{
+  "name": "My Frame",
+  "type": "FRAME",
+  "x": 0,
+  "y": 0,
+  "width": 400,
+  "height": 300,
+  "fills": [{"type": "SOLID", "color": {"r": 1, "g": 1, "b": 1}}]
+}'></textarea>
         <div id="json-stats" class="json-stats"></div>
       </div>
     </div>
@@ -531,7 +757,8 @@
         <div id="versions-list" class="versions-list">
           <div class="empty-state">
             <div class="empty-state-icon">📭</div>
-            <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the database.</div>
+            <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the
+              database.</div>
           </div>
         </div>
         <div id="selected-version-actions" class="version-actions" style="display: none;">
@@ -572,7 +799,16 @@
     // For local development:
     // const API_BASE_URL = 'http://localhost:5000';
 
-    // Elements
+    // ==================== STATE ====================
+    let chatMessages = [];
+    let conversationHistory = [];
+    let currentDesignData = null;
+    let isGenerating = false;
+    let currentExportData = null;
+    let selectedVersionId = null;
+    let versionsCache = [];
+
+    // ==================== ELEMENTS ====================
     const importBtn = document.getElementById('import-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const tabs = document.querySelectorAll('.tab');
@@ -580,6 +816,11 @@
     const jsonStats = document.getElementById('json-stats');
     const statusEl = document.getElementById('status');
     const mainButtonGroup = document.getElementById('main-button-group');
+
+    // AI Chat elements
+    const chatMessagesEl = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSendBtn = document.getElementById('chat-send-btn');
 
     // Export elements
     const exportSelectedBtn = document.getElementById('export-selected-btn');
@@ -604,10 +845,6 @@
     const confirmSaveBtn = document.getElementById('confirm-save-btn');
     const cancelSaveBtn = document.getElementById('cancel-save-btn');
 
-    let currentExportData = null;
-    let selectedVersionId = null;
-    let versionsCache = [];
-
     // Tab switching
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -630,6 +867,8 @@
           if (tabName === 'versions') {
             loadVersions();
           }
+        } else if (tabName === 'ai') {
+          mainButtonGroup.style.display = 'none';
         } else {
           mainButtonGroup.style.display = 'flex';
           importBtn.textContent = buttonTexts[tabName] || 'Import';
@@ -639,6 +878,199 @@
         hideStatus();
       });
     });
+
+    // ==================== AI CHAT FUNCTIONS ====================
+    chatSendBtn.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+
+    function sendChatMessage() {
+      const message = chatInput.value.trim();
+      if (!message || isGenerating) return;
+
+      addMessage('user', message);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      isGenerating = true;
+      chatSendBtn.disabled = true;
+
+      conversationHistory.push({ role: 'user', content: message });
+      addMessage('assistant', 'Creating your design...', true);
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'ai-chat-message',
+          message: message,
+          history: conversationHistory
+        }
+      }, '*');
+    }
+
+    function addMessage(role, content, isLoading = false) {
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${role}`;
+      const contentEl = document.createElement('div');
+      contentEl.className = 'message-content';
+
+      if (isLoading) {
+        contentEl.innerHTML = `
+                    <div class="loading-indicator">
+                        <div class="spinner"></div>
+                        <span>${content}</span>
+                    </div>
+                `;
+      } else {
+        contentEl.innerHTML = `<div>${content}</div>`;
+      }
+
+      messageEl.appendChild(contentEl);
+      chatMessagesEl.appendChild(messageEl);
+      chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      chatMessages.push({ role, content, timestamp: new Date() });
+    }
+
+    function removeLoadingMessages() {
+      const loadingEls = chatMessagesEl.querySelectorAll('.loading-indicator');
+      loadingEls.forEach(el => el.closest('.message').remove());
+    }
+
+    function addDesignPreview(designData, previewHtml = null) {
+      const lastMessage = chatMessagesEl.lastElementChild;
+      if (!lastMessage || !lastMessage.classList.contains('assistant')) return;
+
+      const contentEl = lastMessage.querySelector('.message-content');
+      if (!contentEl || contentEl.querySelector('.design-preview')) return;
+
+      const previewEl = document.createElement('div');
+      previewEl.className = 'design-preview';
+      const uniqueId = 'import-btn-' + Date.now();
+      const expandId = 'expand-btn-' + Date.now();
+
+      const visualContent = previewHtml || '<div style="padding: 40px; color: #999;">Preview unavailable</div>';
+
+      previewEl.innerHTML = `
+                <div class="design-preview-header">
+                    <span class="design-preview-title">✨ Design Preview</span>
+                    <div class="preview-actions">
+                        <button class="expand-btn" id="${expandId}">🔍 Expand</button>
+                        <button class="import-to-figma-btn" id="${uniqueId}" ${!designData ? 'disabled' : ''}>
+                            Import to Figma
+                        </button>
+                    </div>
+                </div>
+                <div class="design-preview-visual">
+                    ${visualContent}
+                </div>
+            `;
+
+      contentEl.appendChild(previewEl);
+
+      const expandBtn = document.getElementById(expandId);
+      expandBtn.addEventListener('click', () => {
+        const popup = window.open('', '_blank',
+          'width=1200,height=800,location=no,menubar=no,toolbar=no,scrollbars=yes');
+
+        if (popup) {
+          popup.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Design Preview - Full Screen</title>
+                            <style>
+                                body {
+                                    margin: 0;
+                                    padding: 20px;
+                                    background: #f5f5f5;
+                                    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                                }
+                                .popup-container {
+                                    max-width: 100%;
+                                    background: white;
+                                    border-radius: 12px;
+                                    padding: 20px;
+                                    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+                                }
+                                .popup-preview {
+                                    max-height: 70vh;
+                                    overflow: auto;
+                                    padding: 15px;
+                                    background: #f9fafb;
+                                    border-radius: 8px;
+                                    border: 1px solid #e5e7eb;
+                                }
+                                .popup-actions {
+                                    margin-top: 20px;
+                                    display: flex;
+                                    gap: 12px;
+                                }
+                                .popup-btn {
+                                    padding: 10px 20px;
+                                    border-radius: 8px;
+                                    border: none;
+                                    cursor: pointer;
+                                    font-weight: 600;
+                                }
+                                .popup-import {
+                                    background: #6366f1;
+                                    color: white;
+                                }
+                                .popup-close {
+                                    background: #6b7280;
+                                    color: white;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="popup-container">
+                                <h2>Design Preview - Full Screen</h2>
+                                <div class="popup-preview">
+                                    ${previewHtml}
+                                </div>
+                                <div class="popup-actions">
+                                    <button class="popup-btn popup-import" onclick="importDesign()">
+                                        Import to Figma
+                                    </button>
+                                    <button class="popup-btn popup-close" onclick="window.close()">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                            <script>
+                                function importDesign() {
+                                    window.opener.postMessage({
+                                        pluginMessage: {
+                                            type: 'import-design-from-chat',
+                                            designData: ${JSON.stringify(designData)}
+                                        }
+                                    }, '*');
+                                    window.close();
+                                }
+                            <\/script>
+                        </body>
+                        </html>
+                    `);
+          popup.document.close();
+        }
+      });
+
+      const importButton = document.getElementById(uniqueId);
+      if (importButton && designData) {
+        importButton.addEventListener('click', () => {
+          importButton.disabled = true;
+          importButton.textContent = 'Importing...';
+          parent.postMessage({
+            pluginMessage: {
+              type: 'import-design-from-chat',
+              designData: designData
+            }
+          }, '*');
+        });
+      }
+    }
 
     // ==================== VERSION MANAGEMENT ====================
 
@@ -661,11 +1093,11 @@
       } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
         versionsList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">⚠️</div>
-            <div class="empty-state-text">Failed to load versions.<br>Check your connection and try again.</div>
-          </div>
-        `;
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Failed to load versions.<br>Check your connection and try again.</div>
+                    </div>
+                `;
       } finally {
         refreshVersionsBtn.disabled = false;
         refreshVersionsBtn.innerHTML = '🔄 Refresh';
@@ -675,24 +1107,24 @@
     function renderVersionsList(versions) {
       if (!versions || versions.length === 0) {
         versionsList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">📭</div>
-            <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the database.</div>
-          </div>
-        `;
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the database.</div>
+                    </div>
+                `;
         selectedVersionActions.style.display = 'none';
         return;
       }
 
       versionsList.innerHTML = versions.map(v => `
-        <div class="version-item ${selectedVersionId === v.id ? 'selected' : ''}" data-id="${v.id}">
-          <div class="version-header">
-            <span class="version-number">v${v.version}</span>
-            <span class="version-date">${formatDate(v.createdAt)}</span>
-          </div>
-          <div class="version-description">${escapeHtml(v.description)}</div>
-        </div>
-      `).join('');
+                <div class="version-item ${selectedVersionId === v.id ? 'selected' : ''}" data-id="${v.id}">
+                    <div class="version-header">
+                        <span class="version-number">v${v.version}</span>
+                        <span class="version-date">${formatDate(v.createdAt)}</span>
+                    </div>
+                    <div class="version-description">${escapeHtml(v.description)}</div>
+                </div>
+            `).join('');
 
       // Add click handlers
       document.querySelectorAll('.version-item').forEach(item => {
@@ -1006,6 +1438,17 @@
       }
     }
 
+    function handleExportSuccess(msg) {
+      currentExportData = msg.data;
+      exportOutput.value = JSON.stringify(msg.data, null, 2);
+      copyJsonBtn.disabled = false;
+      downloadJsonBtn.disabled = false;
+      saveToDbBtn.disabled = false;
+      exportStats.textContent = `✅ Exported ${msg.nodeCount} node(s)`;
+      showStatus(`✅ Exported ${msg.nodeCount} node(s)!`, 'success');
+      resetExportButtons();
+    }
+
     // ==================== MAIN IMPORT HANDLERS ====================
 
     jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
@@ -1023,7 +1466,7 @@
     });
 
     async function handleAiGeneration() {
-      const prompt = document.getElementById('ai-prompt').value.trim();
+      const prompt = chatInput.value.trim();
       if (!prompt) throw new Error('Please describe the design you want.');
       if (prompt.length < 10) throw new Error('Please provide more detail (at least 10 characters).');
       setLoading('Generating with AI...');
@@ -1101,11 +1544,34 @@
           }
           break;
 
+        case 'ai-chat-response':
+          isGenerating = false;
+          chatSendBtn.disabled = false;
+          removeLoadingMessages();
+
+          addMessage('assistant', msg.message);
+          conversationHistory.push({ role: 'assistant', content: msg.message });
+
+          if (msg.designData || msg.previewHtml) {
+            currentDesignData = msg.designData;
+            addDesignPreview(msg.designData, msg.previewHtml);
+          }
+          break;
+
+        case 'ai-chat-error':
+          isGenerating = false;
+          chatSendBtn.disabled = false;
+          removeLoadingMessages();
+          addMessage('assistant', `Error: ${msg.error}`);
+          showStatus(`❌ ${msg.error}`, 'error');
+          break;
+
         case 'import-success':
           showStatus('✅ Design imported successfully!', 'success');
           resetButton();
           importVersionBtn.disabled = false;
           importVersionBtn.innerHTML = '📥 Import to Figma';
+          setTimeout(hideStatus, 3000);
           break;
 
         case 'import-error':
@@ -1132,7 +1598,15 @@
       }
     };
 
-    // Initial setup
+    // ==================== INITIALIZATION ====================
+    chatInput.addEventListener('input', function () {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Initial setup - hide main button group for AI tab
+    mainButtonGroup.style.display = 'none';
+
     setTimeout(() => {
       parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
     }, 100);
