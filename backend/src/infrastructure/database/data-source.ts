@@ -8,7 +8,9 @@ export const AppDataSource = new DataSource({
     synchronize: false,
     logging: ENV_CONFIG.NODE_ENV === "development",
     entities: [DesignVersionEntity],
-    migrations: ["src/infrastructure/database/migrations/*.ts"],
+    migrations: ENV_CONFIG.NODE_ENV === "development"
+        ? ["src/infrastructure/database/migrations/*.ts"]
+        : ["dist/src/infrastructure/database/migrations/*.js"],
     subscribers: [],
 });
 
