@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
-  <title>Design Tool Pro</title>
+  <title>Design Tool Pro - Complete</title>
   <style>
     * {
       box-sizing: border-box;
@@ -42,256 +43,6 @@
       margin-bottom: 24px;
     }
 
-    .tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 16px;
-      border-bottom: 2px solid #e5e7eb;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-    }
-
-    .tab {
-      padding: 8px 12px;
-      background: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      color: #6b7280;
-      transition: all 0.3s;
-      margin-bottom: -2px;
-    }
-
-    .tab:hover {
-      color: #6366f1;
-    }
-
-    .tab.active {
-      color: #6366f1;
-      border-bottom-color: #6366f1;
-    }
-
-    .tab-content {
-      display: none;
-      flex: 1;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .tab-content.active {
-      display: flex;
-    }
-
-    /* AI Chat Styles */
-    #ai-chat-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      min-height: 0;
-    }
-
-    #chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      background: #f9fafb;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-height: 300px;
-      max-height: calc(100vh - 280px);
-    }
-
-    .message {
-      display: flex;
-      animation: fadeIn 0.3s ease-in;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .message.user {
-      justify-content: flex-end;
-    }
-
-    .message.assistant {
-      justify-content: flex-start;
-    }
-
-    .message-content {
-      max-width: 85%;
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 13px;
-      line-height: 1.5;
-      word-wrap: break-word;
-    }
-
-    .message.user .message-content {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-
-    .message.assistant .message-content {
-      background: white;
-      color: #374151;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      border-bottom-left-radius: 4px;
-    }
-
-    /* Design Preview */
-    .design-preview {
-      margin-top: 12px;
-      padding: 12px;
-      background: #f9fafb;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-    }
-
-    .design-preview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .design-preview-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: #6366f1;
-    }
-
-    .preview-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .expand-btn, .import-to-figma-btn {
-      padding: 6px 12px;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
-    .expand-btn {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    }
-
-    .import-to-figma-btn {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    }
-
-    .expand-btn:hover, .import-to-figma-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .design-preview-visual {
-      background: white;
-      padding: 16px;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      margin-top: 8px;
-      min-height: 180px;
-      max-height: 350px;
-      overflow: auto;
-      position: relative;
-    }
-
-    .loading-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    #chat-input-container {
-      display: flex;
-      gap: 8px;
-      align-items: flex-end;
-      flex-shrink: 0;
-    }
-
-    #chat-input {
-      flex: 1;
-      padding: 10px 12px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: inherit;
-      resize: none;
-      min-height: 44px;
-      max-height: 120px;
-      transition: border-color 0.3s;
-    }
-
-    #chat-input:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-
-    #chat-send-btn {
-      padding: 12px 20px;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      height: 44px;
-    }
-
-    #chat-send-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-    }
-
-    .chat-hint {
-      font-size: 11px;
-      color: #9ca3af;
-      text-align: center;
-      margin-top: 6px;
-    }
-
-    /* Other tabs styles */
     .input-group {
       margin-bottom: 16px;
       flex: 1;
@@ -307,7 +58,8 @@
       margin-bottom: 8px;
     }
 
-    input[type="url"] {
+    input[type="url"],
+    input[type="text"] {
       width: 100%;
       padding: 12px;
       border: 2px solid #e5e7eb;
@@ -316,7 +68,8 @@
       transition: border-color 0.3s;
     }
 
-    input[type="url"]:focus {
+    input[type="url"]:focus,
+    input[type="text"]:focus {
       outline: none;
       border-color: #6366f1;
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
@@ -325,7 +78,7 @@
     textarea {
       width: 100%;
       flex: 1;
-      min-height: 150px;
+      min-height: 120px;
       padding: 12px;
       border: 2px solid #e5e7eb;
       border-radius: 8px;
@@ -396,6 +149,28 @@
       box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
     }
 
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-small {
+      padding: 8px 12px;
+      font-size: 12px;
+      flex: none;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
     .status {
       padding: 12px;
       border-radius: 8px;
@@ -433,10 +208,64 @@
       display: block;
     }
 
-    .helper-text {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-top: 4px;
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #f3f4f6;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e5e7eb;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      transition: all 0.3s;
+      margin-bottom: -2px;
+    }
+
+    .tab:hover {
+      color: #6366f1;
+    }
+
+    .tab.active {
+      color: #6366f1;
+      border-bottom-color: #6366f1;
+    }
+
+    .tab-content {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tab-content.active {
+      display: flex;
     }
 
     .json-stats {
@@ -447,6 +276,12 @@
 
     .json-stats.error {
       color: #ef4444;
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
     }
 
     .export-options {
@@ -468,7 +303,7 @@
 
     .export-output textarea {
       flex: 1;
-      min-height: 200px;
+      min-height: 150px;
     }
 
     .copy-btn-wrapper {
@@ -500,19 +335,346 @@
       color: #6b7280;
       margin-top: 8px;
     }
+
+    /* Version list styles */
+    .versions-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .versions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .versions-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .versions-list {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .version-item {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .version-item:last-child {
+      border-bottom: none;
+    }
+
+    .version-item:hover {
+      background: #f9fafb;
+    }
+
+    .version-item.selected {
+      background: #eef2ff;
+      border-left: 3px solid #6366f1;
+    }
+
+    .version-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .version-number {
+      font-weight: 700;
+      color: #6366f1;
+      font-size: 14px;
+    }
+
+    .version-date {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .version-description {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .version-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .version-actions button {
+      flex: 1;
+    }
+
+    .save-version-form {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .save-version-form label {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .save-version-form input {
+      margin-bottom: 12px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+    }
+
+    .refresh-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* AI Chat Styles */
+    #ai-chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 300px;
+      max-height: calc(100vh - 280px);
+    }
+
+    .message {
+      display: flex;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message.assistant {
+      justify-content: flex-start;
+    }
+
+    .message-content {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .message-content {
+      background: white;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Design Preview */
+    .design-preview {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .design-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .design-preview-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6366f1;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .expand-btn,
+    .import-to-figma-btn {
+      padding: 6px 12px;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .expand-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .import-to-figma-btn {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+
+    .expand-btn:hover,
+    .import-to-figma-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .design-preview-visual {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-top: 8px;
+      min-height: 180px;
+      max-height: 350px;
+      overflow: auto;
+      position: relative;
+    }
+
+    .loading-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    #chat-input-container {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      transition: border-color 0.3s;
+    }
+
+    #chat-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    #chat-send-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      height: 44px;
+    }
+
+    #chat-send-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .chat-hint {
+      font-size: 11px;
+      color: #9ca3af;
+      text-align: center;
+      margin-top: 6px;
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>🎨 Design Tool Pro</h1>
-    <p class="subtitle">Import, Export, or Generate designs with AI</p>
+    <p class="subtitle">Import, Export, Generate, and Version Control</p>
     <div id="status" class="status"></div>
-
     <div class="tabs">
       <button class="tab active" data-tab="ai">🤖 AI Generate</button>
       <button class="tab" data-tab="auto">🔗 Fetch API</button>
       <button class="tab" data-tab="manual">📋 Paste JSON</button>
       <button class="tab" data-tab="export">📤 Export</button>
+      <button class="tab" data-tab="versions">💾 Versions</button>
     </div>
 
     <!-- AI Chat Tab -->
@@ -526,24 +688,21 @@
           </div>
         </div>
         <div id="chat-input-container">
-          <textarea id="chat-input" placeholder="e.g. Create a login page with email and password fields..." rows="1"></textarea>
+          <textarea id="chat-input" placeholder="e.g. Create a login page with email and password fields..."
+            rows="1"></textarea>
           <button id="chat-send-btn">Send</button>
         </div>
         <div class="chat-hint">Press Enter to send • Shift + Enter for new line</div>
       </div>
     </div>
 
-    <!-- Fetch API Tab -->
+    <!-- Auto Fetch Tab -->
     <div id="auto-tab" class="tab-content">
       <div class="input-group">
         <label for="api-url">API Endpoint URL</label>
-        <input type="url" id="api-url" value="http://localhost:5000/api/tasks/latest-design"
+        <input type="url" id="api-url" value="https://task-creator-api.onrender.com/api/tasks/latest-design"
           placeholder="https://api.example.com/design" />
         <p class="helper-text">Enter the URL that returns Figma-compatible JSON.</p>
-      </div>
-      <div class="button-group">
-        <button id="fetch-import-btn" class="btn-primary">📥 Fetch & Import</button>
-        <button id="cancel-btn" class="btn-secondary">Cancel</button>
       </div>
     </div>
 
@@ -565,10 +724,6 @@ Example format:
 }'></textarea>
         <div id="json-stats" class="json-stats"></div>
       </div>
-      <div class="button-group">
-        <button id="json-import-btn" class="btn-primary">📋 Import JSON</button>
-        <button id="json-cancel-btn" class="btn-secondary">Cancel</button>
-      </div>
     </div>
 
     <!-- Export Tab -->
@@ -582,56 +737,115 @@ Example format:
       </div>
       <div class="export-output">
         <label for="export-output">Exported JSON</label>
-        <textarea id="export-output" readonly
-          placeholder="Click 'Export Selected' or 'Export All' to generate JSON..."></textarea>
+        <textarea id="export-output" readonly placeholder="Click 'Export' to generate JSON..."></textarea>
         <div id="export-stats" class="export-stats"></div>
         <div class="copy-btn-wrapper">
-          <button id="copy-json-btn" class="btn-secondary" disabled>📋 Copy to Clipboard</button>
-          <button id="download-json-btn" class="btn-secondary" disabled>💾 Download JSON</button>
+          <button id="copy-json-btn" class="btn-secondary" disabled>📋 Copy</button>
+          <button id="download-json-btn" class="btn-secondary" disabled>💾 Download</button>
+          <button id="save-to-db-btn" class="btn-primary" disabled>💾 Save to DB</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Versions Tab -->
+    <div id="versions-tab" class="tab-content">
+      <div class="versions-container">
+        <div class="versions-header">
+          <h3>📚 Saved Design Versions</h3>
+          <button id="refresh-versions-btn" class="btn-secondary refresh-btn">🔄 Refresh</button>
+        </div>
+        <div id="versions-list" class="versions-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the
+              database.</div>
+          </div>
+        </div>
+        <div id="selected-version-actions" class="version-actions" style="display: none;">
+          <button id="import-version-btn" class="btn-primary">📥 Import to Figma</button>
+          <button id="delete-version-btn" class="btn-danger">🗑️ Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main button group -->
+    <div class="button-group" id="main-button-group">
+      <button id="import-btn" class="btn-primary">🚀 Generate & Import</button>
+      <button id="cancel-btn" class="btn-secondary">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Save to DB Modal -->
+  <div id="save-modal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div
+      style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 400px;">
+      <h3 style="margin-bottom: 16px; font-size: 18px; color: #374151;">💾 Save Design Version</h3>
+      <label for="save-description"
+        style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #374151;">Description</label>
+      <textarea id="save-description"
+        style="width: 100%; height: 80px; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"
+        placeholder="Enter a description for this version (e.g., 'Initial homepage design', 'Updated with new color scheme')"></textarea>
+      <div style="display: flex; gap: 12px;">
+        <button id="confirm-save-btn" class="btn-primary" style="flex: 1;">Save</button>
+        <button id="cancel-save-btn" class="btn-secondary" style="flex: 1;">Cancel</button>
       </div>
     </div>
   </div>
 
   <script>
+    // Configuration
+    const API_BASE_URL = 'https://task-creator-api.onrender.com';
+    // For local development:
+    // const API_BASE_URL = 'http://localhost:5000';
+
     // ==================== STATE ====================
     let chatMessages = [];
     let conversationHistory = [];
     let currentDesignData = null;
     let isGenerating = false;
-    let currentExportData = null; 
+    let currentExportData = null;
+    let selectedVersionId = null;
+    let versionsCache = [];
 
     // ==================== ELEMENTS ====================
+    const importBtn = document.getElementById('import-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const tabs = document.querySelectorAll('.tab');
+    const jsonInput = document.getElementById('json-input');
+    const jsonStats = document.getElementById('json-stats');
+    const statusEl = document.getElementById('status');
+    const mainButtonGroup = document.getElementById('main-button-group');
+
+    // AI Chat elements
     const chatMessagesEl = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const chatSendBtn = document.getElementById('chat-send-btn');
-    const statusEl = document.getElementById('status');
-    
-    // Tab elements
-    const tabs = document.querySelectorAll('.tab');
-    
-    // Fetch API elements
-    const fetchImportBtn = document.getElementById('fetch-import-btn');
-    const apiUrlInput = document.getElementById('api-url');
-    
-    // Manual JSON elements
-    const jsonImportBtn = document.getElementById('json-import-btn');
-    const jsonInput = document.getElementById('json-input');
-    const jsonStats = document.getElementById('json-stats');
-    
+
+    // Export elements
     const exportSelectedBtn = document.getElementById('export-selected-btn');
     const exportAllBtn = document.getElementById('export-all-btn');
     const exportOutput = document.getElementById('export-output');
     const copyJsonBtn = document.getElementById('copy-json-btn');
     const downloadJsonBtn = document.getElementById('download-json-btn');
+    const saveToDbBtn = document.getElementById('save-to-db-btn');
     const selectionInfo = document.getElementById('selection-info');
     const exportStats = document.getElementById('export-stats');
-    
-    // Cancel buttons
-    const cancelBtn = document.getElementById('cancel-btn');
-    const jsonCancelBtn = document.getElementById('json-cancel-btn');
 
-    // ==================== TAB SWITCHING ====================
+    // Version elements
+    const versionsList = document.getElementById('versions-list');
+    const refreshVersionsBtn = document.getElementById('refresh-versions-btn');
+    const selectedVersionActions = document.getElementById('selected-version-actions');
+    const importVersionBtn = document.getElementById('import-version-btn');
+    const deleteVersionBtn = document.getElementById('delete-version-btn');
+
+    // Modal elements
+    const saveModal = document.getElementById('save-modal');
+    const saveDescription = document.getElementById('save-description');
+    const confirmSaveBtn = document.getElementById('confirm-save-btn');
+    const cancelSaveBtn = document.getElementById('cancel-save-btn');
+
+    // Tab switching
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         const tabName = tab.dataset.tab;
@@ -639,7 +853,28 @@ Example format:
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(`${tabName}-tab`).classList.add('active');
-        
+
+        const buttonTexts = {
+          'ai': '🚀 Generate & Import',
+          'auto': '📥 Fetch & Import',
+          'manual': '📋 Import JSON',
+          'export': null,
+          'versions': null
+        };
+
+        if (tabName === 'export' || tabName === 'versions') {
+          mainButtonGroup.style.display = 'none';
+          if (tabName === 'versions') {
+            loadVersions();
+          }
+        } else if (tabName === 'ai') {
+          mainButtonGroup.style.display = 'none';
+        } else {
+          mainButtonGroup.style.display = 'flex';
+          importBtn.textContent = buttonTexts[tabName] || 'Import';
+        }
+
+        resetButton();
         hideStatus();
       });
     });
@@ -683,11 +918,11 @@ Example format:
 
       if (isLoading) {
         contentEl.innerHTML = `
-          <div class="loading-indicator">
-            <div class="spinner"></div>
-            <span>${content}</span>
-          </div>
-        `;
+                    <div class="loading-indicator">
+                        <div class="spinner"></div>
+                        <span>${content}</span>
+                    </div>
+                `;
       } else {
         contentEl.innerHTML = `<div>${content}</div>`;
       }
@@ -718,106 +953,106 @@ Example format:
       const visualContent = previewHtml || '<div style="padding: 40px; color: #999;">Preview unavailable</div>';
 
       previewEl.innerHTML = `
-        <div class="design-preview-header">
-          <span class="design-preview-title">✨ Design Preview</span>
-          <div class="preview-actions">
-            <button class="expand-btn" id="${expandId}">🔍 Expand</button>
-            <button class="import-to-figma-btn" id="${uniqueId}" ${!designData ? 'disabled' : ''}>
-              Import to Figma
-            </button>
-          </div>
-        </div>
-        <div class="design-preview-visual">
-          ${visualContent}
-        </div>
-      `;
+                <div class="design-preview-header">
+                    <span class="design-preview-title">✨ Design Preview</span>
+                    <div class="preview-actions">
+                        <button class="expand-btn" id="${expandId}">🔍 Expand</button>
+                        <button class="import-to-figma-btn" id="${uniqueId}" ${!designData ? 'disabled' : ''}>
+                            Import to Figma
+                        </button>
+                    </div>
+                </div>
+                <div class="design-preview-visual">
+                    ${visualContent}
+                </div>
+            `;
 
       contentEl.appendChild(previewEl);
 
       const expandBtn = document.getElementById(expandId);
       expandBtn.addEventListener('click', () => {
-        const popup = window.open('', '_blank', 
+        const popup = window.open('', '_blank',
           'width=1200,height=800,location=no,menubar=no,toolbar=no,scrollbars=yes');
-        
+
         if (popup) {
           popup.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>Design Preview - Full Screen</title>
-              <style>
-                body {
-                  margin: 0;
-                  padding: 20px;
-                  background: #f5f5f5;
-                  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-                }
-                .popup-container {
-                  max-width: 100%;
-                  background: white;
-                  border-radius: 12px;
-                  padding: 20px;
-                  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-                }
-                .popup-preview {
-                  max-height: 70vh;
-                  overflow: auto;
-                  padding: 15px;
-                  background: #f9fafb;
-                  border-radius: 8px;
-                  border: 1px solid #e5e7eb;
-                }
-                .popup-actions {
-                  margin-top: 20px;
-                  display: flex;
-                  gap: 12px;
-                }
-                .popup-btn {
-                  padding: 10px 20px;
-                  border-radius: 8px;
-                  border: none;
-                  cursor: pointer;
-                  font-weight: 600;
-                }
-                .popup-import {
-                  background: #6366f1;
-                  color: white;
-                }
-                .popup-close {
-                  background: #6b7280;
-                  color: white;
-                }
-              </style>
-            </head>
-            <body>
-              <div class="popup-container">
-                <h2>Design Preview - Full Screen</h2>
-                <div class="popup-preview">
-                  ${previewHtml}
-                </div>
-                <div class="popup-actions">
-                  <button class="popup-btn popup-import" onclick="importDesign()">
-                    Import to Figma
-                  </button>
-                  <button class="popup-btn popup-close" onclick="window.close()">
-                    Close
-                  </button>
-                </div>
-              </div>
-              <script>
-                function importDesign() {
-                  window.opener.postMessage({
-                    pluginMessage: {
-                      type: 'import-design-from-chat',
-                      designData: ${JSON.stringify(designData)}
-                    }
-                  }, '*');
-                  window.close();
-                }
-              <\/script>
-            </body>
-            </html>
-          `);
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Design Preview - Full Screen</title>
+                            <style>
+                                body {
+                                    margin: 0;
+                                    padding: 20px;
+                                    background: #f5f5f5;
+                                    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                                }
+                                .popup-container {
+                                    max-width: 100%;
+                                    background: white;
+                                    border-radius: 12px;
+                                    padding: 20px;
+                                    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+                                }
+                                .popup-preview {
+                                    max-height: 70vh;
+                                    overflow: auto;
+                                    padding: 15px;
+                                    background: #f9fafb;
+                                    border-radius: 8px;
+                                    border: 1px solid #e5e7eb;
+                                }
+                                .popup-actions {
+                                    margin-top: 20px;
+                                    display: flex;
+                                    gap: 12px;
+                                }
+                                .popup-btn {
+                                    padding: 10px 20px;
+                                    border-radius: 8px;
+                                    border: none;
+                                    cursor: pointer;
+                                    font-weight: 600;
+                                }
+                                .popup-import {
+                                    background: #6366f1;
+                                    color: white;
+                                }
+                                .popup-close {
+                                    background: #6b7280;
+                                    color: white;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="popup-container">
+                                <h2>Design Preview - Full Screen</h2>
+                                <div class="popup-preview">
+                                    ${previewHtml}
+                                </div>
+                                <div class="popup-actions">
+                                    <button class="popup-btn popup-import" onclick="importDesign()">
+                                        Import to Figma
+                                    </button>
+                                    <button class="popup-btn popup-close" onclick="window.close()">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                            <script>
+                                function importDesign() {
+                                    window.opener.postMessage({
+                                        pluginMessage: {
+                                            type: 'import-design-from-chat',
+                                            designData: ${JSON.stringify(designData)}
+                                        }
+                                    }, '*');
+                                    window.close();
+                                }
+                            <\/script>
+                        </body>
+                        </html>
+                    `);
           popup.document.close();
         }
       });
@@ -837,103 +1072,214 @@ Example format:
       }
     }
 
-    // ==================== FETCH API FUNCTIONS ====================
-    fetchImportBtn.addEventListener('click', async () => {
-      await handleApiFetch();
-    });
+    // ==================== VERSION MANAGEMENT ====================
 
-    async function handleApiFetch() {
-      const apiUrl = apiUrlInput.value.trim();
-      if (!apiUrl) {
-        showStatus('❌ Please enter an API URL', 'error');
-        return;
-      }
-
+    async function loadVersions() {
       try {
-        showStatus('📡 Fetching...', 'info');
-        fetchImportBtn.disabled = true;
-        fetchImportBtn.textContent = 'Fetching...';
-        
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-        
-        const result = await response.json();
-        let designData = result.data || result.design || result;
-        
-        parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
-        
-        fetchImportBtn.disabled = false;
-        fetchImportBtn.textContent = '📥 Fetch & Import';
-        
+        showStatus('📡 Loading versions...', 'info');
+        refreshVersionsBtn.disabled = true;
+        refreshVersionsBtn.innerHTML = '<span class="loading"></span>';
+
+        const response = await fetch(`${API_BASE_URL}/api/design-versions`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to load versions');
+        }
+
+        versionsCache = data.versions;
+        renderVersionsList(data.versions);
+        hideStatus();
       } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
-        fetchImportBtn.disabled = false;
-        fetchImportBtn.textContent = '📥 Fetch & Import';
+        versionsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Failed to load versions.<br>Check your connection and try again.</div>
+                    </div>
+                `;
+      } finally {
+        refreshVersionsBtn.disabled = false;
+        refreshVersionsBtn.innerHTML = '🔄 Refresh';
       }
     }
 
-    // ==================== MANUAL JSON FUNCTIONS ====================
-    jsonImportBtn.addEventListener('click', async () => {
-      await handleManualJson();
-    });
+    function renderVersionsList(versions) {
+      if (!versions || versions.length === 0) {
+        versionsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the database.</div>
+                    </div>
+                `;
+        selectedVersionActions.style.display = 'none';
+        return;
+      }
 
-    async function handleManualJson() {
-      const jsonValue = jsonInput.value.trim();
-      if (!jsonValue) {
-        showStatus('❌ Please paste JSON', 'error');
+      versionsList.innerHTML = versions.map(v => `
+                <div class="version-item ${selectedVersionId === v.id ? 'selected' : ''}" data-id="${v.id}">
+                    <div class="version-header">
+                        <span class="version-number">v${v.version}</span>
+                        <span class="version-date">${formatDate(v.createdAt)}</span>
+                    </div>
+                    <div class="version-description">${escapeHtml(v.description)}</div>
+                </div>
+            `).join('');
+
+      // Add click handlers
+      document.querySelectorAll('.version-item').forEach(item => {
+        item.addEventListener('click', () => selectVersion(parseInt(item.dataset.id)));
+      });
+    }
+
+    function selectVersion(id) {
+      selectedVersionId = id;
+      document.querySelectorAll('.version-item').forEach(item => {
+        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
+      });
+      selectedVersionActions.style.display = 'flex';
+    }
+
+    async function saveVersionToDb(description, designJson) {
+      try {
+        showStatus('💾 Saving to database...', 'info');
+        confirmSaveBtn.disabled = true;
+        confirmSaveBtn.innerHTML = '<span class="loading"></span> Saving...';
+
+        const response = await fetch(`${API_BASE_URL}/api/design-versions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description, designJson })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to save version');
+        }
+
+        showStatus(`✅ Saved as version ${data.version.version}!`, 'success');
+        saveModal.style.display = 'none';
+        saveDescription.value = '';
+
+        // Refresh versions list if on that tab
+        if (document.querySelector('.tab[data-tab="versions"]').classList.contains('active')) {
+          loadVersions();
+        }
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+      } finally {
+        confirmSaveBtn.disabled = false;
+        confirmSaveBtn.innerHTML = 'Save';
+      }
+    }
+
+    async function importVersionFromDb(id) {
+      try {
+        showStatus('📥 Loading version...', 'info');
+        importVersionBtn.disabled = true;
+        importVersionBtn.innerHTML = '<span class="loading"></span> Loading...';
+
+        const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to load version');
+        }
+
+        showStatus('✅ Importing to Figma...', 'info');
+        parent.postMessage({
+          pluginMessage: {
+            type: 'import-version',
+            designJson: data.version.designJson
+          }
+        }, '*');
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+        importVersionBtn.disabled = false;
+        importVersionBtn.innerHTML = '📥 Import to Figma';
+      }
+    }
+
+    async function deleteVersion(id) {
+      if (!confirm('Are you sure you want to delete this version? This cannot be undone.')) {
         return;
       }
 
       try {
-        const designData = JSON.parse(jsonValue);
-        showStatus('📋 Importing...', 'info');
-        jsonImportBtn.disabled = true;
-        jsonImportBtn.textContent = 'Importing...';
-        
-        parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
-        
-        jsonImportBtn.disabled = false;
-        jsonImportBtn.textContent = '📋 Import JSON';
-        
-      } catch (e) {
-        showStatus(`❌ Invalid JSON: ${e.message}`, 'error');
-        jsonImportBtn.disabled = false;
-        jsonImportBtn.textContent = '📋 Import JSON';
+        showStatus('🗑️ Deleting version...', 'info');
+        deleteVersionBtn.disabled = true;
+        deleteVersionBtn.innerHTML = '<span class="loading"></span>';
+
+        const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to delete version');
+        }
+
+        showStatus('✅ Version deleted!', 'success');
+        selectedVersionId = null;
+        selectedVersionActions.style.display = 'none';
+        loadVersions();
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+      } finally {
+        deleteVersionBtn.disabled = false;
+        deleteVersionBtn.innerHTML = '🗑️ Delete';
       }
     }
 
-    jsonInput.addEventListener('input', () => {
-      const value = jsonInput.value.trim();
-      if (!value) {
-        jsonInput.classList.remove('error', 'valid');
-        jsonStats.textContent = '';
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(value);
-        jsonInput.classList.remove('error');
-        jsonInput.classList.add('valid');
-        jsonStats.textContent = '✅ Valid JSON';
-        jsonStats.classList.remove('error');
-      } catch (e) {
-        jsonInput.classList.remove('valid');
-        jsonInput.classList.add('error');
-        jsonStats.classList.add('error');
-        jsonStats.textContent = `❌ Invalid JSON: ${e.message}`;
-      }
+    // Version button handlers
+    refreshVersionsBtn.addEventListener('click', loadVersions);
+    importVersionBtn.addEventListener('click', () => {
+      if (selectedVersionId) importVersionFromDb(selectedVersionId);
+    });
+    deleteVersionBtn.addEventListener('click', () => {
+      if (selectedVersionId) deleteVersion(selectedVersionId);
     });
 
-    // ==================== EXPORT FUNCTIONS - هذي الجزئية المهمة! ====================
+    // Save to DB button
+    saveToDbBtn.addEventListener('click', () => {
+      if (!currentExportData) {
+        showStatus('⚠️ No design data to save. Export first.', 'warning');
+        return;
+      }
+      saveModal.style.display = 'block';
+      saveDescription.focus();
+    });
+
+    // Modal handlers
+    confirmSaveBtn.addEventListener('click', () => {
+      const description = saveDescription.value.trim();
+      if (!description) {
+        showStatus('⚠️ Please enter a description', 'warning');
+        return;
+      }
+      saveVersionToDb(description, currentExportData);
+    });
+
+    cancelSaveBtn.addEventListener('click', () => {
+      saveModal.style.display = 'none';
+      saveDescription.value = '';
+    });
+
+    // ==================== EXPORT FUNCTIONS ====================
+
     exportSelectedBtn.addEventListener('click', () => {
       exportSelectedBtn.disabled = true;
-      exportSelectedBtn.textContent = '⏳ Exporting...';
+      exportSelectedBtn.innerHTML = '<span class="loading"></span> Exporting...';
+      showStatus('📦 Exporting selected layers...', 'info');
       parent.postMessage({ pluginMessage: { type: 'export-selected' } }, '*');
     });
 
     exportAllBtn.addEventListener('click', () => {
       exportAllBtn.disabled = true;
-      exportAllBtn.textContent = '⏳ Exporting...';
+      exportAllBtn.innerHTML = '<span class="loading"></span> Exporting...';
+      showStatus('📄 Exporting all layers on page...', 'info');
       parent.postMessage({ pluginMessage: { type: 'export-all' } }, '*');
     });
 
@@ -941,65 +1287,41 @@ Example format:
       if (!currentExportData) return;
       try {
         await navigator.clipboard.writeText(JSON.stringify(currentExportData, null, 2));
-        showStatus('✅ JSON copied!', 'success');
+        showStatus('✅ Copied to clipboard!', 'success');
         copyJsonBtn.textContent = '✅ Copied!';
-        setTimeout(() => { copyJsonBtn.textContent = '📋 Copy to Clipboard'; }, 2000);
+        setTimeout(() => copyJsonBtn.textContent = '📋 Copy', 2000);
       } catch (err) {
-        showStatus('❌ Copy failed', 'error');
+        const textarea = document.createElement('textarea');
+        textarea.value = JSON.stringify(currentExportData, null, 2);
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showStatus('✅ Copied to clipboard!', 'success');
       }
     });
 
     downloadJsonBtn.addEventListener('click', () => {
       if (!currentExportData) return;
-      const blob = new Blob([JSON.stringify(currentExportData, null, 2)], { type: 'application/json' });
+      const jsonString = JSON.stringify(currentExportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `figma-design-${Date.now()}.json`;
+      let filename = 'figma-design';
+      if (Array.isArray(currentExportData) && currentExportData[0]?.name) {
+        filename = currentExportData[0].name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      }
+      a.download = `${filename}-${Date.now()}.json`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
       showStatus('✅ Downloaded!', 'success');
     });
 
-    function updateSelectionInfo(selection) {
-      if (!selection || selection.count === 0) {
-        selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export specific elements, or export the entire page.';
-        exportSelectedBtn.disabled = true;
-      } else {
-        const names = selection.names.slice(0, 3).join(', ');
-        const more = selection.count > 3 ? ` and ${selection.count - 3} more` : '';
-        selectionInfo.innerHTML = `<strong>${selection.count} layer${selection.count > 1 ? 's' : ''} selected:</strong> ${names}${more}`;
-        exportSelectedBtn.disabled = false;
-      }
-    }
-
-    function handleExportSuccess(msg) {
-      currentExportData = msg.data; 
-      exportOutput.value = JSON.stringify(msg.data, null, 2);
-      copyJsonBtn.disabled = false;
-      downloadJsonBtn.disabled = false;
-      exportStats.textContent = `✅ Exported ${msg.nodeCount} node(s)`;
-      showStatus(`✅ Exported ${msg.nodeCount} node(s)!`, 'success');
-      resetExportButtons();
-    }
-
-    function resetExportButtons() {
-      exportSelectedBtn.textContent = '📦 Export Selected';
-      exportAllBtn.textContent = '📄 Export All (Page)';
-      exportAllBtn.disabled = false;
-      exportSelectedBtn.disabled = selectionInfo.textContent.includes('No selection');
-    }
-
-    // ==================== CANCEL FUNCTIONS ====================
-    cancelBtn.addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-    });
-
-    jsonCancelBtn.addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-    });
-
     // ==================== UTILITY FUNCTIONS ====================
+
     function showStatus(message, type) {
       statusEl.textContent = message;
       statusEl.className = `status ${type}`;
@@ -1010,20 +1332,226 @@ Example format:
       statusEl.textContent = '';
     }
 
-    // ==================== MESSAGE HANDLER ====================
+    function resetButton() {
+      importBtn.disabled = false;
+      const currentTab = document.querySelector('.tab.active').dataset.tab;
+      const buttonTexts = {
+        'ai': '🚀 Generate & Import',
+        'auto': '📥 Fetch & Import',
+        'manual': '📋 Import JSON'
+      };
+      importBtn.innerHTML = buttonTexts[currentTab] || 'Import';
+    }
+
+    function resetExportButtons() {
+      exportSelectedBtn.innerHTML = '📦 Export Selected';
+      exportAllBtn.innerHTML = '📄 Export All (Page)';
+      exportAllBtn.disabled = false;
+    }
+
+    function setLoading(message = 'Working...') {
+      importBtn.disabled = true;
+      importBtn.innerHTML = `<span class="loading"></span> ${message}`;
+    }
+
+    function updateExportOutput(data) {
+      currentExportData = data;
+      exportOutput.value = JSON.stringify(data, null, 2);
+      copyJsonBtn.disabled = false;
+      downloadJsonBtn.disabled = false;
+      saveToDbBtn.disabled = false;
+      const stats = analyzeJsonStructure(data);
+      exportStats.textContent = stats;
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+      };
+    }
+
+    function validateJsonInput() {
+      const value = jsonInput.value.trim();
+      if (!value) {
+        jsonInput.classList.remove('error', 'valid');
+        jsonStats.textContent = '';
+        return null;
+      }
+      try {
+        const parsed = JSON.parse(value);
+        const stats = analyzeJsonStructure(parsed);
+        jsonInput.classList.remove('error');
+        jsonInput.classList.add('valid');
+        jsonStats.classList.remove('error');
+        jsonStats.textContent = stats;
+        return parsed;
+      } catch (e) {
+        jsonInput.classList.remove('valid');
+        jsonInput.classList.add('error');
+        jsonStats.classList.add('error');
+        jsonStats.textContent = `❌ Invalid JSON: ${e.message}`;
+        return null;
+      }
+    }
+
+    function analyzeJsonStructure(data) {
+      let nodeCount = 0, frameCount = 0, textCount = 0, otherCount = 0;
+      function countNodes(node) {
+        if (!node || typeof node !== 'object') return;
+        if (Array.isArray(node)) { node.forEach(countNodes); return; }
+        if (node.type) {
+          nodeCount++;
+          if (node.type === 'FRAME' || node.type === 'GROUP') frameCount++;
+          else if (node.type === 'TEXT') textCount++;
+          else otherCount++;
+        }
+        if (node.children) node.children.forEach(countNodes);
+        if (node.data) countNodes(node.data);
+      }
+      countNodes(data);
+      if (nodeCount === 0) return '⚠️ No Figma nodes detected';
+      return `✅ ${nodeCount} nodes (${frameCount} frames, ${textCount} text, ${otherCount} other)`;
+    }
+
+    function updateSelectionInfo(selection) {
+      if (!selection || selection.count === 0) {
+        selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export, or export entire page.';
+        exportSelectedBtn.disabled = true;
+      } else {
+        const names = selection.names.slice(0, 3).join(', ');
+        const more = selection.count > 3 ? ` and ${selection.count - 3} more` : '';
+        selectionInfo.innerHTML = `<strong>${selection.count} layer${selection.count !== 1 ? 's' : ''} selected:</strong> ${names}${more}`;
+        exportSelectedBtn.disabled = false;
+      }
+    }
+
+    function handleExportSuccess(msg) {
+      currentExportData = msg.data;
+      exportOutput.value = JSON.stringify(msg.data, null, 2);
+      copyJsonBtn.disabled = false;
+      downloadJsonBtn.disabled = false;
+      saveToDbBtn.disabled = false;
+      exportStats.textContent = `✅ Exported ${msg.nodeCount} node(s)`;
+      showStatus(`✅ Exported ${msg.nodeCount} node(s)!`, 'success');
+      resetExportButtons();
+    }
+
+    // ==================== MAIN IMPORT HANDLERS ====================
+
+    jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
+
+    importBtn.addEventListener('click', async () => {
+      const activeTab = document.querySelector('.tab.active').dataset.tab;
+      try {
+        if (activeTab === 'ai') await handleAiGeneration();
+        else if (activeTab === 'auto') await handleApiFetch();
+        else await handleManualJson();
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+        resetButton();
+      }
+    });
+
+    async function handleAiGeneration() {
+      const prompt = chatInput.value.trim();
+      if (!prompt) throw new Error('Please describe the design you want.');
+      if (prompt.length < 10) throw new Error('Please provide more detail (at least 10 characters).');
+      setLoading('Generating with AI...');
+      showStatus('🤖 Generating design with AI...', 'info');
+      parent.postMessage({ pluginMessage: { type: 'generate-design-from-text', prompt } }, '*');
+    }
+
+    async function handleApiFetch() {
+      const apiUrl = document.getElementById('api-url').value.trim();
+      if (!apiUrl) throw new Error('Please enter an API URL.');
+      try { new URL(apiUrl); } catch (e) { throw new Error('Please enter a valid URL'); }
+      setLoading('Fetching design...');
+      showStatus('📡 Fetching from API...', 'info');
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      let result = await response.json();
+      let designData = result.data || result.design || result.result || result;
+      if (!designData || Object.keys(designData).length === 0) throw new Error('No design data received.');
+      showStatus('✅ Importing to Figma...', 'info');
+      parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
+    }
+
+    async function handleManualJson() {
+      const jsonValue = jsonInput.value.trim();
+      if (!jsonValue) throw new Error('Please paste your design JSON.');
+      let designData;
+      try { designData = JSON.parse(jsonValue); } catch (e) { throw new Error(`Invalid JSON: ${e.message}`); }
+      setLoading('Importing...');
+      showStatus('📋 Importing to Figma...', 'info');
+      parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
+    }
+
+    async function callBackendForClaude(userPrompt) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/designs/generate-from-text`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: userPrompt }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          let errorMessage = `Server error: ${response.status}`;
+          try { const err = await response.json(); errorMessage = err.message || err.error || errorMessage; } catch (e) { }
+          throw new Error(errorMessage);
+        }
+        const result = await response.json();
+        return result.design || result.data || result;
+      } catch (error) {
+        if (error.name === 'AbortError') throw new Error('Request timed out.');
+        throw error;
+      }
+    }
+
+    cancelBtn.addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    });
+
+    // ==================== PLUGIN MESSAGES ====================
+
     window.onmessage = async (event) => {
       const msg = event.data.pluginMessage;
       if (!msg) return;
 
       switch (msg.type) {
+        case 'call-backend-for-claude':
+          try {
+            const designData = await callBackendForClaude(msg.prompt);
+            parent.postMessage({ pluginMessage: { type: 'design-generated-from-ai', designData } }, '*');
+          } catch (error) {
+            showStatus(`❌ AI Generation failed: ${error.message}`, 'error');
+            resetButton();
+          }
+          break;
+
         case 'ai-chat-response':
           isGenerating = false;
           chatSendBtn.disabled = false;
           removeLoadingMessages();
-          
+
           addMessage('assistant', msg.message);
           conversationHistory.push({ role: 'assistant', content: msg.message });
-          
+
           if (msg.designData || msg.previewHtml) {
             currentDesignData = msg.designData;
             addDesignPreview(msg.designData, msg.previewHtml);
@@ -1040,11 +1568,17 @@ Example format:
 
         case 'import-success':
           showStatus('✅ Design imported successfully!', 'success');
+          resetButton();
+          importVersionBtn.disabled = false;
+          importVersionBtn.innerHTML = '📥 Import to Figma';
           setTimeout(hideStatus, 3000);
           break;
 
         case 'import-error':
           showStatus(`❌ Import failed: ${msg.error}`, 'error');
+          resetButton();
+          importVersionBtn.disabled = false;
+          importVersionBtn.innerHTML = '📥 Import to Figma';
           break;
 
         case 'selection-changed':
@@ -1052,7 +1586,9 @@ Example format:
           break;
 
         case 'export-success':
-          handleExportSuccess(msg);
+          showStatus(`✅ Exported ${msg.nodeCount} nodes!`, 'success');
+          updateExportOutput(msg.data);
+          resetExportButtons();
           break;
 
         case 'export-error':
@@ -1063,14 +1599,18 @@ Example format:
     };
 
     // ==================== INITIALIZATION ====================
-    chatInput.addEventListener('input', function() {
+    chatInput.addEventListener('input', function () {
       this.style.height = 'auto';
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
+
+    // Initial setup - hide main button group for AI tab
+    mainButtonGroup.style.display = 'none';
 
     setTimeout(() => {
       parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
     }, 100);
   </script>
 </body>
+
 </html>

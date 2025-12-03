@@ -7,18 +7,23 @@ export const allowedOrigins = [
     'http://127.0.0.1:8000',
     'https://task-creator-app.vercel.app',
     'https://task-creator-api.onrender.com',
-    "https://api.trello.com"
+    "https://api.trello.com",
+    // Allow Figma plugin (null origin for plugins)
+    'null'
 ];
 
 export const corsOptions: CorsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
         console.log('Incoming request origin:', origin);
 
+        // Allow requests with no origin (like Figma plugins, mobile apps, curl, etc.)
         if (!origin) return callback(null, true);
+
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
 
+        // Allow all origins for development
         return callback(null, true);
     },
     credentials: true

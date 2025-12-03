@@ -6,6 +6,7 @@ import {
   ExportSelectedUseCase,
   ExportAllUseCase,
 } from '../../application/use-cases';
+import { ApiConfig } from '@shared/constants';
 
 interface BackendChatResponse {
   success: boolean;
@@ -13,6 +14,10 @@ interface BackendChatResponse {
   design: any;
   previewHtml?: string | null;
 }
+
+/**
+ * Handler for messages received from the UI
+ */
 
 export class PluginMessageHandler {
   private conversationHistory: Array<{ role: string; content: string }> = [];
@@ -24,7 +29,11 @@ export class PluginMessageHandler {
     private readonly importAIDesignUseCase: ImportAIDesignUseCase,
     private readonly exportSelectedUseCase: ExportSelectedUseCase,
     private readonly exportAllUseCase: ExportAllUseCase
-  ) {}
+  ) { }
+
+  /**
+    * Initialize the message handler
+  */
 
   initialize(): void {
     this.uiPort.onMessage((message: PluginMessage) => this.handleMessage(message));
@@ -32,7 +41,7 @@ export class PluginMessageHandler {
 
   private async handleMessage(message: PluginMessage): Promise<void> {
     console.log('📨 Plugin received:', message.type);
-    
+
     switch (message.type) {
       case 'ai-chat-message':
         if (message.message !== undefined) {
@@ -61,11 +70,17 @@ export class PluginMessageHandler {
         break;
 
       case 'get-selection-info':
-       
+
         break;
 
       case 'cancel':
         this.uiPort.close();
+        break;
+
+      // Version management is handled directly in UI (HTTP calls)
+      // These are just for importing version JSON to canvas
+      case 'import-version':
+        await this.handleImportVersion(message.designJson);
         break;
 
       default:
@@ -83,9 +98,7 @@ export class PluginMessageHandler {
         this.conversationHistory = history;
       }
 
-      const BACKEND_URL = 'http://localhost:5000/api/designs/generate-from-conversation';
-      
-      const fetchPromise = fetch(BACKEND_URL, {
+      const fetchPromise = fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,7 +127,7 @@ export class PluginMessageHandler {
       const result: BackendChatResponse = await response.json();
 
       this.uiPort.postMessage({
-        type: 'ai-chat-response', 
+        type: 'ai-chat-response',
         message: result.message,
         designData: result.design,
         previewHtml: result.previewHtml
@@ -123,7 +136,7 @@ export class PluginMessageHandler {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
       this.uiPort.postMessage({
-        type: 'ai-chat-error', 
+        type: 'ai-chat-error',
         error: errorMessage
       });
     }
@@ -187,7 +200,7 @@ export class PluginMessageHandler {
     if (result.success) {
       this.uiPort.postMessage({
         type: 'export-success',
-        data: result.nodes, 
+        data: result.nodes,
         nodeCount: result.nodeCount,
       });
     } else {
@@ -205,7 +218,7 @@ export class PluginMessageHandler {
     if (result.success) {
       this.uiPort.postMessage({
         type: 'export-success',
-        data: result.nodes, 
+        data: result.nodes,
         nodeCount: result.nodeCount,
       });
     } else {
@@ -213,6 +226,21 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({
         type: 'export-error',
         error: result.error || 'Export failed',
+      });
+    }
+  }
+
+  private async handleImportVersion(designJson: unknown): Promise<void> {
+    const result = await this.importDesignUseCase.execute(designJson);
+
+    if (result.success) {
+      this.notificationPort.notify('✅ Version imported successfully!');
+      this.uiPort.postMessage({ type: 'import-success' });
+    } else {
+      this.notificationPort.notifyError(result.error || 'Import failed');
+      this.uiPort.postMessage({
+        type: 'import-error',
+        error: result.error || 'Import failed',
       });
     }
   }
