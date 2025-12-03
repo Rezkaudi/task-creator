@@ -10,6 +10,7 @@ import { ExtractTasksUseCase } from "../../../application/use-cases/extract-task
 import { AddTasksToTrelloUseCase } from "../../../application/use-cases/add-tasks-to-trello.use-case";
 import { GenerateDesignUseCase } from "../../../application/use-cases/generate-design.use-case";
 import { GenerateDesignFromClaudeUseCase } from "../../../application/use-cases/generate-design-from-claude.use-case";
+import { GenerateDesignFromConversationUseCase } from "../../../application/use-cases/generate-design-from-conversation.use-case";
 
 // Controllers
 import { TaskController } from "../controllers/task.controller";
@@ -21,20 +22,24 @@ export const setupDependencies = () => {
     // Services
     const trelloService = new TrelloService();
     const gptService = new GPTService();
-    const gptDesignService = new GPTDesignService()
-    const claudeService = new ClaudeService()
+    const gptDesignService = new GPTDesignService();
+    const claudeService = new ClaudeService();
 
     // Use Cases
     const getBoardListsUseCase = new GetBoardListsUseCase(trelloService);
     const extractTasksUseCase = new ExtractTasksUseCase(gptService);
     const addTasksToTrelloUseCase = new AddTasksToTrelloUseCase(trelloService);
     const generateDesignUseCase = new GenerateDesignUseCase(gptDesignService);
-    const extractTasksAndCreateOnTrello = new GenerateDesignFromClaudeUseCase(claudeService);
+    const generateDesignFromClaudeUseCase = new GenerateDesignFromClaudeUseCase(claudeService);
+    const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(claudeService);
 
     // Controllers
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
     const trelloController = new TrelloController(getBoardListsUseCase);
-    const designController = new DesignController(extractTasksAndCreateOnTrello);
+    const designController = new DesignController(
+        generateDesignFromClaudeUseCase,
+        generateDesignFromConversationUseCase
+    );
 
     return {
         taskController,
