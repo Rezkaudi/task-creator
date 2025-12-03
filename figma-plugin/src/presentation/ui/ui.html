@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="utf-8">
-  <title>Task Creator Design Importer</title>
+  <title>Design Tool Pro</title>
   <style>
     * {
       box-sizing: border-box;
@@ -43,6 +42,256 @@
       margin-bottom: 24px;
     }
 
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e5e7eb;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      transition: all 0.3s;
+      margin-bottom: -2px;
+    }
+
+    .tab:hover {
+      color: #6366f1;
+    }
+
+    .tab.active {
+      color: #6366f1;
+      border-bottom-color: #6366f1;
+    }
+
+    .tab-content {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* AI Chat Styles */
+    #ai-chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 300px;
+      max-height: calc(100vh - 280px);
+    }
+
+    .message {
+      display: flex;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message.assistant {
+      justify-content: flex-start;
+    }
+
+    .message-content {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .message-content {
+      background: white;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Design Preview */
+    .design-preview {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .design-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .design-preview-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6366f1;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .expand-btn, .import-to-figma-btn {
+      padding: 6px 12px;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .expand-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .import-to-figma-btn {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+
+    .expand-btn:hover, .import-to-figma-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .design-preview-visual {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-top: 8px;
+      min-height: 180px;
+      max-height: 350px;
+      overflow: auto;
+      position: relative;
+    }
+
+    .loading-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #chat-input-container {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      transition: border-color 0.3s;
+    }
+
+    #chat-input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    #chat-send-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      height: 44px;
+    }
+
+    #chat-send-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .chat-hint {
+      font-size: 11px;
+      color: #9ca3af;
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    /* Other tabs styles */
     .input-group {
       margin-bottom: 16px;
       flex: 1;
@@ -147,12 +396,6 @@
       box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
     }
 
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
     .status {
       padding: 12px;
       border-radius: 8px;
@@ -190,64 +433,10 @@
       display: block;
     }
 
-    .loading {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 3px solid #f3f4f6;
-      border-top-color: #6366f1;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 16px;
-      border-bottom: 2px solid #e5e7eb;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-    }
-
-    .tab {
-      padding: 8px 12px;
-      background: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      color: #6b7280;
-      transition: all 0.3s;
-      margin-bottom: -2px;
-    }
-
-    .tab:hover {
-      color: #6366f1;
-    }
-
-    .tab.active {
-      color: #6366f1;
-      border-bottom-color: #6366f1;
-    }
-
-    .tab-content {
-      display: none;
-      flex: 1;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .tab-content.active {
-      display: flex;
+    .helper-text {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
     }
 
     .json-stats {
@@ -258,12 +447,6 @@
 
     .json-stats.error {
       color: #ef4444;
-    }
-
-    .helper-text {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-top: 4px;
     }
 
     .export-options {
@@ -319,34 +502,52 @@
     }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <h1>🎨 Design Tool</h1>
+    <h1>🎨 Design Tool Pro</h1>
     <p class="subtitle">Import, Export, or Generate designs with AI</p>
     <div id="status" class="status"></div>
+
     <div class="tabs">
       <button class="tab active" data-tab="ai">🤖 AI Generate</button>
       <button class="tab" data-tab="auto">🔗 Fetch API</button>
       <button class="tab" data-tab="manual">📋 Paste JSON</button>
       <button class="tab" data-tab="export">📤 Export</button>
     </div>
+
+    <!-- AI Chat Tab -->
     <div id="ai-tab" class="tab-content active">
-      <div class="input-group">
-        <label for="ai-prompt">Describe the design you want</label>
-        <textarea id="ai-prompt"
-          placeholder="e.g., 'A modern login page with email and password fields, a blue login button, and a forgot password link. Include a logo at the top.'"></textarea>
-        <p class="helper-text">Be specific about colors, layout, and elements you want.</p>
+      <div id="ai-chat-container">
+        <div id="chat-messages">
+          <div class="message assistant">
+            <div class="message-content">
+              <div>Hi! Describe your design and I'll create it for you. 🎨</div>
+            </div>
+          </div>
+        </div>
+        <div id="chat-input-container">
+          <textarea id="chat-input" placeholder="e.g. Create a login page with email and password fields..." rows="1"></textarea>
+          <button id="chat-send-btn">Send</button>
+        </div>
+        <div class="chat-hint">Press Enter to send • Shift + Enter for new line</div>
       </div>
     </div>
+
+    <!-- Fetch API Tab -->
     <div id="auto-tab" class="tab-content">
       <div class="input-group">
         <label for="api-url">API Endpoint URL</label>
-        <input type="url" id="api-url" value="https://task-creator-api.onrender.com/api/tasks/latest-design"
+        <input type="url" id="api-url" value="http://localhost:5000/api/tasks/latest-design"
           placeholder="https://api.example.com/design" />
         <p class="helper-text">Enter the URL that returns Figma-compatible JSON.</p>
       </div>
+      <div class="button-group">
+        <button id="fetch-import-btn" class="btn-primary">📥 Fetch & Import</button>
+        <button id="cancel-btn" class="btn-secondary">Cancel</button>
+      </div>
     </div>
+
+    <!-- Manual JSON Tab -->
     <div id="manual-tab" class="tab-content">
       <div class="input-group">
         <label for="json-input">Design JSON</label>
@@ -364,7 +565,13 @@ Example format:
 }'></textarea>
         <div id="json-stats" class="json-stats"></div>
       </div>
+      <div class="button-group">
+        <button id="json-import-btn" class="btn-primary">📋 Import JSON</button>
+        <button id="json-cancel-btn" class="btn-secondary">Cancel</button>
+      </div>
     </div>
+
+    <!-- Export Tab -->
     <div id="export-tab" class="tab-content">
       <div id="selection-info" class="selection-info">
         <strong>No selection.</strong> Select layers to export specific elements, or export the entire page.
@@ -384,21 +591,34 @@ Example format:
         </div>
       </div>
     </div>
-    <div class="button-group" id="main-button-group">
-      <button id="import-btn" class="btn-primary">🚀 Generate & Import</button>
-      <button id="cancel-btn" class="btn-secondary">Cancel</button>
-    </div>
   </div>
+
   <script>
-    const importBtn = document.getElementById('import-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
+    // ==================== STATE ====================
+    let chatMessages = [];
+    let conversationHistory = [];
+    let currentDesignData = null;
+    let isGenerating = false;
+    let currentExportData = null; 
+
+    // ==================== ELEMENTS ====================
+    const chatMessagesEl = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSendBtn = document.getElementById('chat-send-btn');
+    const statusEl = document.getElementById('status');
+    
+    // Tab elements
     const tabs = document.querySelectorAll('.tab');
+    
+    // Fetch API elements
+    const fetchImportBtn = document.getElementById('fetch-import-btn');
+    const apiUrlInput = document.getElementById('api-url');
+    
+    // Manual JSON elements
+    const jsonImportBtn = document.getElementById('json-import-btn');
     const jsonInput = document.getElementById('json-input');
     const jsonStats = document.getElementById('json-stats');
-    const statusEl = document.getElementById('status');
-    const mainButtonGroup = document.getElementById('main-button-group');
-
-    // Export elements
+    
     const exportSelectedBtn = document.getElementById('export-selected-btn');
     const exportAllBtn = document.getElementById('export-all-btn');
     const exportOutput = document.getElementById('export-output');
@@ -406,10 +626,12 @@ Example format:
     const downloadJsonBtn = document.getElementById('download-json-btn');
     const selectionInfo = document.getElementById('selection-info');
     const exportStats = document.getElementById('export-stats');
+    
+    // Cancel buttons
+    const cancelBtn = document.getElementById('cancel-btn');
+    const jsonCancelBtn = document.getElementById('json-cancel-btn');
 
-    let currentExportData = null;
-
-    // Tab switching
+    // ==================== TAB SWITCHING ====================
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         const tabName = tab.dataset.tab;
@@ -417,176 +639,367 @@ Example format:
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(`${tabName}-tab`).classList.add('active');
-
-        // Update button text and visibility
-        const buttonTexts = {
-          'ai': '🚀 Generate & Import',
-          'auto': '📥 Fetch & Import',
-          'manual': '📋 Import JSON',
-          'export': null // Hide main button for export tab
-        };
-
-        if (tabName === 'export') {
-          mainButtonGroup.style.display = 'none';
-          // Request selection update when switching to export tab
-          parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
-        } else {
-          mainButtonGroup.style.display = 'flex';
-          importBtn.textContent = buttonTexts[tabName] || 'Import';
-        }
-
-        resetButton();
+        
         hideStatus();
       });
     });
 
-    // Export Selected button
-    exportSelectedBtn.addEventListener('click', () => {
-      exportSelectedBtn.disabled = true;
-      exportSelectedBtn.innerHTML = '<span class="loading"></span> Exporting...';
-      showStatus('📦 Exporting selected layers...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'export-selected' } }, '*');
-    });
-
-    // Export All button
-    exportAllBtn.addEventListener('click', () => {
-      exportAllBtn.disabled = true;
-      exportAllBtn.innerHTML = '<span class="loading"></span> Exporting...';
-      showStatus('📄 Exporting all layers on page...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'export-all' } }, '*');
-    });
-
-    // Copy to clipboard
-    copyJsonBtn.addEventListener('click', async () => {
-      if (!currentExportData) return;
-
-      try {
-        await navigator.clipboard.writeText(JSON.stringify(currentExportData, null, 2));
-        showStatus('✅ JSON copied to clipboard!', 'success');
-        copyJsonBtn.textContent = '✅ Copied!';
-        setTimeout(() => {
-          copyJsonBtn.textContent = '📋 Copy to Clipboard';
-        }, 2000);
-      } catch (err) {
-        // Fallback for browsers that don't support clipboard API
-        const textarea = document.createElement('textarea');
-        textarea.value = JSON.stringify(currentExportData, null, 2);
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showStatus('✅ JSON copied to clipboard!', 'success');
-        copyJsonBtn.textContent = '✅ Copied!';
-        setTimeout(() => {
-          copyJsonBtn.textContent = '📋 Copy to Clipboard';
-        }, 2000);
+    // ==================== AI CHAT FUNCTIONS ====================
+    chatSendBtn.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
       }
     });
 
-    // Download JSON
-    downloadJsonBtn.addEventListener('click', () => {
-      if (!currentExportData) return;
+    function sendChatMessage() {
+      const message = chatInput.value.trim();
+      if (!message || isGenerating) return;
 
-      const jsonString = JSON.stringify(currentExportData, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+      addMessage('user', message);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      isGenerating = true;
+      chatSendBtn.disabled = true;
 
-      // Generate filename from design name or timestamp
-      let filename = 'figma-design';
-      if (Array.isArray(currentExportData) && currentExportData.length > 0 && currentExportData[0].name) {
-        filename = currentExportData[0].name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-      } else if (currentExportData.name) {
-        filename = currentExportData.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-      }
-      a.download = `${filename}-${Date.now()}.json`;
+      conversationHistory.push({ role: 'user', content: message });
+      addMessage('assistant', 'Creating your design...', true);
 
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      showStatus('✅ JSON file downloaded!', 'success');
-    });
-
-    // JSON validation on input
-    jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
-
-    function debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
+      parent.postMessage({
+        pluginMessage: {
+          type: 'ai-chat-message',
+          message: message,
+          history: conversationHistory
+        }
+      }, '*');
     }
 
-    function validateJsonInput() {
+    function addMessage(role, content, isLoading = false) {
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${role}`;
+      const contentEl = document.createElement('div');
+      contentEl.className = 'message-content';
+
+      if (isLoading) {
+        contentEl.innerHTML = `
+          <div class="loading-indicator">
+            <div class="spinner"></div>
+            <span>${content}</span>
+          </div>
+        `;
+      } else {
+        contentEl.innerHTML = `<div>${content}</div>`;
+      }
+
+      messageEl.appendChild(contentEl);
+      chatMessagesEl.appendChild(messageEl);
+      chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      chatMessages.push({ role, content, timestamp: new Date() });
+    }
+
+    function removeLoadingMessages() {
+      const loadingEls = chatMessagesEl.querySelectorAll('.loading-indicator');
+      loadingEls.forEach(el => el.closest('.message').remove());
+    }
+
+    function addDesignPreview(designData, previewHtml = null) {
+      const lastMessage = chatMessagesEl.lastElementChild;
+      if (!lastMessage || !lastMessage.classList.contains('assistant')) return;
+
+      const contentEl = lastMessage.querySelector('.message-content');
+      if (!contentEl || contentEl.querySelector('.design-preview')) return;
+
+      const previewEl = document.createElement('div');
+      previewEl.className = 'design-preview';
+      const uniqueId = 'import-btn-' + Date.now();
+      const expandId = 'expand-btn-' + Date.now();
+
+      const visualContent = previewHtml || '<div style="padding: 40px; color: #999;">Preview unavailable</div>';
+
+      previewEl.innerHTML = `
+        <div class="design-preview-header">
+          <span class="design-preview-title">✨ Design Preview</span>
+          <div class="preview-actions">
+            <button class="expand-btn" id="${expandId}">🔍 Expand</button>
+            <button class="import-to-figma-btn" id="${uniqueId}" ${!designData ? 'disabled' : ''}>
+              Import to Figma
+            </button>
+          </div>
+        </div>
+        <div class="design-preview-visual">
+          ${visualContent}
+        </div>
+      `;
+
+      contentEl.appendChild(previewEl);
+
+      const expandBtn = document.getElementById(expandId);
+      expandBtn.addEventListener('click', () => {
+        const popup = window.open('', '_blank', 
+          'width=1200,height=800,location=no,menubar=no,toolbar=no,scrollbars=yes');
+        
+        if (popup) {
+          popup.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>Design Preview - Full Screen</title>
+              <style>
+                body {
+                  margin: 0;
+                  padding: 20px;
+                  background: #f5f5f5;
+                  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                }
+                .popup-container {
+                  max-width: 100%;
+                  background: white;
+                  border-radius: 12px;
+                  padding: 20px;
+                  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+                }
+                .popup-preview {
+                  max-height: 70vh;
+                  overflow: auto;
+                  padding: 15px;
+                  background: #f9fafb;
+                  border-radius: 8px;
+                  border: 1px solid #e5e7eb;
+                }
+                .popup-actions {
+                  margin-top: 20px;
+                  display: flex;
+                  gap: 12px;
+                }
+                .popup-btn {
+                  padding: 10px 20px;
+                  border-radius: 8px;
+                  border: none;
+                  cursor: pointer;
+                  font-weight: 600;
+                }
+                .popup-import {
+                  background: #6366f1;
+                  color: white;
+                }
+                .popup-close {
+                  background: #6b7280;
+                  color: white;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="popup-container">
+                <h2>Design Preview - Full Screen</h2>
+                <div class="popup-preview">
+                  ${previewHtml}
+                </div>
+                <div class="popup-actions">
+                  <button class="popup-btn popup-import" onclick="importDesign()">
+                    Import to Figma
+                  </button>
+                  <button class="popup-btn popup-close" onclick="window.close()">
+                    Close
+                  </button>
+                </div>
+              </div>
+              <script>
+                function importDesign() {
+                  window.opener.postMessage({
+                    pluginMessage: {
+                      type: 'import-design-from-chat',
+                      designData: ${JSON.stringify(designData)}
+                    }
+                  }, '*');
+                  window.close();
+                }
+              <\/script>
+            </body>
+            </html>
+          `);
+          popup.document.close();
+        }
+      });
+
+      const importButton = document.getElementById(uniqueId);
+      if (importButton && designData) {
+        importButton.addEventListener('click', () => {
+          importButton.disabled = true;
+          importButton.textContent = 'Importing...';
+          parent.postMessage({
+            pluginMessage: {
+              type: 'import-design-from-chat',
+              designData: designData
+            }
+          }, '*');
+        });
+      }
+    }
+
+    // ==================== FETCH API FUNCTIONS ====================
+    fetchImportBtn.addEventListener('click', async () => {
+      await handleApiFetch();
+    });
+
+    async function handleApiFetch() {
+      const apiUrl = apiUrlInput.value.trim();
+      if (!apiUrl) {
+        showStatus('❌ Please enter an API URL', 'error');
+        return;
+      }
+
+      try {
+        showStatus('📡 Fetching...', 'info');
+        fetchImportBtn.disabled = true;
+        fetchImportBtn.textContent = 'Fetching...';
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        
+        const result = await response.json();
+        let designData = result.data || result.design || result;
+        
+        parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
+        
+        fetchImportBtn.disabled = false;
+        fetchImportBtn.textContent = '📥 Fetch & Import';
+        
+      } catch (error) {
+        showStatus(`❌ ${error.message}`, 'error');
+        fetchImportBtn.disabled = false;
+        fetchImportBtn.textContent = '📥 Fetch & Import';
+      }
+    }
+
+    // ==================== MANUAL JSON FUNCTIONS ====================
+    jsonImportBtn.addEventListener('click', async () => {
+      await handleManualJson();
+    });
+
+    async function handleManualJson() {
+      const jsonValue = jsonInput.value.trim();
+      if (!jsonValue) {
+        showStatus('❌ Please paste JSON', 'error');
+        return;
+      }
+
+      try {
+        const designData = JSON.parse(jsonValue);
+        showStatus('📋 Importing...', 'info');
+        jsonImportBtn.disabled = true;
+        jsonImportBtn.textContent = 'Importing...';
+        
+        parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
+        
+        jsonImportBtn.disabled = false;
+        jsonImportBtn.textContent = '📋 Import JSON';
+        
+      } catch (e) {
+        showStatus(`❌ Invalid JSON: ${e.message}`, 'error');
+        jsonImportBtn.disabled = false;
+        jsonImportBtn.textContent = '📋 Import JSON';
+      }
+    }
+
+    jsonInput.addEventListener('input', () => {
       const value = jsonInput.value.trim();
       if (!value) {
         jsonInput.classList.remove('error', 'valid');
         jsonStats.textContent = '';
-        jsonStats.classList.remove('error');
-        return null;
+        return;
       }
 
       try {
         const parsed = JSON.parse(value);
-        const stats = analyzeJsonStructure(parsed);
         jsonInput.classList.remove('error');
         jsonInput.classList.add('valid');
+        jsonStats.textContent = '✅ Valid JSON';
         jsonStats.classList.remove('error');
-        jsonStats.textContent = stats;
-        return parsed;
       } catch (e) {
         jsonInput.classList.remove('valid');
         jsonInput.classList.add('error');
         jsonStats.classList.add('error');
         jsonStats.textContent = `❌ Invalid JSON: ${e.message}`;
-        return null;
+      }
+    });
+
+    // ==================== EXPORT FUNCTIONS - هذي الجزئية المهمة! ====================
+    exportSelectedBtn.addEventListener('click', () => {
+      exportSelectedBtn.disabled = true;
+      exportSelectedBtn.textContent = '⏳ Exporting...';
+      parent.postMessage({ pluginMessage: { type: 'export-selected' } }, '*');
+    });
+
+    exportAllBtn.addEventListener('click', () => {
+      exportAllBtn.disabled = true;
+      exportAllBtn.textContent = '⏳ Exporting...';
+      parent.postMessage({ pluginMessage: { type: 'export-all' } }, '*');
+    });
+
+    copyJsonBtn.addEventListener('click', async () => {
+      if (!currentExportData) return;
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(currentExportData, null, 2));
+        showStatus('✅ JSON copied!', 'success');
+        copyJsonBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyJsonBtn.textContent = '📋 Copy to Clipboard'; }, 2000);
+      } catch (err) {
+        showStatus('❌ Copy failed', 'error');
+      }
+    });
+
+    downloadJsonBtn.addEventListener('click', () => {
+      if (!currentExportData) return;
+      const blob = new Blob([JSON.stringify(currentExportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `figma-design-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showStatus('✅ Downloaded!', 'success');
+    });
+
+    function updateSelectionInfo(selection) {
+      if (!selection || selection.count === 0) {
+        selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export specific elements, or export the entire page.';
+        exportSelectedBtn.disabled = true;
+      } else {
+        const names = selection.names.slice(0, 3).join(', ');
+        const more = selection.count > 3 ? ` and ${selection.count - 3} more` : '';
+        selectionInfo.innerHTML = `<strong>${selection.count} layer${selection.count > 1 ? 's' : ''} selected:</strong> ${names}${more}`;
+        exportSelectedBtn.disabled = false;
       }
     }
 
-    function analyzeJsonStructure(data) {
-      let nodeCount = 0;
-      let frameCount = 0;
-      let textCount = 0;
-      let otherCount = 0;
-
-      function countNodes(node) {
-        if (!node || typeof node !== 'object') return;
-
-        if (Array.isArray(node)) {
-          node.forEach(countNodes);
-          return;
-        }
-
-        if (node.type) {
-          nodeCount++;
-          if (node.type === 'FRAME' || node.type === 'GROUP') frameCount++;
-          else if (node.type === 'TEXT') textCount++;
-          else otherCount++;
-        }
-
-        if (node.children && Array.isArray(node.children)) {
-          node.children.forEach(countNodes);
-        }
-        if (node.data) countNodes(node.data);
-      }
-
-      countNodes(data);
-
-      if (nodeCount === 0) {
-        return '⚠️ No Figma nodes detected in JSON';
-      }
-
-      return `✅ Valid JSON: ${nodeCount} node${nodeCount !== 1 ? 's' : ''} (${frameCount} frame${frameCount !== 1 ? 's' : ''}, ${textCount} text, ${otherCount} other)`;
+    function handleExportSuccess(msg) {
+      currentExportData = msg.data; 
+      exportOutput.value = JSON.stringify(msg.data, null, 2);
+      copyJsonBtn.disabled = false;
+      downloadJsonBtn.disabled = false;
+      exportStats.textContent = `✅ Exported ${msg.nodeCount} node(s)`;
+      showStatus(`✅ Exported ${msg.nodeCount} node(s)!`, 'success');
+      resetExportButtons();
     }
 
+    function resetExportButtons() {
+      exportSelectedBtn.textContent = '📦 Export Selected';
+      exportAllBtn.textContent = '📄 Export All (Page)';
+      exportAllBtn.disabled = false;
+      exportSelectedBtn.disabled = selectionInfo.textContent.includes('No selection');
+    }
+
+    // ==================== CANCEL FUNCTIONS ====================
+    cancelBtn.addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    });
+
+    jsonCancelBtn.addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    });
+
+    // ==================== UTILITY FUNCTIONS ====================
     function showStatus(message, type) {
       statusEl.textContent = message;
       statusEl.className = `status ${type}`;
@@ -597,200 +1010,41 @@ Example format:
       statusEl.textContent = '';
     }
 
-    function resetButton() {
-      importBtn.disabled = false;
-      const currentTab = document.querySelector('.tab.active').dataset.tab;
-      const buttonTexts = {
-        'ai': '🚀 Generate & Import',
-        'auto': '📥 Fetch & Import',
-        'manual': '📋 Import JSON'
-      };
-      importBtn.innerHTML = buttonTexts[currentTab] || 'Import';
-    }
-
-    function resetExportButtons() {
-      exportSelectedBtn.innerHTML = '📦 Export Selected';
-      exportAllBtn.innerHTML = '📄 Export All (Page)';
-      exportAllBtn.disabled = false;
-      // exportSelectedBtn state depends on selection
-    }
-
-    function setLoading(message = 'Working...') {
-      importBtn.disabled = true;
-      importBtn.innerHTML = `<span class="loading"></span> ${message}`;
-    }
-
-    function updateExportOutput(data) {
-      currentExportData = data;
-      exportOutput.value = JSON.stringify(data, null, 2);
-      copyJsonBtn.disabled = false;
-      downloadJsonBtn.disabled = false;
-
-      // Calculate stats
-      const stats = analyzeJsonStructure(data);
-      exportStats.textContent = stats;
-    }
-
-    // Main import button click handler
-    importBtn.addEventListener('click', async () => {
-      const activeTab = document.querySelector('.tab.active').dataset.tab;
-
-      try {
-        if (activeTab === 'ai') {
-          await handleAiGeneration();
-        } else if (activeTab === 'auto') {
-          await handleApiFetch();
-        } else {
-          await handleManualJson();
-        }
-      } catch (error) {
-        showStatus(`❌ ${error.message}`, 'error');
-        resetButton();
-      }
-    });
-
-    async function handleAiGeneration() {
-      const prompt = document.getElementById('ai-prompt').value.trim();
-      if (!prompt) {
-        throw new Error('Please describe the design you want to generate.');
-      }
-      if (prompt.length < 10) {
-        throw new Error('Please provide a more detailed description (at least 10 characters).');
-      }
-
-      setLoading('Generating with AI...');
-      showStatus('🤖 Generating design with AI. This may take a moment...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'generate-design-from-text', prompt } }, '*');
-    }
-
-    async function handleApiFetch() {
-      const apiUrl = document.getElementById('api-url').value.trim();
-      if (!apiUrl) {
-        throw new Error('Please enter an API URL.');
-      }
-
-      // Basic URL validation
-      try {
-        new URL(apiUrl);
-      } catch (e) {
-        throw new Error('Please enter a valid URL (e.g., https://api.example.com/design)');
-      }
-
-      setLoading('Fetching design...');
-      showStatus('📡 Fetching design from API...', 'info');
-
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (contentType && !contentType.includes('application/json')) {
-        showStatus('⚠️ Response may not be JSON. Attempting to parse anyway...', 'warning');
-      }
-
-      let result;
-      try {
-        result = await response.json();
-      } catch (e) {
-        throw new Error('Failed to parse API response as JSON.');
-      }
-
-      // Handle various response formats
-      let designData = result;
-      if (result.success === false) {
-        throw new Error(result.message || result.error || 'API returned an error.');
-      }
-      if (result.data) {
-        designData = result.data;
-      } else if (result.design) {
-        designData = result.design;
-      } else if (result.result) {
-        designData = result.result;
-      }
-
-      if (!designData || (typeof designData === 'object' && Object.keys(designData).length === 0)) {
-        throw new Error('No design data received from API.');
-      }
-
-      showStatus('✅ Design fetched! Importing to Figma...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
-    }
-
-    async function handleManualJson() {
-      const jsonValue = jsonInput.value.trim();
-      if (!jsonValue) {
-        throw new Error('Please paste your design JSON.');
-      }
-
-      let designData;
-      try {
-        designData = JSON.parse(jsonValue);
-      } catch (e) {
-        throw new Error(`Invalid JSON: ${e.message}`);
-      }
-
-      // Validate that it looks like Figma data
-      const hasValidStructure = validateFigmaStructure(designData);
-      if (!hasValidStructure) {
-        showStatus('⚠️ JSON may not be valid Figma format. Attempting import anyway...', 'warning');
-      }
-
-      setLoading('Importing...');
-      showStatus('📋 Importing design to Figma...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
-    }
-
-    function validateFigmaStructure(data) {
-      if (!data || typeof data !== 'object') return false;
-
-      function checkNode(node) {
-        if (Array.isArray(node)) {
-          return node.some(checkNode);
-        }
-        if (node && typeof node === 'object') {
-          if (node.type && typeof node.type === 'string') return true;
-          if (node.data) return checkNode(node.data);
-          if (node.children) return checkNode(node.children);
-        }
-        return false;
-      }
-
-      return checkNode(data);
-    }
-
-    // Cancel button
-    cancelBtn.addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-    });
-
-    // Handle messages from the plugin backend
+    // ==================== MESSAGE HANDLER ====================
     window.onmessage = async (event) => {
       const msg = event.data.pluginMessage;
       if (!msg) return;
 
       switch (msg.type) {
-        case 'call-backend-for-claude':
-          try {
-            const designData = await callBackendForClaude(msg.prompt);
-            parent.postMessage({ pluginMessage: { type: 'design-generated-from-ai', designData } }, '*');
-          } catch (error) {
-            showStatus(`❌ AI Generation failed: ${error.message}`, 'error');
-            resetButton();
+        case 'ai-chat-response':
+          isGenerating = false;
+          chatSendBtn.disabled = false;
+          removeLoadingMessages();
+          
+          addMessage('assistant', msg.message);
+          conversationHistory.push({ role: 'assistant', content: msg.message });
+          
+          if (msg.designData || msg.previewHtml) {
+            currentDesignData = msg.designData;
+            addDesignPreview(msg.designData, msg.previewHtml);
           }
+          break;
+
+        case 'ai-chat-error':
+          isGenerating = false;
+          chatSendBtn.disabled = false;
+          removeLoadingMessages();
+          addMessage('assistant', `Error: ${msg.error}`);
+          showStatus(`❌ ${msg.error}`, 'error');
           break;
 
         case 'import-success':
           showStatus('✅ Design imported successfully!', 'success');
-          resetButton();
-          setTimeout(() => {
-            parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-          }, 2500);
+          setTimeout(hideStatus, 3000);
           break;
 
         case 'import-error':
           showStatus(`❌ Import failed: ${msg.error}`, 'error');
-          resetButton();
           break;
 
         case 'selection-changed':
@@ -798,9 +1052,7 @@ Example format:
           break;
 
         case 'export-success':
-          showStatus(`✅ Exported ${msg.nodeCount} node${msg.nodeCount !== 1 ? 's' : ''} successfully!`, 'success');
-          updateExportOutput(msg.data);
-          resetExportButtons();
+          handleExportSuccess(msg);
           break;
 
         case 'export-error':
@@ -810,66 +1062,15 @@ Example format:
       }
     };
 
-    function updateSelectionInfo(selection) {
-      if (!selection || selection.count === 0) {
-        selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export specific elements, or export the entire page.';
-        exportSelectedBtn.disabled = true;
-      } else {
-        const names = selection.names.slice(0, 3).join(', ');
-        const moreText = selection.count > 3 ? ` and ${selection.count - 3} more` : '';
-        selectionInfo.innerHTML = `<strong>${selection.count} layer${selection.count !== 1 ? 's' : ''} selected:</strong> ${names}${moreText}`;
-        exportSelectedBtn.disabled = false;
-      }
-    }
+    // ==================== INITIALIZATION ====================
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
 
-    async function callBackendForClaude(userPrompt) {
-      const BACKEND_URL = 'https://task-creator-api.onrender.com/api/designs/generate-from-text';
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
-
-      try {
-        const response = await fetch(BACKEND_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: userPrompt }),
-          signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          let errorMessage = `Server error: ${response.status}`;
-          try {
-            const errorResult = await response.json();
-            errorMessage = errorResult.message || errorResult.error || errorMessage;
-          } catch (e) {
-            // Use default error message
-          }
-          throw new Error(errorMessage);
-        }
-
-        const result = await response.json();
-
-        // Handle various response formats from the backend
-        if (result.design) return result.design;
-        if (result.data) return result.data;
-        if (result.type) return result; // Direct node data
-
-        return result;
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          throw new Error('Request timed out. Please try again.');
-        }
-        throw error;
-      }
-    }
-
-    // Request initial selection info when the plugin loads
     setTimeout(() => {
       parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
     }, 100);
   </script>
 </body>
-
 </html>
