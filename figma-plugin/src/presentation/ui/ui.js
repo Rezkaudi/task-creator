@@ -187,7 +187,7 @@ function addDesignPreview(designData, previewHtml = null) {
     const zoomReset = previewEl.querySelector('.zoom-reset');
 
     function updateZoom(newZoom) {
-        currentZoom = Math.max(0.1, Math.min(2, newZoom)); 
+        currentZoom = Math.max(0.1, Math.min(2, newZoom));
         previewContent.style.transform = `scale(${currentZoom})`;
         zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
     }
