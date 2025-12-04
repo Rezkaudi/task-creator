@@ -1,17 +1,17 @@
 import { DataSource } from "typeorm";
-import { DesignVersionEntity } from "./entities/design-version.typeorm-entity";
 import { ENV_CONFIG } from "../config/env.config";
 
 export const AppDataSource = new DataSource({
-    type: "postgres",
+    type: 'postgres',
     url: ENV_CONFIG.DATABASE_URL,
     synchronize: false,
-    logging: ENV_CONFIG.NODE_ENV === "development",
-    entities: [DesignVersionEntity],
-    migrations: ENV_CONFIG.NODE_ENV === "development"
-        ? ["src/infrastructure/database/migrations/*.ts"]
-        : ["dist/src/infrastructure/database/migrations/*.js"],
+    logging: ENV_CONFIG.NODE_ENV === 'development',
+    entities: [__dirname + '/entities/*.entity{.ts,.js}'],
+    migrations: [__dirname + '/migrations/*{.ts,.js}'],
     subscribers: [],
+    // ssl: {
+    //   rejectUnauthorized: false,
+    // },
 });
 
 export const initializeDatabase = async (): Promise<DataSource> => {
