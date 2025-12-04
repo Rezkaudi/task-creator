@@ -448,6 +448,34 @@ button:disabled {
     padding: 6px 12px;
     font-size: 12px;
 }
+.zoom-controls {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.zoom-btn {
+    padding: 4px 8px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.zoom-btn:hover {
+    background: #e5e7eb;
+}
+
+.zoom-level {
+    font-size: 11px;
+    color: #6b7280;
+    min-width: 45px;
+    text-align: center;
+}
 
 /* AI Chat Styles */
 #ai-chat-container {
@@ -562,15 +590,11 @@ button:disabled {
     white-space: nowrap;
 }
 
-.expand-btn {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
 
 .import-to-figma-btn {
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
 }
 
-.expand-btn:hover,
 .import-to-figma-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);

@@ -1,4 +1,3 @@
-// Configuration
 const API_BASE_URL = 'https://task-creator-api.onrender.com';
 // For local development:
 // const API_BASE_URL = 'http://localhost:5000';
@@ -152,7 +151,6 @@ function addDesignPreview(designData, previewHtml = null) {
     const previewEl = document.createElement('div');
     previewEl.className = 'design-preview';
     const uniqueId = 'import-btn-' + Date.now();
-    const expandId = 'expand-btn-' + Date.now();
 
     const visualContent = previewHtml || '<div style="padding: 40px; color: #999;">Preview unavailable</div>';
 
@@ -160,108 +158,46 @@ function addDesignPreview(designData, previewHtml = null) {
     <div class="design-preview-header">
       <span class="design-preview-title">✨ Design Preview</span>
       <div class="preview-actions">
-        <button class="expand-btn" id="${expandId}">🔍 Expand</button>
+        <div class="zoom-controls">
+          <button class="zoom-btn zoom-out">-</button>
+          <span class="zoom-level">100%</span>
+          <button class="zoom-btn zoom-in">+</button>
+          <button class="zoom-btn zoom-reset">Reset</button>
+        </div>
         <button class="import-to-figma-btn" id="${uniqueId}" ${!designData ? 'disabled' : ''}>
           Import to Figma
         </button>
       </div>
     </div>
     <div class="design-preview-visual">
-      ${visualContent}
+      <div class="design-preview-content" style="transform: scale(1); transform-origin: top left; transition: transform 0.2s;">
+        ${visualContent}
+      </div>
     </div>
   `;
 
     contentEl.appendChild(previewEl);
 
-    const expandBtn = document.getElementById(expandId);
-    expandBtn.addEventListener('click', () => {
-        const popup = window.open('', '_blank',
-            'width=1200,height=800,location=no,menubar=no,toolbar=no,scrollbars=yes');
+    // Zoom functionality
+    let currentZoom = 1;
+    const previewContent = previewEl.querySelector('.design-preview-content');
+    const zoomLevel = previewEl.querySelector('.zoom-level');
+    const zoomIn = previewEl.querySelector('.zoom-in');
+    const zoomOut = previewEl.querySelector('.zoom-out');
+    const zoomReset = previewEl.querySelector('.zoom-reset');
 
-        if (popup) {
-            popup.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Design Preview - Full Screen</title>
-          <style>
-            body {
-              margin: 0;
-              padding: 20px;
-              background: #f5f5f5;
-              font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            }
-            .popup-container {
-              max-width: 100%;
-              background: white;
-              border-radius: 12px;
-              padding: 20px;
-              box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            }
-            .popup-preview {
-              max-height: 70vh;
-              overflow: auto;
-              padding: 15px;
-              background: #f9fafb;
-              border-radius: 8px;
-              border: 1px solid #e5e7eb;
-            }
-            .popup-actions {
-              margin-top: 20px;
-              display: flex;
-              gap: 12px;
-            }
-            .popup-btn {
-              padding: 10px 20px;
-              border-radius: 8px;
-              border: none;
-              cursor: pointer;
-              font-weight: 600;
-            }
-            .popup-import {
-              background: #6366f1;
-              color: white;
-            }
-            .popup-close {
-              background: #6b7280;
-              color: white;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="popup-container">
-            <h2>Design Preview - Full Screen</h2>
-            <div class="popup-preview">
-              ${previewHtml}
-            </div>
-            <div class="popup-actions">
-              <button class="popup-btn popup-import" onclick="importDesign()">
-                Import to Figma
-              </button>
-              <button class="popup-btn popup-close" onclick="window.close()">
-                Close
-              </button>
-            </div>
-          </div>
-          <script>
-            function importDesign() {
-              window.opener.postMessage({
-                pluginMessage: {
-                  type: 'import-design-from-chat',
-                  designData: ${JSON.stringify(designData)}
-                }
-              }, '*');
-              window.close();
-            }
-          <\/script>
-        </body>
-        </html>
-      `);
-            popup.document.close();
-        }
-    });
+    function updateZoom(newZoom) {
+        currentZoom = Math.max(0.1, Math.min(2, newZoom)); 
+        previewContent.style.transform = `scale(${currentZoom})`;
+        zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
+    }
 
-    const importButton = document.getElementById(uniqueId);
+    zoomIn.addEventListener('click', () => updateZoom(currentZoom + 0.1));
+    zoomOut.addEventListener('click', () => updateZoom(currentZoom - 0.1));
+    zoomReset.addEventListener('click', () => updateZoom(1));
+
+    // Import button
+    const importButton = previewEl.querySelector('.import-to-figma-btn');
     if (importButton && designData) {
         importButton.addEventListener('click', () => {
             importButton.disabled = true;
