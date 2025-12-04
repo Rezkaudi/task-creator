@@ -148,6 +148,7 @@ export class PluginMessageHandler {
     if (result.success) {
       this.uiPort.postMessage({ type: 'import-success' });
       this.notificationPort.notify('✅ Design imported successfully!');
+      this.uiPort.close();
     } else {
       this.notificationPort.notifyError(result.error || 'Import failed');
       this.uiPort.postMessage({
