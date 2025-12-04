@@ -15,8 +15,17 @@ export class RectangleNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     rectNode.resize(width, height);
 
-    this.applyFills(rectNode, nodeData.fills);
-    this.applyStrokes(rectNode, nodeData.strokes, nodeData.strokeWeight, nodeData.strokeAlign);
+    await this.applyFillsAsync(rectNode, nodeData.fills);
+    await this.applyStrokesAsync(
+      rectNode,
+      nodeData.strokes,
+      nodeData.strokeWeight,
+      nodeData.strokeAlign,
+      nodeData.strokeCap,
+      nodeData.strokeJoin,
+      nodeData.dashPattern,
+      nodeData.strokeMiterLimit
+    );
     this.applyCornerRadius(rectNode, nodeData);
 
     return rectNode;
@@ -35,11 +44,27 @@ export class RectangleNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     rectFrame.resize(width, height);
 
-    this.applyFills(rectFrame, nodeData.fills);
-    this.applyStrokes(rectFrame, nodeData.strokes, nodeData.strokeWeight, nodeData.strokeAlign);
+    await this.applyFillsAsync(rectFrame, nodeData.fills);
+    await this.applyStrokesAsync(
+      rectFrame,
+      nodeData.strokes,
+      nodeData.strokeWeight,
+      nodeData.strokeAlign,
+      nodeData.strokeCap,
+      nodeData.strokeJoin,
+      nodeData.dashPattern,
+      nodeData.strokeMiterLimit
+    );
     this.applyCornerRadius(rectFrame, nodeData);
 
-    for (const child of nodeData.children!) {
+    // Sort children by layer index
+    const sortedChildren = [...(nodeData.children || [])].sort((a, b) => {
+      const indexA = a._layerIndex ?? 0;
+      const indexB = b._layerIndex ?? 0;
+      return indexA - indexB;
+    });
+
+    for (const child of sortedChildren) {
       if (child && typeof child === 'object') {
         await createChildFn(child, rectFrame);
       }

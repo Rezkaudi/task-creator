@@ -14,6 +14,7 @@ export interface ImportResult {
 
 /**
  * Use case for importing designs into Figma
+ * Handles comprehensive lossless import of all node types
  */
 export class ImportDesignUseCase {
   constructor(
@@ -27,13 +28,39 @@ export class ImportDesignUseCase {
    */
   async execute(rawData: unknown): Promise<ImportResult> {
     try {
+      // Clear component registry before import
+      this.nodeRepository.clearComponentRegistry();
+
       const nodes = this.parser.parse(rawData);
 
       if (nodes.length === 0) {
         throw new Error('No valid design data found in the provided input.');
       }
 
-      const createdNodes = await this.createNodes(nodes);
+      // Sort nodes by layer index if available to maintain z-order
+      const sortedNodes = this.sortByLayerIndex(nodes);
+
+      // First pass: Create all components to register them
+      const componentNodes = sortedNodes.filter(n => n.type === 'COMPONENT' || n.type === 'COMPONENT_SET');
+      const otherNodes = sortedNodes.filter(n => n.type !== 'COMPONENT' && n.type !== 'COMPONENT_SET');
+
+      const createdNodes: SceneNode[] = [];
+
+      // Create components first so they can be referenced by instances
+      for (const nodeData of componentNodes) {
+        const node = await this.nodeRepository.createNode(nodeData);
+        if (node) {
+          createdNodes.push(node);
+        }
+      }
+
+      // Then create other nodes (including instances)
+      for (const nodeData of otherNodes) {
+        const node = await this.nodeRepository.createNode(nodeData);
+        if (node) {
+          createdNodes.push(node);
+        }
+      }
 
       if (createdNodes.length === 0) {
         throw new Error('No nodes were created from the provided data.');
@@ -59,16 +86,14 @@ export class ImportDesignUseCase {
     }
   }
 
-  private async createNodes(nodes: DesignNode[]): Promise<SceneNode[]> {
-    const createdNodes: SceneNode[] = [];
-
-    for (const nodeData of nodes) {
-      const node = await this.nodeRepository.createNode(nodeData);
-      if (node) {
-        createdNodes.push(node);
-      }
-    }
-
-    return createdNodes;
+  /**
+   * Sort nodes by layer index to maintain z-order
+   */
+  private sortByLayerIndex(nodes: DesignNode[]): DesignNode[] {
+    return [...nodes].sort((a, b) => {
+      const indexA = a._layerIndex ?? 0;
+      const indexB = b._layerIndex ?? 0;
+      return indexA - indexB;
+    });
   }
 }

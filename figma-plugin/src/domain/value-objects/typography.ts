@@ -28,4 +28,12 @@ export interface LetterSpacing {
 export const DefaultFonts = {
   INTER: { family: 'Inter', style: 'Regular' } as FontName,
   ARIAL: { family: 'Arial', style: 'Regular' } as FontName,
+  ROBOTO: { family: 'Roboto', style: 'Regular' } as FontName,
 } as const;
+
+/**
+ * Check if two fonts are equal
+ */
+export function fontsEqual(a: FontName, b: FontName): boolean {
+  return a.family === b.family && a.style === b.style;
+}
