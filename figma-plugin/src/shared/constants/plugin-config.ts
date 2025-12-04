@@ -2,8 +2,8 @@
  * Plugin configuration constants
  */
 export const PluginConfig = {
-  UI_WIDTH: 480,
-  UI_HEIGHT: 680,
+  UI_WIDTH: 580,
+  UI_HEIGHT: 780,
   THEME_COLORS: true,
 } as const;
 
