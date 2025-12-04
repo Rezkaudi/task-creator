@@ -1,6 +1,6 @@
 import { Repository } from "typeorm";
 import { AppDataSource } from "../database/data-source";
-import { DesignVersionEntity } from "../database/entities/design-version.typeorm-entity";
+import { DesignVersionEntity } from "../database/entities/design-version.entity";
 import { IDesignVersionRepository } from "../../domain/repositories/design-version.repository";
 import { DesignVersion } from "../../domain/entities/design-version.entity";
 
