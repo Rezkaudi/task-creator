@@ -6,7 +6,7 @@ import {
   ExportSelectedUseCase,
   ExportAllUseCase,
 } from '../../application/use-cases';
-import { ApiConfig } from '@shared/constants';
+import { ApiConfig } from '../../shared/constants';
 
 interface BackendChatResponse {
   success: boolean;
@@ -18,7 +18,6 @@ interface BackendChatResponse {
 /**
  * Handler for messages received from the UI
  */
-
 export class PluginMessageHandler {
   private conversationHistory: Array<{ role: string; content: string }> = [];
 
@@ -34,7 +33,6 @@ export class PluginMessageHandler {
   /**
     * Initialize the message handler
   */
-
   initialize(): void {
     this.uiPort.onMessage((message: PluginMessage) => this.handleMessage(message));
   }
@@ -70,7 +68,6 @@ export class PluginMessageHandler {
         break;
 
       case 'get-selection-info':
-
         break;
 
       case 'cancel':
@@ -158,7 +155,7 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== OLD FUNCTIONS THAT WORKED ====================
+  // ==================== STANDARD IMPORT/EXPORT FUNCTIONS ====================
   private async handleAIDesignImport(designData: unknown): Promise<void> {
     const result = await this.importAIDesignUseCase.execute(designData);
 
@@ -171,14 +168,6 @@ export class PluginMessageHandler {
         error: result.error || 'Import failed',
       });
     }
-  }
-
-  private async handleGenerateFromText(prompt: string): Promise<void> {
-    // Forward to UI to call Claude API
-    this.uiPort.postMessage({
-      type: 'call-backend-for-claude',
-      prompt,
-    });
   }
 
   private async handleImportDesign(designData: unknown): Promise<void> {

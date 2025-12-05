@@ -15,6 +15,7 @@ export interface ExportAllResult {
 
 /**
  * Use case for exporting all nodes from current page
+ * Handles comprehensive lossless export of all node types
  */
 export class ExportAllUseCase {
   constructor(
@@ -28,6 +29,7 @@ export class ExportAllUseCase {
    */
   async execute(): Promise<ExportAllResult> {
     try {
+      // Use async export for comprehensive data including images
       const exportedNodes = await this.nodeRepository.exportAll();
 
       if (exportedNodes.length === 0) {

@@ -18,8 +18,19 @@ export class FrameNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     frameNode.resize(width, height);
 
-    this.applyFills(frameNode, nodeData.fills);
-    this.applyStrokes(frameNode, nodeData.strokes, nodeData.strokeWeight, nodeData.strokeAlign);
+    // Apply fills and strokes with async image support
+    await this.applyFillsAsync(frameNode, nodeData.fills);
+    await this.applyStrokesAsync(
+      frameNode,
+      nodeData.strokes,
+      nodeData.strokeWeight,
+      nodeData.strokeAlign,
+      nodeData.strokeCap,
+      nodeData.strokeJoin,
+      nodeData.dashPattern,
+      nodeData.strokeMiterLimit
+    );
+
     this.applyCornerRadius(frameNode, nodeData);
 
     // Apply clipsContent
@@ -30,9 +41,13 @@ export class FrameNodeCreator extends BaseNodeCreator {
     // Apply auto-layout properties
     this.applyAutoLayout(frameNode, nodeData);
 
-    // Create children
+    // Apply grids and guides
+    this.applyGridsAndGuides(frameNode, nodeData);
+
+    // Create children (sorted by layer index if available)
     if (nodeData.children && Array.isArray(nodeData.children)) {
-      for (const child of nodeData.children) {
+      const sortedChildren = this.sortChildrenByLayerIndex(nodeData.children);
+      for (const child of sortedChildren) {
         if (child && typeof child === 'object') {
           await createChildFn(child, frameNode);
         }
@@ -61,7 +76,8 @@ export class FrameNodeCreator extends BaseNodeCreator {
 
     // Create children
     if (nodeData.children && Array.isArray(nodeData.children)) {
-      for (const child of nodeData.children) {
+      const sortedChildren = this.sortChildrenByLayerIndex(nodeData.children);
+      for (const child of sortedChildren) {
         if (child && typeof child === 'object') {
           await createChildFn(child, groupFrame);
         }
@@ -71,48 +87,42 @@ export class FrameNodeCreator extends BaseNodeCreator {
     return groupFrame;
   }
 
-  private applyAutoLayout(frameNode: FrameNode, nodeData: DesignNode): void {
-    if (!nodeData.layoutMode || nodeData.layoutMode === 'NONE') {
-      return;
+  /**
+   * Create a section node
+   */
+  async createSection(
+    nodeData: DesignNode,
+    createChildFn: (child: DesignNode, parent: SectionNode) => Promise<void>
+  ): Promise<SectionNode> {
+    const sectionNode = figma.createSection();
+    sectionNode.name = nodeData.name || 'Section';
+
+    // Sections have different resize behavior
+    if (nodeData.width && nodeData.height) {
+      sectionNode.resizeWithoutConstraints(nodeData.width, nodeData.height);
     }
 
-    frameNode.layoutMode = nodeData.layoutMode;
-
-    if (typeof nodeData.itemSpacing === 'number') {
-      frameNode.itemSpacing = nodeData.itemSpacing;
-    }
-    if (typeof nodeData.paddingTop === 'number') {
-      frameNode.paddingTop = nodeData.paddingTop;
-    }
-    if (typeof nodeData.paddingRight === 'number') {
-      frameNode.paddingRight = nodeData.paddingRight;
-    }
-    if (typeof nodeData.paddingBottom === 'number') {
-      frameNode.paddingBottom = nodeData.paddingBottom;
-    }
-    if (typeof nodeData.paddingLeft === 'number') {
-      frameNode.paddingLeft = nodeData.paddingLeft;
+    // Create children
+    if (nodeData.children && Array.isArray(nodeData.children)) {
+      const sortedChildren = this.sortChildrenByLayerIndex(nodeData.children);
+      for (const child of sortedChildren) {
+        if (child && typeof child === 'object') {
+          await createChildFn(child, sectionNode as unknown as SectionNode);
+        }
+      }
     }
 
-    if (nodeData.primaryAxisAlignItems) {
-      frameNode.primaryAxisAlignItems = nodeData.primaryAxisAlignItems;
-    }
-    if (nodeData.counterAxisAlignItems && nodeData.counterAxisAlignItems !== 'BASELINE') {
-      frameNode.counterAxisAlignItems = nodeData.counterAxisAlignItems;
-    }
-    if (nodeData.primaryAxisSizingMode) {
-      frameNode.primaryAxisSizingMode = nodeData.primaryAxisSizingMode;
-    }
-    if (nodeData.counterAxisSizingMode) {
-      frameNode.counterAxisSizingMode = nodeData.counterAxisSizingMode;
-    }
+    return sectionNode;
+  }
 
-    // Wrap and counter axis spacing (for newer Figma versions)
-    if (nodeData.layoutWrap && 'layoutWrap' in frameNode) {
-      (frameNode as any).layoutWrap = nodeData.layoutWrap;
-    }
-    if (typeof nodeData.counterAxisSpacing === 'number' && 'counterAxisSpacing' in frameNode) {
-      (frameNode as any).counterAxisSpacing = nodeData.counterAxisSpacing;
-    }
+  /**
+   * Sort children by layer index to preserve z-order
+   */
+  private sortChildrenByLayerIndex(children: DesignNode[]): DesignNode[] {
+    return [...children].sort((a, b) => {
+      const indexA = a._layerIndex ?? 0;
+      const indexB = b._layerIndex ?? 0;
+      return indexA - indexB;
+    });
   }
 }

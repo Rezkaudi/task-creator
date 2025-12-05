@@ -15,9 +15,10 @@ export class NodeTypeMapper {
     POLYGON: 'POLYGON',
     STAR: 'STAR',
     COMPONENT: 'COMPONENT',
-    COMPONENT_SET: 'FRAME',
+    COMPONENT_SET: 'COMPONENT_SET',
     INSTANCE: 'INSTANCE',
     BOOLEAN_OPERATION: 'BOOLEAN_OPERATION',
+    SECTION: 'SECTION',
   };
 
   /**
@@ -39,13 +40,27 @@ export class NodeTypeMapper {
    * Check if type is frame-like
    */
   static isFrameLike(type: NodeType): boolean {
-    return ['FRAME', 'GROUP', 'COMPONENT', 'INSTANCE'].includes(type);
+    return ['FRAME', 'GROUP', 'COMPONENT', 'COMPONENT_SET', 'INSTANCE', 'SECTION'].includes(type);
   }
 
   /**
    * Check if type supports children
    */
   static supportsChildren(type: NodeType): boolean {
-    return ['FRAME', 'GROUP', 'COMPONENT', 'INSTANCE', 'BOOLEAN_OPERATION'].includes(type);
+    return ['FRAME', 'GROUP', 'COMPONENT', 'COMPONENT_SET', 'INSTANCE', 'BOOLEAN_OPERATION', 'SECTION'].includes(type);
+  }
+
+  /**
+   * Check if type is a shape
+   */
+  static isShape(type: NodeType): boolean {
+    return ['RECTANGLE', 'ELLIPSE', 'LINE', 'POLYGON', 'STAR', 'VECTOR'].includes(type);
+  }
+
+  /**
+   * Check if type is a component-related type
+   */
+  static isComponentRelated(type: NodeType): boolean {
+    return ['COMPONENT', 'COMPONENT_SET', 'INSTANCE'].includes(type);
   }
 }

@@ -1,5 +1,5 @@
 import { DesignNode, hasChildren, isTextNode } from '../../domain/entities/design-node';
-import { INodeRepository, SelectionInfo } from '../../domain/interfaces/node-repository.interface';
+import { INodeRepository, SelectionInfo, ComponentRegistry as IComponentRegistry } from '../../domain/interfaces/node-repository.interface';
 import { NodeTypeMapper } from '../mappers/node-type.mapper';
 import {
   FrameNodeCreator,
@@ -7,19 +7,22 @@ import {
   TextNodeCreator,
   ShapeNodeCreator,
   ComponentNodeCreator,
+  ComponentRegistry,
   BaseNodeCreator,
 } from './creators';
 import { NodeExporter } from './exporters/node.exporter';
 
 /**
  * Figma implementation of the Node Repository
+ * Handles comprehensive import/export of all Figma node types
  */
 export class FigmaNodeRepository extends BaseNodeCreator implements INodeRepository {
   private readonly frameCreator = new FrameNodeCreator();
   private readonly rectangleCreator = new RectangleNodeCreator();
   private readonly textCreator = new TextNodeCreator();
   private readonly shapeCreator = new ShapeNodeCreator();
-  private readonly componentCreator = new ComponentNodeCreator();
+  private readonly componentRegistry = new ComponentRegistry();
+  private readonly componentCreator = new ComponentNodeCreator(this.componentRegistry);
   private readonly nodeExporter = new NodeExporter();
 
   /**
@@ -59,8 +62,12 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     const selection = figma.currentPage.selection;
     const exportedNodes: DesignNode[] = [];
 
-    for (const node of selection) {
-      const exported = this.nodeExporter.export(node);
+    // Clear image cache for fresh export
+    this.nodeExporter.clearImageCache();
+
+    for (let i = 0; i < selection.length; i++) {
+      const node = selection[i];
+      const exported = await this.nodeExporter.export(node, i);
       if (exported) {
         exportedNodes.push(exported);
       }
@@ -76,8 +83,12 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     const children = figma.currentPage.children;
     const exportedNodes: DesignNode[] = [];
 
-    for (const node of children) {
-      const exported = this.nodeExporter.export(node);
+    // Clear image cache for fresh export
+    this.nodeExporter.clearImageCache();
+
+    for (let i = 0; i < children.length; i++) {
+      const node = children[i];
+      const exported = await this.nodeExporter.export(node, i);
       if (exported) {
         exportedNodes.push(exported);
       }
@@ -120,6 +131,26 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     figma.currentPage.appendChild(node);
   }
 
+  /**
+   * Get component registry for tracking during import
+   */
+  getComponentRegistry(): IComponentRegistry {
+    return {
+      components: this.componentRegistry.getAllComponents(),
+      pendingInstances: new Map(),
+    };
+  }
+
+  /**
+   * Clear component registry after import
+   */
+  clearComponentRegistry(): void {
+    this.componentRegistry.clear();
+  }
+
+  /**
+   * Create a node by its type
+   */
   private async createNodeByType(nodeData: DesignNode): Promise<SceneNode | null> {
     const nodeType = NodeTypeMapper.normalize(nodeData.type);
     const createChildBound = this.createChild.bind(this);
@@ -130,6 +161,9 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
 
       case 'GROUP':
         return this.frameCreator.createGroup(nodeData, createChildBound);
+
+      case 'SECTION':
+        return this.frameCreator.createSection(nodeData, createChildBound as any);
 
       case 'RECTANGLE':
         // If rectangle has children, create as frame
@@ -154,14 +188,23 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
         return this.shapeCreator.createLine(nodeData);
 
       case 'VECTOR':
+        // Check if we have vector path data
+        if (nodeData.vectorPaths || nodeData.vectorNetwork) {
+          return this.shapeCreator.createVector(nodeData);
+        }
         return this.shapeCreator.createVectorPlaceholder(nodeData);
 
       case 'COMPONENT':
         return this.componentCreator.create(nodeData, createChildBound as any);
 
+      case 'COMPONENT_SET':
+        return this.componentCreator.createComponentSet(nodeData, createChildBound);
+
       case 'INSTANCE':
-        // Instances require existing components, create as frame
-        return this.frameCreator.create(nodeData, createChildBound);
+        return this.componentCreator.createInstance(nodeData, createChildBound);
+
+      case 'BOOLEAN_OPERATION':
+        return this.createBooleanOperation(nodeData);
 
       default:
         // Fallback to frame for unknown types
@@ -172,6 +215,9 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     }
   }
 
+  /**
+   * Create a child node within a parent
+   */
   private async createChild(childData: DesignNode, parent: FrameNode | ComponentNode): Promise<void> {
     const childNode = await this.createNodeByType(childData);
 
@@ -184,6 +230,79 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       this.applyCommonProperties(childNode, childData);
 
       parent.appendChild(childNode);
+    }
+  }
+
+  /**
+   * Create a boolean operation node
+   */
+  private async createBooleanOperation(nodeData: DesignNode): Promise<SceneNode | null> {
+    // Boolean operations require at least 2 children
+    if (!nodeData.children || nodeData.children.length < 2) {
+      console.warn('Boolean operation requires at least 2 children');
+      return this.frameCreator.create(nodeData, this.createChild.bind(this));
+    }
+
+    try {
+      // Create children first
+      const childNodes: SceneNode[] = [];
+      for (const childData of nodeData.children) {
+        const childNode = await this.createNodeByType(childData);
+        if (childNode) {
+          if (typeof childData.x === 'number') childNode.x = childData.x;
+          if (typeof childData.y === 'number') childNode.y = childData.y;
+          this.applyCommonProperties(childNode, childData);
+          this.appendToPage(childNode);
+          childNodes.push(childNode);
+        }
+      }
+
+      if (childNodes.length < 2) {
+        console.warn('Not enough valid children for boolean operation');
+        // Clean up and return frame fallback
+        for (const node of childNodes) {
+          node.remove();
+        }
+        return this.frameCreator.create(nodeData, this.createChild.bind(this));
+      }
+
+      // Determine boolean operation type
+      const booleanOp = nodeData.booleanOperation || 'UNION';
+
+      // Create the boolean operation
+      let booleanNode: BooleanOperationNode;
+      switch (booleanOp) {
+        case 'UNION':
+          booleanNode = figma.union(childNodes, figma.currentPage);
+          break;
+        case 'INTERSECT':
+          booleanNode = figma.intersect(childNodes, figma.currentPage);
+          break;
+        case 'SUBTRACT':
+          booleanNode = figma.subtract(childNodes, figma.currentPage);
+          break;
+        case 'EXCLUDE':
+          booleanNode = figma.exclude(childNodes, figma.currentPage);
+          break;
+        default:
+          booleanNode = figma.union(childNodes, figma.currentPage);
+      }
+
+      booleanNode.name = nodeData.name || 'Boolean';
+
+      // Apply fills and strokes
+      await this.applyFillsAsync(booleanNode, nodeData.fills);
+      await this.applyStrokesAsync(
+        booleanNode,
+        nodeData.strokes,
+        nodeData.strokeWeight,
+        nodeData.strokeAlign
+      );
+
+      return booleanNode;
+    } catch (error) {
+      console.error('Error creating boolean operation:', error);
+      return this.frameCreator.create(nodeData, this.createChild.bind(this));
     }
   }
 }

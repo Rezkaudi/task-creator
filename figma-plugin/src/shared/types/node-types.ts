@@ -10,10 +10,19 @@ export type NodeType =
   | 'VECTOR'
   | 'INSTANCE'
   | 'COMPONENT'
+  | 'COMPONENT_SET'
   | 'LINE'
   | 'POLYGON'
   | 'STAR'
-  | 'BOOLEAN_OPERATION';
+  | 'BOOLEAN_OPERATION'
+  | 'SLICE'
+  | 'CONNECTOR'
+  | 'SHAPE_WITH_TEXT'
+  | 'STICKY'
+  | 'STAMP'
+  | 'HIGHLIGHT'
+  | 'WASHI_TAPE'
+  | 'SECTION';
 
 /**
  * Fill types
@@ -24,7 +33,8 @@ export type FillType =
   | 'GRADIENT_RADIAL'
   | 'GRADIENT_ANGULAR'
   | 'GRADIENT_DIAMOND'
-  | 'IMAGE';
+  | 'IMAGE'
+  | 'VIDEO';
 
 /**
  * Effect types
@@ -116,3 +126,47 @@ export type LayoutPositioning = 'AUTO' | 'ABSOLUTE';
  * Layout align options
  */
 export type LayoutAlign = 'INHERIT' | 'STRETCH' | 'MIN' | 'CENTER' | 'MAX';
+
+/**
+ * Boolean operation types
+ */
+export type BooleanOperationType = 'UNION' | 'INTERSECT' | 'SUBTRACT' | 'EXCLUDE';
+
+/**
+ * Blend modes
+ */
+export type BlendModeType =
+  | 'PASS_THROUGH'
+  | 'NORMAL'
+  | 'DARKEN'
+  | 'MULTIPLY'
+  | 'LINEAR_BURN'
+  | 'COLOR_BURN'
+  | 'LIGHTEN'
+  | 'SCREEN'
+  | 'LINEAR_DODGE'
+  | 'COLOR_DODGE'
+  | 'OVERLAY'
+  | 'SOFT_LIGHT'
+  | 'HARD_LIGHT'
+  | 'DIFFERENCE'
+  | 'EXCLUSION'
+  | 'HUE'
+  | 'SATURATION'
+  | 'COLOR'
+  | 'LUMINOSITY';
+
+/**
+ * Mask types
+ */
+export type MaskType = 'ALPHA' | 'VECTOR' | 'LUMINANCE';
+
+/**
+ * Export format types
+ */
+export type ExportFormat = 'PNG' | 'JPG' | 'SVG' | 'PDF';
+
+/**
+ * Scale constraint types
+ */
+export type ScaleConstraintType = 'SCALE' | 'WIDTH' | 'HEIGHT';

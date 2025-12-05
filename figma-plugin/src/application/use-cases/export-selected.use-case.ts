@@ -15,6 +15,7 @@ export interface ExportResult {
 
 /**
  * Use case for exporting selected nodes
+ * Handles comprehensive lossless export of all node types
  */
 export class ExportSelectedUseCase {
   constructor(
@@ -34,6 +35,7 @@ export class ExportSelectedUseCase {
         throw new Error('No layers selected. Please select at least one layer to export.');
       }
 
+      // Use async export for comprehensive data including images
       const exportedNodes = await this.nodeRepository.exportSelected();
 
       if (exportedNodes.length === 0) {
