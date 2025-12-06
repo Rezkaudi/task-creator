@@ -162,9 +162,18 @@ export class NodeExporter {
       clipsContent: node.clipsContent,
     };
 
-    // Store main component reference
-    if (node.mainComponent) {
-      result.mainComponentId = node.mainComponent.key;
+    // // Store main component reference
+    // if (node.mainComponent) {
+    //   result.mainComponentId = node.mainComponent.key;
+    // }
+    // Store main component reference (use async method for dynamic-page documentAccess)
+    try {
+      const mainComponent = await node.getMainComponentAsync();
+      if (mainComponent) {
+        result.mainComponentId = mainComponent.key;
+      }
+    } catch (error) {
+      console.warn('Could not get main component for instance:', error);
     }
 
     // Export component property overrides
@@ -841,9 +850,9 @@ export class NodeExporter {
           })),
           gradientTransform: gradientPaint.gradientTransform
             ? [
-                [gradientPaint.gradientTransform[0][0], gradientPaint.gradientTransform[0][1], gradientPaint.gradientTransform[0][2]],
-                [gradientPaint.gradientTransform[1][0], gradientPaint.gradientTransform[1][1], gradientPaint.gradientTransform[1][2]],
-              ]
+              [gradientPaint.gradientTransform[0][0], gradientPaint.gradientTransform[0][1], gradientPaint.gradientTransform[0][2]],
+              [gradientPaint.gradientTransform[1][0], gradientPaint.gradientTransform[1][1], gradientPaint.gradientTransform[1][2]],
+            ]
             : undefined,
         };
       }
@@ -952,9 +961,9 @@ export class NodeExporter {
           })),
           gradientTransform: gradientPaint.gradientTransform
             ? [
-                [gradientPaint.gradientTransform[0][0], gradientPaint.gradientTransform[0][1], gradientPaint.gradientTransform[0][2]],
-                [gradientPaint.gradientTransform[1][0], gradientPaint.gradientTransform[1][1], gradientPaint.gradientTransform[1][2]],
-              ]
+              [gradientPaint.gradientTransform[0][0], gradientPaint.gradientTransform[0][1], gradientPaint.gradientTransform[0][2]],
+              [gradientPaint.gradientTransform[1][0], gradientPaint.gradientTransform[1][1], gradientPaint.gradientTransform[1][2]],
+            ]
             : undefined,
         };
       }
