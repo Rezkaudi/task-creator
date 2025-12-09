@@ -162,15 +162,13 @@ export class NodeExporter {
       clipsContent: node.clipsContent,
     };
 
-    // // Store main component reference
-    // if (node.mainComponent) {
-    //   result.mainComponentId = node.mainComponent.key;
-    // }
     // Store main component reference (use async method for dynamic-page documentAccess)
     try {
       const mainComponent = await node.getMainComponentAsync();
       if (mainComponent) {
         result.mainComponentId = mainComponent.key;
+        // Also store the node ID for local component lookup
+        (result as any)._mainComponentNodeId = mainComponent.id;
       }
     } catch (error) {
       console.warn('Could not get main component for instance:', error);

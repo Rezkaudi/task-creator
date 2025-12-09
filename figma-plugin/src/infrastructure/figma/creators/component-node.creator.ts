@@ -165,15 +165,37 @@ export class ComponentNodeCreator extends BaseNodeCreator {
     nodeData: DesignNode,
     createChildFn: (child: DesignNode, parent: FrameNode) => Promise<void>
   ): Promise<SceneNode> {
-    // Try to find the main component
     let mainComponent: ComponentNode | undefined;
 
+    // Method 1: Check local registry (components created in this import session)
     if (nodeData.mainComponentId) {
       mainComponent = this.registry.getComponent(nodeData.mainComponentId);
     }
 
+    // Method 2: Try to find by node ID in the current document
+    if (!mainComponent && (nodeData as any)._mainComponentNodeId) {
+      try {
+        const node = await figma.getNodeByIdAsync((nodeData as any)._mainComponentNodeId);
+        if (node && node.type === 'COMPONENT') {
+          mainComponent = node as ComponentNode;
+        }
+      } catch (error) {
+        console.warn('Could not find component by node ID:', error);
+      }
+    }
+
+    // Method 3: Try to import from team library by key
+    if (!mainComponent && nodeData.mainComponentId) {
+      try {
+        mainComponent = await figma.importComponentByKeyAsync(nodeData.mainComponentId);
+      } catch (error) {
+        // Component not found in any library, this is expected for local-only components
+        console.warn('Could not import component from library:', error);
+      }
+    }
+
     if (mainComponent) {
-      // Create instance from registered component
+      // Create instance from found component
       const instance = mainComponent.createInstance();
       instance.name = nodeData.name || 'Instance';
 
@@ -183,7 +205,11 @@ export class ComponentNodeCreator extends BaseNodeCreator {
 
       // Apply size if different from component
       if (nodeData.width && nodeData.height) {
-        instance.resize(nodeData.width, nodeData.height);
+        try {
+          instance.resize(nodeData.width, nodeData.height);
+        } catch (e) {
+          console.warn('Could not resize instance:', e);
+        }
       }
 
       // Apply component property overrides
@@ -200,8 +226,8 @@ export class ComponentNodeCreator extends BaseNodeCreator {
       return instance;
     }
 
-    // Fallback: create as frame if component not found
-    console.warn(`Component ${nodeData.mainComponentId} not found, creating as frame`);
+    // Fallback: create as frame if component not found anywhere
+    console.warn(`Component ${nodeData.mainComponentId} not found in registry, document, or libraries. Creating as frame.`);
     return this.createInstanceAsFrame(nodeData, createChildFn);
   }
 
