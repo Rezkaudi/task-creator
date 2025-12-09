@@ -12,18 +12,21 @@ export abstract class BaseNodeCreator {
    * Apply fills to a node (async for image support)
    */
   protected async applyFillsAsync(node: SceneNode, fills?: Fill[]): Promise<void> {
-    if (!fills || !Array.isArray(fills) || fills.length === 0 || !('fills' in node)) {
+    if (!('fills' in node)) {
+      return;
+    }
+
+    // Explicitly clear fills if none provided or empty
+    if (!fills || !Array.isArray(fills) || fills.length === 0) {
+      (node as GeometryMixin).fills = [];
       return;
     }
 
     try {
       const validFills = await FillMapper.toPaintAsync(fills);
-      if (validFills.length > 0) {
-        (node as GeometryMixin).fills = validFills;
-      }
+      (node as GeometryMixin).fills = validFills.length > 0 ? validFills : [];
     } catch (error) {
       console.warn('Error applying fills:', error);
-      // Fallback to sync version
       this.applyFills(node, fills);
     }
   }
@@ -32,14 +35,17 @@ export abstract class BaseNodeCreator {
    * Apply fills to a node (sync version)
    */
   protected applyFills(node: SceneNode, fills?: Fill[]): void {
-    if (!fills || !Array.isArray(fills) || fills.length === 0 || !('fills' in node)) {
+    if (!('fills' in node)) {
+      return;
+    }
+
+    if (!fills || !Array.isArray(fills) || fills.length === 0) {
+      (node as GeometryMixin).fills = [];
       return;
     }
 
     const validFills = FillMapper.toPaint(fills);
-    if (validFills.length > 0) {
-      (node as GeometryMixin).fills = validFills;
-    }
+    (node as GeometryMixin).fills = validFills.length > 0 ? validFills : [];
   }
 
   /**
