@@ -273,6 +273,9 @@ export interface DesignNode {
 
   // Image data (for embedded images)
   imageData?: string;
+
+  // Instance-specific (for finding local components)
+  _mainComponentNodeId?: string;
 }
 
 /**
