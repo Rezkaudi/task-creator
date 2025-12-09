@@ -55,7 +55,13 @@ export abstract class BaseNodeCreator {
     dashPattern?: number[],
     miterLimit?: number
   ): Promise<void> {
-    if (!strokes || !Array.isArray(strokes) || strokes.length === 0 || !('strokes' in node)) {
+    if (!('strokes' in node)) {
+      return;
+    }
+
+    // If no strokes provided, clear any default strokes
+    if (!strokes || !Array.isArray(strokes) || strokes.length === 0) {
+      (node as GeometryMixin).strokes = [];
       return;
     }
 
@@ -64,6 +70,8 @@ export abstract class BaseNodeCreator {
       if (validStrokes.length > 0) {
         (node as GeometryMixin).strokes = validStrokes as SolidPaint[];
         this.applyStrokeProperties(node, weight, align, cap, join, dashPattern, miterLimit);
+      } else {
+        (node as GeometryMixin).strokes = [];
       }
     } catch (error) {
       console.warn('Error applying strokes:', error);
@@ -84,7 +92,13 @@ export abstract class BaseNodeCreator {
     dashPattern?: number[],
     miterLimit?: number
   ): void {
-    if (!strokes || !Array.isArray(strokes) || strokes.length === 0 || !('strokes' in node)) {
+    if (!('strokes' in node)) {
+      return;
+    }
+
+    // If no strokes provided, clear any default strokes
+    if (!strokes || !Array.isArray(strokes) || strokes.length === 0) {
+      (node as GeometryMixin).strokes = [];
       return;
     }
 
@@ -92,6 +106,8 @@ export abstract class BaseNodeCreator {
     if (validStrokes.length > 0) {
       (node as GeometryMixin).strokes = validStrokes as SolidPaint[];
       this.applyStrokeProperties(node, weight, align, cap, join, dashPattern, miterLimit);
+    } else {
+      (node as GeometryMixin).strokes = [];
     }
   }
 
