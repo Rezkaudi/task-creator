@@ -124,6 +124,71 @@ export class ClaudeService implements IClaudeGenerator {
         }
     }
 
+    /**
+     * NEW METHOD: Edit existing design based on user request
+     */
+    async editDesignWithAI(
+        userMessage: string,
+        history: ConversationMessage[],
+        currentDesign: any
+    ): Promise<DesignGenerationResult> {
+        try {
+            const messages = this.buildEditConversationMessages(userMessage, history, currentDesign);
+
+            console.log("--- 1. Sending Edit Request to Claude ---");
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': this.apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: this.cloudeModel,
+                    system: this.buildEditSystemPrompt(),
+                    max_tokens: 16384,
+                    messages: messages
+                })
+            });
+
+            const responseBodyText = await response.text();
+            if (!response.ok) {
+                throw new Error(`Claude API edit request failed with status ${response.status}: ${responseBodyText}`);
+            }
+
+            const result = JSON.parse(responseBodyText) as ClaudeApiResponse;
+            if (!result.content || !result.content[0] || !result.content[0].text) {
+                throw new Error("Parsed JSON response from Claude is invalid or empty.");
+            }
+
+            const rawTextResponse = result.content[0].text;
+            const designData = this.extractDesignFromResponse(rawTextResponse);
+            const aiMessage = this.extractMessageFromResponse(rawTextResponse);
+
+            let previewHtml: string | null = null;
+            if (designData) {
+                try {
+                    console.log("--- 3. Requesting HTML preview for edited design ---");
+                    previewHtml = await this.generateHtmlPreview(designData);
+                    console.log("--- 4. HTML Preview Generated ---");
+                } catch (previewError) {
+                    console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
+                    previewHtml = "<div style='padding: 20px; text-align: center; color: #666;'>Preview generation failed, but the edited design is ready.</div>";
+                }
+            }
+
+            return {
+                message: aiMessage,
+                design: designData,
+                previewHtml: previewHtml
+            };
+
+        } catch (error) {
+            console.error("An error occurred in editDesignWithAI:", error);
+            throw new Error(`Failed to edit design. Original error: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
     private async generateHtmlPreview(designJson: object): Promise<string> {
         const prompt = `Based on the following design JSON, generate a single, self-contained HTML block to visually represent this design.
 - Use inline CSS for styling.
@@ -192,22 +257,82 @@ ${JSON.stringify(designJson, null, 2)}`;
         return messages;
     }
 
+    private buildEditConversationMessages(
+        currentMessage: string,
+        history: ConversationMessage[],
+        currentDesign: any
+    ): Array<{ role: string; content: string }> {
+        const messages: Array<{ role: string; content: string }> = [];
+
+        // Add conversation history
+        for (const msg of history) {
+            messages.push({
+                role: msg.role,
+                content: msg.content
+            });
+        }
+
+        // Add current design and edit request
+        const editRequest = `Here is the current design in JSON format:
+${JSON.stringify(currentDesign, null, 2)}
+
+User's edit request: ${currentMessage}
+
+Please modify the design according to the user's request and return the complete updated JSON.`;
+
+        messages.push({
+            role: 'user',
+            content: editRequest
+        });
+
+        return messages;
+    }
+
     private buildConversationSystemPrompt(): string {
         return `${this.systemPrompt}
 
 When replying to a user:
 1. If this is a new design, the design must be complete.
-2. If it's a modification request, amend the previous ruling.
+2. If it's a modification request, amend the previous design.
 3. Begin your reply with a short description in English of what was done.
 4. Then add the design's JSON.
 
 Example reply:
 
-The login page was created using the blue button with the search email and password.
+The login page was created with a blue button and email and password fields.
 
 {
-"Name": "Login Page",
-"Type": "Frame",
+"name": "Login Page",
+"type": "FRAME",
+...
+}`;
+    }
+
+    private buildEditSystemPrompt(): string {
+        return `${this.systemPrompt}
+
+You are helping a user edit an existing Figma design. The user will provide:
+1. The current design in JSON format
+2. Their requested changes
+
+Your task:
+1. Understand the current design structure
+2. Apply the requested changes accurately
+3. Return the complete modified design JSON
+4. Preserve any properties not mentioned in the edit request
+5. Maintain valid Figma JSON structure
+
+When replying:
+1. Start with a brief description of the changes made
+2. Then provide the complete updated JSON
+
+Example reply:
+
+I've changed the background color to blue and increased the text size to 18px.
+
+{
+"name": "Updated Login Page",
+"type": "FRAME",
 ...
 }`;
     }

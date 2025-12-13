@@ -47,8 +47,22 @@ export class PluginMessageHandler {
         }
         break;
 
+      case 'request-layer-selection-for-edit':
+        await this.handleRequestLayerSelection();
+        break;
+
+      case 'ai-edit-design':
+        if (message.message !== undefined && message.layerJson !== undefined) {
+          await this.handleAIEditDesign(message.message, message.history, message.layerJson);
+        }
+        break;
+
       case 'import-design-from-chat':
         await this.handleImportDesignFromChat(message.designData);
+        break;
+
+      case 'import-edited-design':
+        await this.handleImportEditedDesign(message.designData);
         break;
 
       case 'design-generated-from-ai':
@@ -72,16 +86,124 @@ export class PluginMessageHandler {
 
       case 'cancel':
         this.uiPort.close();
+      
         break;
 
-      // Version management is handled directly in UI (HTTP calls)
-      // These are just for importing version JSON to canvas
       case 'import-version':
         await this.handleImportVersion(message.designJson);
         break;
 
       default:
         console.warn('Unknown message type:', message.type);
+    }
+  }
+
+  // ==================== LAYER SELECTION FOR EDIT MODE ====================
+  private async handleRequestLayerSelection(): Promise<void> {
+    try {
+      const selection = figma.currentPage.selection;
+
+      if (selection.length === 0) {
+        this.uiPort.postMessage({
+          type: 'no-layer-selected'
+        });
+        this.notificationPort.notify('⚠️ Please select a layer to edit');
+        return;
+      }
+
+      if (selection.length > 1) {
+        this.uiPort.postMessage({
+          type: 'no-layer-selected'
+        });
+        this.notificationPort.notify('⚠️ Please select only one layer to edit');
+        return;
+      }
+
+      const selectedNode = selection[0];
+      
+      // Export the selected node to JSON
+      const exportResult = await this.exportNodeToJson(selectedNode);
+
+      this.uiPort.postMessage({
+        type: 'layer-selected-for-edit',
+        layerName: selectedNode.name,
+        layerJson: exportResult
+      });
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to select layer';
+      this.notificationPort.notifyError(errorMessage);
+      this.uiPort.postMessage({
+        type: 'no-layer-selected'
+      });
+    }
+  }
+
+  // Helper function to export a node to JSON
+  private async exportNodeToJson(node: SceneNode): Promise<any> {
+    // Use the same export logic from ExportSelectedUseCase
+    const exportResult = await this.exportSelectedUseCase.execute();
+    
+    if (exportResult.success && exportResult.nodes.length > 0) {
+      return exportResult.nodes[0];
+    }
+    
+    throw new Error('Failed to export selected layer');
+  }
+
+  // ==================== AI EDIT DESIGN ====================
+  private async handleAIEditDesign(
+    userMessage: string,
+    history: Array<{ role: string; content: string }> | undefined,
+    layerJson: any
+  ): Promise<void> {
+    try {
+      if (history && history.length > 0) {
+        this.conversationHistory = history;
+      }
+
+      const fetchPromise = fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          history: this.conversationHistory,
+          currentDesign: layerJson
+        })
+      });
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout after 240 seconds')), 240000);
+      });
+
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+
+      if (!response.ok) {
+        let errorMessage = `Server error: ${response.status}`;
+        try {
+          const errorResult = await response.json();
+          errorMessage = errorResult.message || errorResult.error || errorMessage;
+        } catch (e) {
+          // Use default error message
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result: BackendChatResponse = await response.json();
+
+      this.uiPort.postMessage({
+        type: 'ai-edit-response',
+        message: result.message,
+        designData: result.design,
+        previewHtml: result.previewHtml
+      });
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+      this.uiPort.postMessage({
+        type: 'ai-edit-error',
+        error: errorMessage
+      });
     }
   }
 
@@ -145,7 +267,47 @@ export class PluginMessageHandler {
     if (result.success) {
       this.uiPort.postMessage({ type: 'import-success' });
       this.notificationPort.notify('✅ Design imported successfully!');
-      this.uiPort.close();
+      // Don't close UI to allow further edits
+    } else {
+      this.notificationPort.notifyError(result.error || 'Import failed');
+      this.uiPort.postMessage({
+        type: 'import-error',
+        error: result.error || 'Import failed',
+      });
+    }
+  }
+
+  private async handleImportEditedDesign(designData: unknown): Promise<void> {
+    // Store reference to selected node before import
+    const selection = figma.currentPage.selection;
+    const oldNode = selection.length === 1 ? selection[0] : null;
+
+    const result = await this.importAIDesignUseCase.execute(designData);
+
+    if (result.success) {
+      // Remove the old layer after successful import
+      if (oldNode) {
+        try {
+          oldNode.remove();
+          this.notificationPort.notify('✅ Design updated successfully!');
+        } catch (error) {
+          this.notificationPort.notify('✅ New design imported! (Could not remove old layer)');
+        }
+      } else {
+        this.notificationPort.notify('✅ Edited design imported successfully!');
+      }
+      
+      this.uiPort.postMessage({ type: 'import-success' });
+      
+      // Export the new design and send it back to UI for next edit
+      const newSelection = figma.currentPage.selection;
+      if (newSelection.length === 1) {
+        const exportResult = await this.exportNodeToJson(newSelection[0]);
+        this.uiPort.postMessage({
+          type: 'design-updated',
+          layerJson: exportResult
+        });
+      }
     } else {
       this.notificationPort.notifyError(result.error || 'Import failed');
       this.uiPort.postMessage({
