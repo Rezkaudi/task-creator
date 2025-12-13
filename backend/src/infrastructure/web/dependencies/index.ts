@@ -14,6 +14,7 @@ import { AddTasksToTrelloUseCase } from "../../../application/use-cases/add-task
 import { GenerateDesignUseCase } from "../../../application/use-cases/generate-design.use-case";
 import { GenerateDesignFromClaudeUseCase } from "../../../application/use-cases/generate-design-from-claude.use-case";
 import { GenerateDesignFromConversationUseCase } from "../../../application/use-cases/generate-design-from-conversation.use-case";
+import { EditDesignWithAIUseCase } from "../../../application/use-cases/edit-design-with-ai.use-case";
 
 // Use Cases - Design Versions
 import { SaveDesignVersionUseCase } from "../../../application/use-cases/save-design-version.use-case";
@@ -38,16 +39,15 @@ export const setupDependencies = () => {
     const designVersionRepository = new TypeORMDesignVersionRepository();
 
     // Use Cases - Tasks
-    // const extractTasksAndCreateOnTrello = new GenerateDesignFromClaudeUseCase(claudeService);
-
-
     const getBoardListsUseCase = new GetBoardListsUseCase(trelloService);
     const extractTasksUseCase = new ExtractTasksUseCase(gptService);
     const addTasksToTrelloUseCase = new AddTasksToTrelloUseCase(trelloService);
     const generateDesignUseCase = new GenerateDesignUseCase(gptDesignService);
     const generateDesignFromClaudeUseCase = new GenerateDesignFromClaudeUseCase(claudeService);
     const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(claudeService);
-
+    
+    // NEW: Edit Design Use Case
+    const editDesignWithAIUseCase = new EditDesignWithAIUseCase(claudeService);
 
     // Use Cases - Design Versions
     const saveDesignVersionUseCase = new SaveDesignVersionUseCase(designVersionRepository);
@@ -55,11 +55,16 @@ export const setupDependencies = () => {
     const getDesignVersionByIdUseCase = new GetDesignVersionByIdUseCase(designVersionRepository);
     const deleteDesignVersionUseCase = new DeleteDesignVersionUseCase(designVersionRepository);
 
-
     // Controllers
     const trelloController = new TrelloController(getBoardListsUseCase);
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
-    const designController = new DesignController(generateDesignFromClaudeUseCase, generateDesignFromConversationUseCase);
+    
+    // UPDATED: Pass editDesignWithAIUseCase to DesignController
+    const designController = new DesignController(
+        generateDesignFromClaudeUseCase, 
+        generateDesignFromConversationUseCase,
+        editDesignWithAIUseCase
+    );
 
     const designVersionController = new DesignVersionController(
         saveDesignVersionUseCase,

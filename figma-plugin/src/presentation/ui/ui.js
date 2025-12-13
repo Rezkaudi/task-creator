@@ -1,6 +1,6 @@
-const API_BASE_URL = 'https://task-creator-api.onrender.com';
+//const API_BASE_URL = 'https://task-creator-api.onrender.com';
 // For local development:
-// const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'http://localhost:5000';
 
 // ==================== STATE ====================
 let chatMessages = [];
@@ -11,6 +11,11 @@ let currentExportData = null;
 let selectedVersionId = null;
 let versionsCache = [];
 
+// NEW: Mode state
+let currentMode = null; // 'create' or 'edit'
+let selectedLayerForEdit = null;
+let selectedLayerJson = null;
+
 // ==================== ELEMENTS ====================
 const importBtn = document.getElementById('import-btn');
 const cancelBtn = document.getElementById('cancel-btn');
@@ -20,7 +25,16 @@ const jsonStats = document.getElementById('json-stats');
 const statusEl = document.getElementById('status');
 const mainButtonGroup = document.getElementById('main-button-group');
 
+// Mode selection elements
+const modeSelectionScreen = document.getElementById('mode-selection-screen');
+const createModeBtn = document.getElementById('create-mode-btn');
+const editModeBtn = document.getElementById('edit-mode-btn');
+const backToModeBtn = document.getElementById('back-to-mode-selection');
+const editModeHeader = document.getElementById('edit-mode-header');
+const selectedLayerNameEl = document.getElementById('selected-layer-name');
+
 // AI Chat elements
+const aiChatContainer = document.getElementById('ai-chat-container');
 const chatMessagesEl = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send-btn');
@@ -48,6 +62,116 @@ const saveDescription = document.getElementById('save-description');
 const confirmSaveBtn = document.getElementById('confirm-save-btn');
 const cancelSaveBtn = document.getElementById('cancel-save-btn');
 
+// ==================== MODE SELECTION ====================
+createModeBtn.addEventListener('click', () => {
+    currentMode = 'create';
+    showChatInterface();
+    chatInput.placeholder = "e.g. Create a login page with email and password fields...";
+});
+
+editModeBtn.addEventListener('click', () => {
+    // Request selection from plugin
+    showStatus('📍 Please select a layer to edit...', 'info');
+    parent.postMessage({
+        pluginMessage: { type: 'request-layer-selection-for-edit' }
+    }, '*');
+});
+
+backToModeBtn.addEventListener('click', () => {
+    resetToModeSelection();
+});
+
+function showChatInterface() {
+    console.log('🔥 showChatInterface called, mode:', currentMode);
+    
+    // إخفاء شاشة اختيار الوضع
+    modeSelectionScreen.style.display = 'none';
+    
+    // إظهار واجهة المحادثة - استخدام classes بدلاً من inline styles
+    aiChatContainer.classList.add('show-chat');
+    aiChatContainer.style.display = 'flex';
+    
+    // إظهار أو إخفاء رأس وضع التعديل
+    if (currentMode === 'edit') {
+        editModeHeader.classList.add('show-header');
+        editModeHeader.style.display = 'block';
+    } else {
+        editModeHeader.classList.remove('show-header');
+        editModeHeader.style.display = 'none';
+    }
+    
+    // تنظيف المحادثة القديمة
+    chatMessages = [];
+    conversationHistory = [];
+    
+    // رسالة الترحيب المناسبة
+    const welcomeMessage = currentMode === 'edit' 
+        ? `Great! I'll help you edit "${selectedLayerForEdit}". What changes would you like to make?`
+        : "Hi! Describe your design and I'll create it for you. 🎨";
+    
+    chatMessagesEl.innerHTML = `
+        <div class="message assistant">
+            <div class="message-content">
+                <div>${welcomeMessage}</div>
+            </div>
+        </div>
+    `;
+    chatMessagesEl.classList.add('show-messages');
+    
+    // إظهار عناصر الإدخال بشكل قاطع
+    const inputContainer = document.getElementById('chat-input-container');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send-btn');
+    
+    // إضافة classes للعناصر لضمان ظهورها
+    if (inputContainer) {
+        inputContainer.classList.add('show-input');
+        inputContainer.style.display = 'flex';
+    }
+    
+    if (input) {
+        input.classList.add('show-input');
+        input.style.display = 'block';
+        input.disabled = false;
+        input.value = '';
+        input.placeholder = currentMode === 'edit' 
+            ? "e.g. Change the background color to blue, make the text larger..."
+            : "e.g. Create a login page with email and password fields...";
+        // تركيز مباشر على حقل الإدخال
+        setTimeout(() => {
+            input.focus();
+        }, 100);
+    }
+    
+    if (sendBtn) {
+        sendBtn.classList.add('show-button');
+        sendBtn.style.display = 'block';
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send';
+    }
+    
+    // تأكد من تحديث السكرول
+    setTimeout(() => {
+        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+    }, 50);
+    
+    console.log('✅ Chat interface shown successfully');
+}
+
+function resetToModeSelection() {
+    currentMode = null;
+    selectedLayerForEdit = null;
+    selectedLayerJson = null;
+    modeSelectionScreen.style.display = 'flex';
+    aiChatContainer.style.display = 'none';
+    aiChatContainer.classList.remove('show-chat');
+    editModeHeader.style.display = 'none';
+    editModeHeader.classList.remove('show-header');
+    chatInput.value = '';
+    conversationHistory = [];
+    chatMessages = [];
+}
+
 // ==================== TAB SWITCHING ====================
 tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -56,6 +180,11 @@ tabs.forEach(tab => {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(`${tabName}-tab`).classList.add('active');
+
+        // Reset to mode selection when switching to AI tab
+        if (tabName === 'ai') {
+            resetToModeSelection();
+        }
 
         const buttonTexts = {
             'ai': '🚀 Generate & Import',
@@ -102,15 +231,28 @@ function sendChatMessage() {
     chatSendBtn.disabled = true;
 
     conversationHistory.push({ role: 'user', content: message });
-    addMessage('assistant', 'Creating your design...', true);
+    addMessage('assistant', currentMode === 'edit' ? 'Editing your design...' : 'Creating your design...', true);
 
-    parent.postMessage({
-        pluginMessage: {
-            type: 'ai-chat-message',
-            message: message,
-            history: conversationHistory
-        }
-    }, '*');
+    if (currentMode === 'edit') {
+        // Send edit request
+        parent.postMessage({
+            pluginMessage: {
+                type: 'ai-edit-design',
+                message: message,
+                history: conversationHistory,
+                layerJson: selectedLayerJson
+            }
+        }, '*');
+    } else {
+        // Send create request
+        parent.postMessage({
+            pluginMessage: {
+                type: 'ai-chat-message',
+                message: message,
+                history: conversationHistory
+            }
+        }, '*');
+    }
 }
 
 function addMessage(role, content, isLoading = false) {
@@ -204,7 +346,7 @@ function addDesignPreview(designData, previewHtml = null) {
             importButton.textContent = 'Importing...';
             parent.postMessage({
                 pluginMessage: {
-                    type: 'import-design-from-chat',
+                    type: currentMode === 'edit' ? 'import-edited-design' : 'import-design-from-chat',
                     designData: designData
                 }
             }, '*');
@@ -266,7 +408,6 @@ function renderVersionsList(versions) {
     </div>
   `).join('');
 
-    // Add click handlers
     document.querySelectorAll('.version-item').forEach(item => {
         item.addEventListener('click', () => selectVersion(parseInt(item.dataset.id)));
     });
@@ -302,7 +443,6 @@ async function saveVersionToDb(description, designJson) {
         saveModal.style.display = 'none';
         saveDescription.value = '';
 
-        // Refresh versions list if on that tab
         if (document.querySelector('.tab[data-tab="versions"]').classList.contains('active')) {
             loadVersions();
         }
@@ -373,7 +513,6 @@ async function deleteVersion(id) {
     }
 }
 
-// Version button handlers
 refreshVersionsBtn.addEventListener('click', loadVersions);
 importVersionBtn.addEventListener('click', () => {
     if (selectedVersionId) importVersionFromDb(selectedVersionId);
@@ -382,7 +521,6 @@ deleteVersionBtn.addEventListener('click', () => {
     if (selectedVersionId) deleteVersion(selectedVersionId);
 });
 
-// Save to DB button
 saveToDbBtn.addEventListener('click', () => {
     if (!currentExportData) {
         showStatus('⚠️ No design data to save. Export first.', 'warning');
@@ -392,7 +530,6 @@ saveToDbBtn.addEventListener('click', () => {
     saveDescription.focus();
 });
 
-// Modal handlers
 confirmSaveBtn.addEventListener('click', () => {
     const description = saveDescription.value.trim();
     if (!description) {
@@ -684,7 +821,22 @@ window.onmessage = async (event) => {
             }
             break;
 
+        case 'layer-selected-for-edit':
+            currentMode = 'edit';
+            selectedLayerForEdit = msg.layerName;
+            selectedLayerJson = msg.layerJson;
+            showChatInterface();
+            selectedLayerNameEl.textContent = msg.layerName;
+            hideStatus();
+            break;
+
+        case 'no-layer-selected':
+            showStatus('⚠️ Please select a layer to edit', 'warning');
+            setTimeout(hideStatus, 3000);
+            break;
+
         case 'ai-chat-response':
+        case 'ai-edit-response':
             isGenerating = false;
             chatSendBtn.disabled = false;
             removeLoadingMessages();
@@ -699,6 +851,7 @@ window.onmessage = async (event) => {
             break;
 
         case 'ai-chat-error':
+        case 'ai-edit-error':
             isGenerating = false;
             chatSendBtn.disabled = false;
             removeLoadingMessages();
@@ -707,14 +860,21 @@ window.onmessage = async (event) => {
             break;
 
         case 'import-success':
-            showStatus('✅ Design imported successfully!', 'success');
-            resetButton();
-            importVersionBtn.disabled = false;
-            importVersionBtn.innerHTML = '📥 Import to Figma';
-            setTimeout(hideStatus, 3000);
-            break;
+    showStatus('✅ Design imported successfully!', 'success');
+    resetButton();
+    importVersionBtn.disabled = false;
+    importVersionBtn.innerHTML = '📥 Import to Figma';
+    setTimeout(hideStatus, 3000);
+    break;
 
-        case 'import-error':
+    case 'design-updated':
+    console.log('🔄 Design updated, refreshing layer JSON for next edit');
+    selectedLayerJson = msg.layerJson;
+    showStatus('✅ Design updated! You can continue editing.', 'success');
+    setTimeout(hideStatus, 2000);
+    break;
+
+    case 'import-error':
             showStatus(`❌ Import failed: ${msg.error}`, 'error');
             resetButton();
             importVersionBtn.disabled = false;
@@ -744,9 +904,19 @@ chatInput.addEventListener('input', function () {
     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
-// Initial setup - hide main button group for AI tab
-mainButtonGroup.style.display = 'none';
+// Initial setup - show mode selection
+resetToModeSelection();
 
 setTimeout(() => {
     parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
 }, 100);
+
+// Debug function to check visibility
+function debugVisibility() {
+    console.log('=== VISIBILITY CHECK ===');
+    console.log('Mode screen:', modeSelectionScreen.style.display);
+    console.log('Chat container:', aiChatContainer.style.display, 'Class:', aiChatContainer.className);
+    console.log('Chat input:', chatInput.style.display);
+    console.log('Send button:', chatSendBtn.style.display);
+    console.log('Edit header:', editModeHeader.style.display);
+}

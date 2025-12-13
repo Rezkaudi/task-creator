@@ -1,14 +1,14 @@
 // src/domain/services/IClaudeGenerator.ts
 
 export interface ConversationMessage {
-    role: 'user' | 'assistant';
+    role: string;
     content: string;
 }
 
 export interface DesignGenerationResult {
     message: string;
     design: any;
-    previewHtml?: string | null; 
+    previewHtml?: string | null;
 }
 
 export interface IClaudeGenerator {
@@ -17,5 +17,11 @@ export interface IClaudeGenerator {
     generateDesignFromConversation(
         userMessage: string, 
         history: ConversationMessage[]
+    ): Promise<DesignGenerationResult>;
+
+    editDesignWithAI(
+        userMessage: string,
+        history: ConversationMessage[],
+        currentDesign: any
     ): Promise<DesignGenerationResult>;
 }

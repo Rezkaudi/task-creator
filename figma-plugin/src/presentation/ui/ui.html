@@ -22,8 +22,38 @@
 
     <!-- AI Chat Tab -->
     <div id="ai-tab" class="tab-content active">
-      <div id="ai-chat-container">
-        <div id="chat-messages">
+      <!-- Mode Selection Screen -->
+      <div id="mode-selection-screen">
+        <div class="mode-selection-header">
+          <h2>Choose Your Action</h2>
+          <p class="mode-subtitle">Create a new design or edit an existing one</p>
+        </div>
+        <div class="mode-options">
+          <div class="mode-card" id="create-mode-btn">
+            <div class="mode-icon">✨</div>
+            <h3>Create New</h3>
+            <p>Start from scratch with AI assistance</p>
+          </div>
+          <div class="mode-card" id="edit-mode-btn">
+            <div class="mode-icon">✏️</div>
+            <h3>Edit Existing</h3>
+            <p>Modify a selected layer with AI</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Container (hidden initially) -->
+      <div id="ai-chat-container" style="display: none;">
+        <!-- Back button for edit mode -->
+        <div id="edit-mode-header" style="display: none;">
+          <button id="back-to-mode-selection" class="back-btn">← Back to Mode Selection</button>
+          <div class="edit-mode-info">
+            <span class="edit-mode-label">✏️ Editing Mode</span>
+            <span id="selected-layer-name" class="selected-layer-name"></span>
+          </div>
+        </div>
+
+        <div id="chat-messages" style="display: flex;">
           <div class="message assistant">
             <div class="message-content">
               <div>Hi! Describe your design and I'll create it for you. 🎨</div>
@@ -43,7 +73,7 @@
     <div id="auto-tab" class="tab-content">
       <div class="input-group">
         <label for="api-url">API Endpoint URL</label>
-        <input type="url" id="api-url" value="https://task-creator-api.onrender.com/api/tasks/latest-design"
+        <input type="url" id="api-url" value="http://localhost:5000/api/tasks/latest-design"
           placeholder="https://api.example.com/design" />
         <p class="helper-text">Enter the URL that returns Figma-compatible JSON.</p>
       </div>

@@ -38,7 +38,12 @@ export type UIMessage =
   | { type: 'version-loaded'; version: DesignVersionFull }
   | { type: 'version-load-error'; error: string }
   | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null }
-  | { type: 'ai-chat-error'; error: string };
+  | { type: 'ai-chat-error'; error: string }
+  | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any }
+  | { type: 'no-layer-selected' }
+  | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null }
+  | { type: 'ai-edit-error'; error: string }
+  | { type: 'design-updated'; layerJson: any };
 
 /**
  * Messages received from the UI (PluginMessage)
@@ -53,6 +58,9 @@ export type PluginMessage =
   | { type: 'cancel' }
   | { type: 'ai-chat-message'; message: string; history?: Array<{ role: string; content: string }> }
   | { type: 'import-design-from-chat'; designData: unknown }
+  | { type: 'request-layer-selection-for-edit' }
+  | { type: 'ai-edit-design'; message: string; history?: Array<{ role: string; content: string }>; layerJson: any }
+  | { type: 'import-edited-design'; designData: unknown }
   // Version management messages
   | { type: 'load-versions' }
   | { type: 'save-version'; description: string; designJson: any }
