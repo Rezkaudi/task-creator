@@ -116,16 +116,30 @@ export class FillMapper {
 
   private static mapFillToPaint(fill: Fill): Paint | null {
     if (isSolidFill(fill)) {
-      const color = fill.color ?? { r: 0, g: 0, b: 0 };
+      // Make sure we have a color object
+      if (!fill.color) {
+        console.warn('Solid fill missing color:', fill);
+        return null;
+      }
+
+      const color = fill.color;
+
+      // Ensure color values are valid numbers
+      const r = typeof color.r === 'number' ? color.r : 0;
+      const g = typeof color.g === 'number' ? color.g : 0;
+      const b = typeof color.b === 'number' ? color.b : 0;
+
+      console.log('Creating solid fill with color:', { r, g, b });
+
       return {
         type: 'SOLID',
         visible: fill.visible !== false,
         opacity: FillMapper.normalizeOpacity(fill.opacity),
         blendMode: (fill.blendMode as BlendMode) || 'NORMAL',
         color: {
-          r: ColorFactory.normalize(color.r || 0),
-          g: ColorFactory.normalize(color.g || 0),
-          b: ColorFactory.normalize(color.b || 0),
+          r: ColorFactory.normalize(r),
+          g: ColorFactory.normalize(g),
+          b: ColorFactory.normalize(b),
         },
       } as SolidPaint;
     }
