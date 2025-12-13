@@ -86,6 +86,7 @@ export class PluginMessageHandler {
 
       case 'cancel':
         this.uiPort.close();
+      
         break;
 
       case 'import-version':
