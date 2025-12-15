@@ -135,8 +135,8 @@ export class FrameNodeCreator extends BaseNodeCreator {
   }
 
   /**
-   * Create a section node
-   */
+  * Create a section node
+  */
   async createSection(
     nodeData: DesignNode,
     createChildFn: (child: DesignNode, parent: SectionNode) => Promise<void>
@@ -147,6 +147,26 @@ export class FrameNodeCreator extends BaseNodeCreator {
     // Sections have different resize behavior
     if (nodeData.width && nodeData.height) {
       sectionNode.resizeWithoutConstraints(nodeData.width, nodeData.height);
+    }
+
+    // Apply fills to section (this was missing!)
+    await this.applyFillsAsync(sectionNode, nodeData.fills);
+
+    // Apply other visual properties that sections support
+    if (typeof nodeData.opacity === 'number' && 'opacity' in sectionNode) {
+      (sectionNode as any).opacity = Math.max(0, Math.min(1, nodeData.opacity));
+    }
+
+    if (nodeData.blendMode && 'blendMode' in sectionNode) {
+      (sectionNode as any).blendMode = nodeData.blendMode;
+    }
+
+    if (typeof nodeData.visible === 'boolean') {
+      sectionNode.visible = nodeData.visible;
+    }
+
+    if (typeof nodeData.locked === 'boolean') {
+      sectionNode.locked = nodeData.locked;
     }
 
     // Create children
