@@ -227,7 +227,7 @@ export class PluginMessageHandler {
       });
 
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout after 240 seconds')), 240000);
+        setTimeout(() => reject(new Error('Request timeout after 960 seconds')), 960000);
       });
 
       const response = await Promise.race([fetchPromise, timeoutPromise]);
