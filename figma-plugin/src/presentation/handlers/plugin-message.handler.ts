@@ -120,7 +120,6 @@ export class PluginMessageHandler {
 
       const selectedNode = selection[0];
       
-      // استخدام نفس logic الـ ExportSelectedUseCase
       const exportResult = await this.exportSelectedUseCase.execute();
       
       if (!exportResult.success || exportResult.nodes.length === 0) {
@@ -130,7 +129,7 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({
         type: 'layer-selected-for-edit',
         layerName: selectedNode.name,
-        layerJson: exportResult.nodes[0]  // أول node من الـ array
+        layerJson: exportResult.nodes[0] 
       });
 
     } catch (error) {
@@ -142,7 +141,6 @@ export class PluginMessageHandler {
     }
   }
 
-  // حذف exportNodeToJson - ما عاد لازم
 
   // ==================== AI EDIT DESIGN ====================
   private async handleAIEditDesign(
@@ -304,7 +302,6 @@ export class PluginMessageHandler {
         }
       } catch (error) {
         console.error('Failed to export updated design:', error);
-        // لا نوقف العملية - التصميم تم استيراده بنجاح
       }
     } else {
       this.notificationPort.notifyError(result.error || 'Import failed');
