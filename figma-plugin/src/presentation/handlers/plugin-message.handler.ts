@@ -86,7 +86,6 @@ export class PluginMessageHandler {
 
       case 'cancel':
         this.uiPort.close();
-      
         break;
 
       case 'import-version':
@@ -121,13 +120,16 @@ export class PluginMessageHandler {
 
       const selectedNode = selection[0];
       
-      // Export the selected node to JSON
-      const exportResult = await this.exportNodeToJson(selectedNode);
+      const exportResult = await this.exportSelectedUseCase.execute();
+      
+      if (!exportResult.success || exportResult.nodes.length === 0) {
+        throw new Error('Failed to export selected layer');
+      }
 
       this.uiPort.postMessage({
         type: 'layer-selected-for-edit',
         layerName: selectedNode.name,
-        layerJson: exportResult
+        layerJson: exportResult.nodes[0] 
       });
 
     } catch (error) {
@@ -139,17 +141,6 @@ export class PluginMessageHandler {
     }
   }
 
-  // Helper function to export a node to JSON
-  private async exportNodeToJson(node: SceneNode): Promise<any> {
-    // Use the same export logic from ExportSelectedUseCase
-    const exportResult = await this.exportSelectedUseCase.execute();
-    
-    if (exportResult.success && exportResult.nodes.length > 0) {
-      return exportResult.nodes[0];
-    }
-    
-    throw new Error('Failed to export selected layer');
-  }
 
   // ==================== AI EDIT DESIGN ====================
   private async handleAIEditDesign(
@@ -227,7 +218,7 @@ export class PluginMessageHandler {
       });
 
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout after 960 seconds')), 960000);
+        setTimeout(() => reject(new Error('Request timeout after 240 seconds')), 240000);
       });
 
       const response = await Promise.race([fetchPromise, timeoutPromise]);
@@ -299,14 +290,18 @@ export class PluginMessageHandler {
       
       this.uiPort.postMessage({ type: 'import-success' });
       
-      // Export the new design and send it back to UI for next edit
-      const newSelection = figma.currentPage.selection;
-      if (newSelection.length === 1) {
-        const exportResult = await this.exportNodeToJson(newSelection[0]);
-        this.uiPort.postMessage({
-          type: 'design-updated',
-          layerJson: exportResult
-        });
+      // Export the new design using ExportSelectedUseCase (same format!)
+      try {
+        const exportResult = await this.exportSelectedUseCase.execute();
+        
+        if (exportResult.success && exportResult.nodes.length > 0) {
+          this.uiPort.postMessage({
+            type: 'design-updated',
+            layerJson: exportResult.nodes[0]
+          });
+        }
+      } catch (error) {
+        console.error('Failed to export updated design:', error);
       }
     } else {
       this.notificationPort.notifyError(result.error || 'Import failed');

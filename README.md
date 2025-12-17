@@ -85,7 +85,6 @@ Ensure you have the following installed:
 
 *   Node.js (LTS version recommended)
 *   npm or yarn
-*   Python (if the backend is Python-based) or specific runtime for your backend technology.
 *   Figma Desktop App
 
 ### 3. Local Setup
@@ -98,17 +97,14 @@ Follow these steps to get all components running:
     ```bash
     cd backend
     ```
-2.  Install dependencies (adjust command based on technology, e.g., `pip install -r requirements.txt` or `npm install`):
+2.  Install dependencies:
     ```bash
-    # Example: Install dependencies
     npm install 
     ```
 3.  Start the backend server:
     ```bash
     # Example: Start the server on a specific port (e.g., 8000)
-    npm run dev 
-    # OR
-    # python manage.py runserver
+    npm start 
     ```
     The backend should now be running locally (e.g., at `http://localhost:8000` ).
 
