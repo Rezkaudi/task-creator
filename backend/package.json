@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/src/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "tsc && cp -r ./public ./dist",
+    "build": "tsc && cp -r ./public ./dist && cp -r ./docs ./dist",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate ./src/infrastructure/database/migrations/migrations -d ./src/infrastructure/database/data-source.ts",
     "migration:run": "npm run typeorm migration:run -- -d ./src/infrastructure/database/data-source.ts",
@@ -31,13 +31,19 @@
     "openai": "^5.20.0",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.28",
+    "yamljs": "^0.3.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/node": "^22.13.14",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "@types/yamljs": "^0.2.34",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"

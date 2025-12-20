@@ -25,6 +25,7 @@ export const ENV_CONFIG = {
     // Server Configuration
     PORT: process.env.PORT || "5000",
     NODE_ENV: process.env.NODE_ENV || 'development',
+    SERVER_URL: process.env.SERVER_URL || 'http://localhost:5000',
 
     DATABASE_URL: process.env.DATABASE_URL
 };
