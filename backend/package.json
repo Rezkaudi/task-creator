@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/src/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "tsc && cp -r ./public ./dist && cp -r ./docs ./dist",
+    "build": "tsc && cp -r ./public ./dist && cp -r ./src/infrastructure/web/docs ./dist/src/infrastructure/web/docs",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate ./src/infrastructure/database/migrations/migrations -d ./src/infrastructure/database/data-source.ts",
     "migration:run": "npm run typeorm migration:run -- -d ./src/infrastructure/database/data-source.ts",
