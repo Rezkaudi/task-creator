@@ -1,0 +1,184 @@
+/api/designs/generate-from-text:
+  post:
+    tags:
+      - Designs
+    summary: Generate design from text prompt
+    description: |
+      # Generate Figma Design from Text
+
+      Uses Claude AI to generate a complete Figma design based on a text prompt.
+      Returns valid Figma JSON that can be imported directly into Figma.
+
+      ## Supported Design Types:
+      - Landing pages
+      - Mobile apps
+      - Dashboards
+      - Forms and inputs
+      - Navigation components
+
+      ## AI Model:
+      Uses Claude Sonnet 3.5 for high-quality design generation.
+
+      ## Example Prompts:
+      - "Modern login page with dark theme"
+      - "E-commerce product card with image, title, price, and add to cart button"
+      - "Dashboard with sidebar navigation, analytics charts, and user table"
+    operationId: generateDesignFromText
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - prompt
+            properties:
+              prompt:
+                type: string
+                example: "Create a modern login page with dark theme"
+                minLength: 1
+                maxLength: 1000
+          examples:
+            SimplePrompt:
+              value:
+                prompt: "Login page with email and password"
+            DetailedPrompt:
+              value:
+                prompt: "Dashboard with: 1) Left sidebar navigation 2) Header with user menu 3) Analytics cards 4) Data table with pagination 5) Footer with copyright"
+    responses:
+      "200":
+        $ref: "#/components/responses/DesignGenerationSuccess"
+      # "400":
+      #   $ref: "#/components/responses/BadRequest"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "429":
+      #   $ref: "#/components/responses/Forbidden"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"
+
+/api/designs/generate-from-conversation:
+  post:
+    tags:
+      - Designs
+    summary: Generate design from conversation
+    description: |
+      # Conversational Design Generation
+
+      Generate designs through a conversational interface with AI.
+      Maintains context through message history for iterative design.
+
+      ## Features:
+      - Maintains conversation context
+      - Iterative design refinement
+      - HTML preview generation
+      - Multi-turn design conversations
+    operationId: generateDesignFromConversation
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DesignGenerationRequest"
+          examples:
+            FirstMessage:
+              value:
+                message: "Create a login page"
+                history: []
+            FollowUp:
+              value:
+                message: "Make it dark theme"
+                history:
+                  - role: "user"
+                    content: "Create a login page"
+                  - role: "assistant"
+                    content: "Created a light-themed login page"
+    responses:
+      "200":
+        $ref: "#/components/responses/DesignGenerationSuccess"
+      # "400":
+      #   $ref: "#/components/responses/BadRequest"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "429":
+      #   $ref: "#/components/responses/Forbidden"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"
+
+/api/designs/edit-with-ai:
+  post:
+    tags:
+      - Designs
+    summary: Edit existing design with AI
+    description: |
+      # AI-Powered Design Editing
+
+      Modify an existing Figma design using natural language instructions.
+      Upload your current design and describe what changes you want.
+
+      ## Supported Operations:
+      - Color changes
+      - Layout modifications
+      - Text content updates
+      - Component replacements
+      - Style adjustments
+
+      ## Example Instructions:
+      - "Change the button color to blue"
+      - "Make the text larger"
+      - "Add a shadow to the card"
+      - "Rearrange the elements vertically"
+    operationId: editDesignWithAI
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+              - currentDesign
+            properties:
+              message:
+                type: string
+                example: "Change the button color to blue"
+                minLength: 1
+              history:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationMessage"
+              currentDesign:
+                $ref: "#/components/schemas/FigmaDesign"
+          examples:
+            SimpleEdit:
+              value:
+                message: "Change the button color to blue"
+                currentDesign:
+                  - name: "Button"
+                    type: "RECTANGLE"
+                    fills:
+                      - type: "SOLID"
+                        color:
+                          r: 1
+                          g: 0
+                          b: 0
+    responses:
+      "200":
+        $ref: "#/components/responses/DesignGenerationSuccess"
+      # "400":
+      #   $ref: "#/components/responses/BadRequest"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "429":
+      #   $ref: "#/components/responses/Forbidden"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"

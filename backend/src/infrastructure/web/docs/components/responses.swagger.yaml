@@ -1,0 +1,163 @@
+components:
+  responses:
+    # Common HTTP Responses
+    BadRequest:
+      description: Bad Request - The request was invalid or cannot be served
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            ValidationError:
+              value:
+                success: false
+                message: "Invalid input parameters"
+                code: "VALIDATION_ERROR"
+                details:
+                  text: "Text field is required"
+            MissingParameter:
+              value:
+                success: false
+                message: "Missing required parameter: selectedListId"
+                code: "MISSING_PARAMETER"
+
+    Unauthorized:
+      description: Unauthorized - Authentication failed or user lacks permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            InvalidApiKey:
+              value:
+                success: false
+                message: "Invalid API key"
+                code: "INVALID_API_KEY"
+            MissingAuth:
+              value:
+                success: false
+                message: "Authentication required"
+                code: "AUTH_REQUIRED"
+
+    Forbidden:
+      description: Forbidden - The request is understood but refused
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            RateLimited:
+              value:
+                success: false
+                message: "Rate limit exceeded. Please try again later."
+                code: "RATE_LIMIT_EXCEEDED"
+                details:
+                  limit: 100
+                  remaining: 0
+                  reset: "2024-01-15T11:30:00Z"
+
+    NotFound:
+      description: Not Found - The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            VersionNotFound:
+              value:
+                success: false
+                message: "Design version with id 123 not found"
+                code: "NOT_FOUND"
+
+    InternalServerError:
+      description: Internal Server Error - Something went wrong on the server
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            ServerError:
+              value:
+                success: false
+                message: "An internal server error occurred"
+                code: "INTERNAL_ERROR"
+                details:
+                  requestId: "req_123456789"
+
+    # Success Responses
+    Success:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessResponse"
+
+    Created:
+      description: Resource created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessResponse"
+
+    # Specific Responses
+    TaskExtractionSuccess:
+      description: Tasks extracted and created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TaskExtractionResponse"
+          examples:
+            WithDesign:
+              value:
+                success: true
+                message: "Successfully created 3 tasks in Trello and generated Figma design"
+                tasks:
+                  - title: "Design login page"
+                    description: "Create responsive login page"
+                    priority: "high"
+                createdCards:
+                  - id: "card_123"
+                    name: "Design login page"
+                designData:
+                  - name: "Login Page"
+                    type: "FRAME"
+
+    DesignGenerationSuccess:
+      description: Design generated successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DesignGenerationResult"
+          examples:
+            NewDesign:
+              value:
+                success: true
+                message: "Created a modern login page with dark theme"
+                design:
+                  - name: "Login Page"
+                    type: "FRAME"
+                previewHtml: "<div>...</div>"
+
+    VersionListSuccess:
+      description: Design versions retrieved successfully
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/SuccessResponse"
+              - type: object
+                properties:
+                  versions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DesignVersion"
+          examples:
+            MultipleVersions:
+              value:
+                success: true
+                message: "Found 5 design versions"
+                versions:
+                  - id: 1
+                    version: 1
+                    description: "Login page v1"
+                    createdAt: "2024-01-15T10:30:00Z"

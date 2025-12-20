@@ -1,6 +1,10 @@
 import cors from 'cors';
 import express, { Application, Request, Response, NextFunction } from 'express';
+
 import { corsOptions } from '../config/cors.config';
+import swaggerSpec from '../config/swagger.config';
+
+import swaggerUi from 'swagger-ui-express';
 
 // routes
 import taskRoutes from './routes/task.routes';
@@ -41,6 +45,12 @@ export class Server {
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
     this.app.use('/api/design-versions', designVersionRoutes(this.container.designVersionController));
+    this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+    // API documentation redirect
+    this.app.get('/api', (_, res) => {
+      res.redirect('/api/docs');
+    });
   }
 
   private configureErrorHandling(): void {
@@ -63,6 +73,8 @@ export class Server {
   public async start(): Promise<void> {
     this.app.listen(this.port, () => {
       console.log(`🚀 Server running on port ${this.port}`);
+      console.log(`📚 API Documentation: http://localhost:${this.port}/docs`);
+      console.log(`⚕️  Health Check: http://localhost:${this.port}/health`);
     });
   }
 

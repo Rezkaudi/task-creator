@@ -1,0 +1,161 @@
+/api/design-versions:
+  post:
+    tags:
+      - Versions
+    summary: Save a new design version
+    description: |
+      # Save Design Version
+
+      Store a Figma design as a versioned snapshot in the database.
+
+      ## Versioning:
+      - Automatic version numbering
+      - Timestamp tracking
+      - User-specific storage
+      - JSON compression
+    operationId: saveDesignVersion
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SaveDesignVersionRequest"
+          examples:
+            SimpleSave:
+              value:
+                description: "Login page v1"
+                designJson:
+                  name: "Login Page"
+                  type: "FRAME"
+    responses:
+      "201":
+        description: Design version saved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    version:
+                      $ref: "#/components/schemas/DesignVersion"
+            examples:
+              VersionSaved:
+                value:
+                  success: true
+                  message: "Design saved as version 1"
+                  version:
+                    id: 1
+                    version: 1
+                    description: "Login page v1"
+                    createdAt: "2024-01-15T10:30:00Z"
+      # "400":
+      #   $ref: "#/components/responses/BadRequest"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"
+
+  get:
+    tags:
+      - Versions
+    summary: Get all design versions
+    description: |
+      Retrieve all saved design versions for the current user.
+      Returns metadata without the full design JSON for performance.
+
+      Use the specific version endpoint to get full design data.
+    operationId: getAllDesignVersions
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    parameters:
+      - $ref: "#/components/parameters/Page"
+      - $ref: "#/components/parameters/Limit"
+      - $ref: "#/components/parameters/SortBy"
+      - $ref: "#/components/parameters/SortOrder"
+    responses:
+      "200":
+      #   $ref: "#/components/responses/VersionListSuccess"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"
+/api/design-versions/{id}:
+  get:
+    tags:
+      - Versions
+    summary: Get specific design version by ID
+    description: |
+      Retrieve a specific design version with full JSON data.
+      Includes the complete Figma design that can be imported.
+    operationId: getDesignVersionById
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    parameters:
+      - $ref: "#/components/parameters/VersionId"
+    responses:
+      "200":
+        description: Design version retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    version:
+                      $ref: "#/components/schemas/DesignVersion"
+            examples:
+              VersionFound:
+                value:
+                  success: true
+                  version:
+                    id: 1
+                    version: 1
+                    description: "Login page v1"
+                    designJson:
+                      name: "Login Page"
+                      type: "FRAME"
+      # "404":
+      #   $ref: "#/components/responses/NotFound"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"
+
+  delete:
+    tags:
+      - Versions
+    summary: Delete a design version
+    description: |
+      Permanently delete a design version.
+      This action cannot be undone.
+    operationId: deleteDesignVersion
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    parameters:
+      - $ref: "#/components/parameters/VersionId"
+    responses:
+      "200":
+        description: Design version deleted successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuccessResponse"
+            examples:
+              VersionDeleted:
+                value:
+                  success: true
+                  message: "Design version 1 deleted successfully"
+      # "404":
+      #   $ref: "#/components/responses/NotFound"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"

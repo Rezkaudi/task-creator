@@ -1,0 +1,455 @@
+components:
+  schemas:
+    # Common Error Response
+    Error:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+          description: Indicates if the request was successful
+        message:
+          type: string
+          example: "An error occurred while processing your request"
+          description: Human-readable error message
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+          description: Error code for programmatic handling
+        details:
+          type: object
+          description: Additional error details
+
+    # Success Response Wrapper
+    SuccessResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Indicates if the request was successful
+        message:
+          type: string
+          example: "Operation completed successfully"
+          description: Human-readable success message
+
+    # Task related schemas
+    Task:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "Design login page"
+          description: Title of the task
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          example: "Create a responsive login page with email and password fields"
+          description: Detailed description of the task
+          maxLength: 1000
+        dueDate:
+          type: string
+          format: date-time
+          example: "2024-12-31T23:59:59Z"
+          description: Due date for the task
+        labels:
+          type: array
+          items:
+            type: string
+          example: ["design", "ui", "high-priority"]
+          description: Labels for categorizing tasks
+        priority:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+          example: "high"
+          description: Priority level of the task
+
+    # Trello related schemas
+    TrelloList:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "64a1b2c3d4e5f67890123456"
+          description: Trello list ID
+        name:
+          type: string
+          example: "To Do"
+          description: Name of the Trello list
+        closed:
+          type: boolean
+          example: false
+          description: Whether the list is archived
+        idBoard:
+          type: string
+          example: "64a1b2c3d4e5f67890123457"
+          description: ID of the board this list belongs to
+        pos:
+          type: number
+          example: 16384
+          description: Position of the list on the board
+
+    TrelloCard:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "64a1b2c3d4e5f67890123458"
+          description: Trello card ID
+        name:
+          type: string
+          example: "Design login page"
+          description: Name of the Trello card
+        desc:
+          type: string
+          example: "Create a responsive login page"
+          description: Description of the card
+        idList:
+          type: string
+          example: "64a1b2c3d4e5f67890123456"
+          description: ID of the list containing this card
+        due:
+          type: string
+          format: date-time
+          example: "2024-12-31T23:59:59Z"
+          description: Due date for the card
+        idLabels:
+          type: array
+          items:
+            type: string
+          example: ["64a1b2c3d4e5f67890123459"]
+          description: Array of label IDs attached to the card
+
+    # Design related schemas
+    FigmaColor:
+      type: object
+      required:
+        - r
+        - g
+        - b
+      properties:
+        r:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.09
+          description: Red component (0-1 range)
+        g:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.46
+          description: Green component (0-1 range)
+        b:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.95
+          description: Blue component (0-1 range)
+        a:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 1
+          description: Alpha/opacity component (0-1 range)
+
+    FigmaFill:
+      type: object
+      required:
+        - type
+        - color
+      properties:
+        type:
+          type: string
+          enum:
+            [
+              SOLID,
+              GRADIENT_LINEAR,
+              GRADIENT_RADIAL,
+              GRADIENT_ANGULAR,
+              GRADIENT_DIAMOND,
+              IMAGE,
+            ]
+          example: "SOLID"
+          description: Type of fill
+        visible:
+          type: boolean
+          default: true
+          example: true
+          description: Whether the fill is visible
+        opacity:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 1
+          example: 1
+          description: Opacity of the fill
+        blendMode:
+          type: string
+          enum:
+            [
+              PASS_THROUGH,
+              NORMAL,
+              MULTIPLY,
+              SCREEN,
+              OVERLAY,
+              DARKEN,
+              LIGHTEN,
+              COLOR_DODGE,
+              COLOR_BURN,
+              HARD_LIGHT,
+              SOFT_LIGHT,
+              DIFFERENCE,
+              EXCLUSION,
+              HUE,
+              SATURATION,
+              COLOR,
+              LUMINOSITY,
+            ]
+          default: "NORMAL"
+          example: "NORMAL"
+          description: Blend mode for the fill
+        color:
+          $ref: "#/components/schemas/FigmaColor"
+          description: Color for solid fills
+
+    FigmaNode:
+      type: object
+      required:
+        - name
+        - type
+        - x
+        - y
+      properties:
+        name:
+          type: string
+          example: "Login Button"
+          description: Name of the node
+        type:
+          type: string
+          enum:
+            [
+              FRAME,
+              GROUP,
+              RECTANGLE,
+              TEXT,
+              ELLIPSE,
+              VECTOR,
+              LINE,
+              POLYGON,
+              STAR,
+              COMPONENT,
+              INSTANCE,
+              BOOLEAN_OPERATION,
+            ]
+          example: "FRAME"
+          description: Type of Figma node
+        x:
+          type: number
+          example: 100
+          description: X position on canvas
+        y:
+          type: number
+          example: 200
+          description: Y position on canvas
+        width:
+          type: number
+          minimum: 1
+          example: 300
+          description: Width of the node
+        height:
+          type: number
+          minimum: 1
+          example: 200
+          description: Height of the node
+        fills:
+          type: array
+          items:
+            $ref: "#/components/schemas/FigmaFill"
+          description: Fill properties of the node
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/FigmaNode"
+          description: Child nodes
+        characters:
+          type: string
+          example: "Login"
+          description: Text content for TEXT nodes
+        fontSize:
+          type: number
+          example: 16
+          description: Font size for TEXT nodes
+        fontName:
+          type: object
+          properties:
+            family:
+              type: string
+              example: "Inter"
+            style:
+              type: string
+              example: "Regular"
+
+    FigmaDesign:
+      type: array
+      items:
+        $ref: "#/components/schemas/FigmaNode"
+      description: Array of Figma nodes representing a complete design
+
+    # AI Conversation schemas
+    ConversationMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+          example: "user"
+          description: Role of the message sender
+        content:
+          type: string
+          example: "Make the button blue"
+          description: Content of the message
+
+    DesignGenerationResult:
+      type: object
+      required:
+        - message
+        - design
+      properties:
+        message:
+          type: string
+          example: "Changed the button color to blue"
+          description: AI response message
+        design:
+          $ref: "#/components/schemas/FigmaDesign"
+          description: Generated or modified design
+        previewHtml:
+          type: string
+          example: "<div style='background: blue;'>Button</div>"
+          description: HTML preview of the design
+
+    # Design Version schemas
+    DesignVersion:
+      type: object
+      required:
+        - version
+        - description
+        - designJson
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: Unique identifier
+        version:
+          type: integer
+          example: 1
+          description: Version number
+        description:
+          type: string
+          example: "Login page v1"
+          description: Description of the version
+        designJson:
+          type: object
+          description: Complete design JSON data
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    # Request/Response DTOs
+    TaskExtractionRequest:
+      type: object
+      required:
+        - text
+        - selectedListId
+      properties:
+        text:
+          type: string
+          example: "Design a login page with email and password fields, remember me checkbox, and login button"
+          description: Text to extract tasks from
+          minLength: 10
+          maxLength: 5000
+        selectedListId:
+          type: string
+          example: "64a1b2c3d4e5f67890123456"
+          description: Trello list ID where tasks should be created
+        generateDesign:
+          type: boolean
+          default: true
+          example: true
+          description: Whether to automatically generate a Figma design
+
+    TaskExtractionResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessResponse"
+        - type: object
+          properties:
+            tasks:
+              type: array
+              items:
+                $ref: "#/components/schemas/Task"
+              description: Extracted tasks
+            designData:
+              $ref: "#/components/schemas/FigmaDesign"
+              description: Generated design data (if requested)
+            createdCards:
+              type: array
+              items:
+                $ref: "#/components/schemas/TrelloCard"
+              description: Created Trello cards
+
+    SaveDesignVersionRequest:
+      type: object
+      required:
+        - description
+        - designJson
+      properties:
+        description:
+          type: string
+          example: "Login page design v2"
+          description: Description of the design version
+          minLength: 1
+          maxLength: 200
+        designJson:
+          type: object
+          description: Complete Figma design JSON
+          example:
+            name: "Login Page"
+            type: "FRAME"
+            children: []
+
+    DesignGenerationRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Create a modern login page with dark theme"
+          description: Design prompt or modification request
+          minLength: 1
+          maxLength: 1000
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversationMessage"
+          description: Conversation history for context
+        currentDesign:
+          type: object
+          description: Current design to modify (for edit requests)

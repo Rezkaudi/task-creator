@@ -1,0 +1,114 @@
+/api/tasks/extract:
+  post:
+    tags:
+      - Tasks
+    summary: Extract tasks from text and create in Trello
+    description: |
+      # Extract Tasks and Create Trello Cards
+
+      This endpoint analyzes text input to extract actionable tasks and automatically creates Trello cards.
+      Optionally generates a Figma design based on the extracted tasks.
+
+      ## Process Flow:
+      1. Text analysis using GPT to identify tasks
+      2. Task categorization and prioritization
+      3. Creation of Trello cards in specified list
+      4. Optional Figma design generation
+
+      ## Examples:
+      **Input Text:**
+      ```
+      We need to design a login page with email/password fields, 
+      remember me checkbox, and a login button. Also create a 
+      registration page with name, email, password, and confirm password.
+      ```
+
+      **Extracted Tasks:**
+      - Design login page with form elements
+      - Design registration page with validation
+    operationId: extractTasks
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TaskExtractionRequest"
+          examples:
+            BasicRequest:
+              summary: Basic task extraction
+              value:
+                text: "Design a login page with email and password fields"
+                selectedListId: "64a1b2c3d4e5f67890123456"
+                generateDesign: true
+            ComplexRequest:
+              summary: Complex task extraction
+              value:
+                text: "Create dashboard with: 1) Navigation sidebar 2) Analytics charts 3) User table 4) Notifications panel"
+                selectedListId: "64a1b2c3d4e5f67890123456"
+                generateDesign: true
+    responses:
+      "200":
+        $ref: "#/components/responses/TaskExtractionSuccess"
+      # "400":
+      #   $ref: "#/components/responses/BadRequest"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "429":
+      #   $ref: "#/components/responses/Forbidden"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"
+
+/api/tasks/latest-design:
+  get:
+    tags:
+      - Tasks
+    summary: Get latest generated design
+    description: |
+      Retrieve the most recently generated Figma design from task extraction.
+
+      This endpoint returns the design data that was generated during the last
+      successful task extraction with `generateDesign: true`.
+    operationId: getLatestDesign
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    responses:
+      "200":
+        description: Latest design retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      $ref: "#/components/schemas/FigmaDesign"
+            examples:
+              DesignFound:
+                value:
+                  success: true
+                  message: "Latest design retrieved"
+                  data:
+                    - name: "Login Page"
+                      type: "FRAME"
+                      children: []
+      # "404":
+      #   description: No design available
+      #   content:
+      #     application/json:
+      #       schema:
+      #         $ref: "#/components/schemas/Error"
+      #       examples:
+      #         NoDesign:
+      #           value:
+      #             success: false
+      #             message: "No design available. Please generate tasks first."
+      #             code: "NO_DESIGN"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"
