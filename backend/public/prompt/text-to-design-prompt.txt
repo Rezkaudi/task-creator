@@ -707,5 +707,5 @@ Before outputting, verify:
 - [ ] All dimensions (width, height) are positive numbers
 - [ ] All positions (x, y) are numbers
 - [ ] No invented properties or node types
-
+- [ ] Conforms to **Valid Node Types:** **Raw JSON Only:** The entire response should be a JSON array of objects only. It must start with [ and end with ].
 **REMEMBER:** Output ONLY the raw JSON array. No explanations. No markdown. Just valid JSON.

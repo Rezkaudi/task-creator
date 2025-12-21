@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
-import { GenerateDesignFromClaudeUseCase } from '../../../application/use-cases/generate-design-from-claude.use-case';
+import { GenerateDesignFromTextUseCase } from '../../../application/use-cases/generate-design-from-text.use-case';
 import { GenerateDesignFromConversationUseCase } from '../../../application/use-cases/generate-design-from-conversation.use-case';
 import { EditDesignWithAIUseCase } from '../../../application/use-cases/edit-design-with-ai.use-case';
-import { DesignGenerationResult } from '../../../domain/services/IClaudeGenerator';
+import { DesignGenerationResult } from '../../../domain/services/IAiDesignService';
 
 export class DesignController {
     constructor(
-        private readonly generateDesignUseCase: GenerateDesignFromClaudeUseCase,
+        private readonly generateDesignUseCase: GenerateDesignFromTextUseCase,
         private readonly generateDesignFromConversationUseCase: GenerateDesignFromConversationUseCase,
         private readonly editDesignWithAIUseCase: EditDesignWithAIUseCase
-    ) {}
+    ) { }
 
     /**
      * Generate design from simple text prompt
@@ -34,9 +34,9 @@ export class DesignController {
 
         try {
             if (!message) {
-                res.status(400).json({ 
-                    success: false, 
-                    message: 'Message is required' 
+                res.status(400).json({
+                    success: false,
+                    message: 'Message is required'
                 });
                 return;
             }
@@ -65,9 +65,9 @@ export class DesignController {
         } catch (error) {
             console.error("Error in generateFromConversation:", error);
             const message = error instanceof Error ? error.message : 'An unknown error occurred.';
-            res.status(500).json({ 
-                success: false, 
-                message 
+            res.status(500).json({
+                success: false,
+                message
             });
         }
     }
@@ -80,17 +80,17 @@ export class DesignController {
 
         try {
             if (!message) {
-                res.status(400).json({ 
-                    success: false, 
-                    message: 'Message is required' 
+                res.status(400).json({
+                    success: false,
+                    message: 'Message is required'
                 });
                 return;
             }
 
             if (!currentDesign) {
-                res.status(400).json({ 
-                    success: false, 
-                    message: 'Current design is required for editing' 
+                res.status(400).json({
+                    success: false,
+                    message: 'Current design is required for editing'
                 });
                 return;
             }
@@ -121,9 +121,9 @@ export class DesignController {
         } catch (error) {
             console.error("Error in editWithAI:", error);
             const message = error instanceof Error ? error.message : 'An unknown error occurred.';
-            res.status(500).json({ 
-                success: false, 
-                message 
+            res.status(500).json({
+                success: false,
+                message
             });
         }
     }
