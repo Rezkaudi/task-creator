@@ -1,8 +1,13 @@
 // Services
 import { TrelloService } from "../../services/trello.service";
-import { GPTService } from "../../services/gpt.service";
-import { GPTDesignService } from "../../services/gpt-design.service";
-import { ClaudeService } from "../../services/claude.service";
+import { GPTExtractTasksService } from "../../services/gpt-extract-tasks.service";
+
+// Design Services
+import { GPTDesignService } from "../../services/design/gpt-design.service";
+import { DeepSeekDesignService } from "../../services/design/deepseek-design.service";
+import { CloudeDesignService } from "../../services/design/cloude-design.service";
+import { GiminiDesignService } from "../../services/design/gimini-design.service";
+
 
 // Repositories
 import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-version.repository";
@@ -11,8 +16,10 @@ import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-
 import { GetBoardListsUseCase } from "../../../application/use-cases/get-board-lists-in-trello.use-case";
 import { ExtractTasksUseCase } from "../../../application/use-cases/extract-tasks.use-case";
 import { AddTasksToTrelloUseCase } from "../../../application/use-cases/add-tasks-to-trello.use-case";
+
+// Use Cases - Design
 import { GenerateDesignUseCase } from "../../../application/use-cases/generate-design.use-case";
-import { GenerateDesignFromClaudeUseCase } from "../../../application/use-cases/generate-design-from-claude.use-case";
+import { GenerateDesignFromTextUseCase } from "../../../application/use-cases/generate-design-from-text.use-case";
 import { GenerateDesignFromConversationUseCase } from "../../../application/use-cases/generate-design-from-conversation.use-case";
 import { EditDesignWithAIUseCase } from "../../../application/use-cases/edit-design-with-ai.use-case";
 
@@ -31,23 +38,26 @@ import { DesignVersionController } from "../controllers/design-version.controlle
 export const setupDependencies = () => {
     // Services
     const trelloService = new TrelloService();
-    const gptService = new GPTService();
-    const gptDesignService = new GPTDesignService();
-    const claudeService = new ClaudeService();
+    const gptExtractTasksService = new GPTExtractTasksService();
+
+    const AiDesignService = new DeepSeekDesignService();
+    // const AiDesignService = new CloudeDesignService();
+    // const AiDesignService = new GiminiDesignService();
+    // const AiDesignService = new GPTDesignService();
 
     // Repositories
     const designVersionRepository = new TypeORMDesignVersionRepository();
 
     // Use Cases - Tasks
     const getBoardListsUseCase = new GetBoardListsUseCase(trelloService);
-    const extractTasksUseCase = new ExtractTasksUseCase(gptService);
+    const extractTasksUseCase = new ExtractTasksUseCase(gptExtractTasksService);
     const addTasksToTrelloUseCase = new AddTasksToTrelloUseCase(trelloService);
-    const generateDesignUseCase = new GenerateDesignUseCase(gptDesignService);
-    const generateDesignFromClaudeUseCase = new GenerateDesignFromClaudeUseCase(claudeService);
-    const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(claudeService);
-    
+    const generateDesignUseCase = new GenerateDesignUseCase(gptExtractTasksService);
+    const generateDesignFromTextUseCase = new GenerateDesignFromTextUseCase(AiDesignService);
+    const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(AiDesignService);
+
     // NEW: Edit Design Use Case
-    const editDesignWithAIUseCase = new EditDesignWithAIUseCase(claudeService);
+    const editDesignWithAIUseCase = new EditDesignWithAIUseCase(AiDesignService);
 
     // Use Cases - Design Versions
     const saveDesignVersionUseCase = new SaveDesignVersionUseCase(designVersionRepository);
@@ -58,10 +68,10 @@ export const setupDependencies = () => {
     // Controllers
     const trelloController = new TrelloController(getBoardListsUseCase);
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
-    
+
     // UPDATED: Pass editDesignWithAIUseCase to DesignController
     const designController = new DesignController(
-        generateDesignFromClaudeUseCase, 
+        generateDesignFromTextUseCase,
         generateDesignFromConversationUseCase,
         editDesignWithAIUseCase
     );

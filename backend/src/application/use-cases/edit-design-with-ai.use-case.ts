@@ -1,9 +1,7 @@
-// src/application/use-cases/edit-design-with-ai.use-case.ts
-
-import { IClaudeGenerator, ConversationMessage, DesignGenerationResult } from '../../domain/services/IClaudeGenerator';
+import { IAiDesignService, ConversationMessage, DesignGenerationResult } from "../../domain/services/IAiDesignService";
 
 export class EditDesignWithAIUseCase {
-    constructor(private claudeGenerator: IClaudeGenerator) {}
+    constructor(private aiDesignService: IAiDesignService) { }
 
     async execute(
         message: string,
@@ -20,6 +18,6 @@ export class EditDesignWithAIUseCase {
 
         const validHistory = Array.isArray(history) ? history : [];
 
-        return this.claudeGenerator.editDesignWithAI(message, validHistory, currentDesign);
+        return this.aiDesignService.editDesignWithAI(message, validHistory, currentDesign);
     }
 }

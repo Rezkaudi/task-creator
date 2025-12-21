@@ -79,7 +79,7 @@
       - $ref: "#/components/parameters/SortOrder"
     responses:
       "200":
-      #   $ref: "#/components/responses/VersionListSuccess"
+        $ref: "#/components/responses/VersionListSuccess"
       # "401":
       #   $ref: "#/components/responses/Unauthorized"
       # "500":

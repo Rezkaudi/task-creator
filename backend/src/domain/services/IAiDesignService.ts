@@ -1,5 +1,3 @@
-// src/domain/services/IClaudeGenerator.ts
-
 export interface ConversationMessage {
     role: string;
     content: string;
@@ -11,11 +9,11 @@ export interface DesignGenerationResult {
     previewHtml?: string | null;
 }
 
-export interface IClaudeGenerator {
+export interface IAiDesignService {
     generateDesign(prompt: string): Promise<any>;
-    
+
     generateDesignFromConversation(
-        userMessage: string, 
+        userMessage: string,
         history: ConversationMessage[]
     ): Promise<DesignGenerationResult>;
 

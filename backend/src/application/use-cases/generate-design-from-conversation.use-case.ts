@@ -1,9 +1,9 @@
 // src/application/use-cases/generate-design-from-conversation.use-case.ts
 
-import { IClaudeGenerator, ConversationMessage, DesignGenerationResult } from '../../domain/services/IClaudeGenerator';
+import { IAiDesignService, ConversationMessage, DesignGenerationResult } from "../../domain/services/IAiDesignService";
 
 export class GenerateDesignFromConversationUseCase {
-    constructor(private claudeGenerator: IClaudeGenerator) {}
+    constructor(private aiDesignService: IAiDesignService) { }
 
     async execute(
         message: string,
@@ -15,6 +15,6 @@ export class GenerateDesignFromConversationUseCase {
 
         const validHistory = Array.isArray(history) ? history : [];
 
-        return this.claudeGenerator.generateDesignFromConversation(message, validHistory);
+        return this.aiDesignService.generateDesignFromConversation(message, validHistory);
     }
 }
