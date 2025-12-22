@@ -166,6 +166,63 @@ Example format:
     </div>
   </div>
 
+  <!-- Model Selection Floating Button -->
+  <div id="model-floating-btn" class="model-floating-btn">
+    <div class="model-btn-icon">🤖</div>
+    <span class="model-btn-text">GPT-4</span>
+  </div>
+
+  <!-- Model Selection Panel (hidden initially) -->
+  <div id="model-panel" class="model-panel">
+    <div class="model-panel-header">
+      <h3>🤖 Select AI Model</h3>
+      <button id="close-model-panel" class="close-model-panel">×</button>
+    </div>
+    <div class="model-list">
+      <div class="model-item active" data-model="gpt-4">
+        <div class="model-item-icon">GPT</div>
+        <div class="model-item-info">
+          <div class="model-item-name">GPT-4</div>
+          <div class="model-item-desc">Best overall quality</div>
+        </div>
+        <div class="model-item-check">✓</div>
+      </div>
+      
+      <div class="model-item" data-model="gimini">
+        <div class="model-item-icon">Gem</div>
+        <div class="model-item-info">
+          <div class="model-item-name">Gemini</div>
+          <div class="model-item-desc">Creative & visual</div>
+        </div>
+        <div class="model-item-check">✓</div>
+      </div>
+      
+      <div class="model-item" data-model="deepseek">
+        <div class="model-item-icon">DS</div>
+        <div class="model-item-info">
+          <div class="model-item-name">DeepSeek</div>
+          <div class="model-item-desc">Fast & efficient</div>
+        </div>
+        <div class="model-item-check">✓</div>
+      </div>
+      
+      <div class="model-item" data-model="claude">
+        <div class="model-item-icon">Cl</div>
+        <div class="model-item-info">
+          <div class="model-item-name">Claude</div>
+          <div class="model-item-desc">Detailed & contextual</div>
+        </div>
+        <div class="model-item-check">✓</div>
+      </div>
+    </div>
+    <div class="model-panel-footer">
+      <span id="selected-model-info">Currently using: GPT-4</span>
+    </div>
+  </div>
+
+  <!-- Backdrop for model panel -->
+  <div id="model-panel-backdrop" class="model-panel-backdrop"></div>
+
   <script src="./ui.js"></script>
 </body>
 

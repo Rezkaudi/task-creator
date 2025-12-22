@@ -2,12 +2,7 @@
 import { TrelloService } from "../../services/trello.service";
 import { GPTExtractTasksService } from "../../services/gpt-extract-tasks.service";
 
-// Design Services
 import { GPTDesignService } from "../../services/design/gpt-design.service";
-import { DeepSeekDesignService } from "../../services/design/deepseek-design.service";
-import { CloudeDesignService } from "../../services/design/cloude-design.service";
-import { GiminiDesignService } from "../../services/design/gimini-design.service";
-
 
 // Repositories
 import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-version.repository";
@@ -40,12 +35,8 @@ export const setupDependencies = () => {
     const trelloService = new TrelloService();
     const gptExtractTasksService = new GPTExtractTasksService();
 
-    const AiDesignService = new DeepSeekDesignService();
-    // const AiDesignService = new CloudeDesignService();
-    // const AiDesignService = new GiminiDesignService();
-    // const AiDesignService = new GPTDesignService();
+    const defaultAiDesignService = new GPTDesignService();
 
-    // Repositories
     const designVersionRepository = new TypeORMDesignVersionRepository();
 
     // Use Cases - Tasks
@@ -53,13 +44,11 @@ export const setupDependencies = () => {
     const extractTasksUseCase = new ExtractTasksUseCase(gptExtractTasksService);
     const addTasksToTrelloUseCase = new AddTasksToTrelloUseCase(trelloService);
     const generateDesignUseCase = new GenerateDesignUseCase(gptExtractTasksService);
-    const generateDesignFromTextUseCase = new GenerateDesignFromTextUseCase(AiDesignService);
-    const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(AiDesignService);
+    
+    const generateDesignFromTextUseCase = new GenerateDesignFromTextUseCase(defaultAiDesignService);
+    const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(defaultAiDesignService);
+    const editDesignWithAIUseCase = new EditDesignWithAIUseCase(defaultAiDesignService);
 
-    // NEW: Edit Design Use Case
-    const editDesignWithAIUseCase = new EditDesignWithAIUseCase(AiDesignService);
-
-    // Use Cases - Design Versions
     const saveDesignVersionUseCase = new SaveDesignVersionUseCase(designVersionRepository);
     const getAllDesignVersionsUseCase = new GetAllDesignVersionsUseCase(designVersionRepository);
     const getDesignVersionByIdUseCase = new GetDesignVersionByIdUseCase(designVersionRepository);
@@ -69,7 +58,6 @@ export const setupDependencies = () => {
     const trelloController = new TrelloController(getBoardListsUseCase);
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
 
-    // UPDATED: Pass editDesignWithAIUseCase to DesignController
     const designController = new DesignController(
         generateDesignFromTextUseCase,
         generateDesignFromConversationUseCase,

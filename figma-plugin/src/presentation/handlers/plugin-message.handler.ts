@@ -43,7 +43,7 @@ export class PluginMessageHandler {
     switch (message.type) {
       case 'ai-chat-message':
         if (message.message !== undefined) {
-          await this.handleAIChatMessage(message.message, message.history);
+          await this.handleAIChatMessage(message.message, message.history, message.model);
         }
         break;
 
@@ -53,7 +53,7 @@ export class PluginMessageHandler {
 
       case 'ai-edit-design':
         if (message.message !== undefined && message.layerJson !== undefined) {
-          await this.handleAIEditDesign(message.message, message.history, message.layerJson);
+          await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model);
         }
         break;
 
@@ -141,17 +141,19 @@ export class PluginMessageHandler {
     }
   }
 
-
   // ==================== AI EDIT DESIGN ====================
   private async handleAIEditDesign(
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
-    layerJson: any
+    layerJson: any,
+    model?: string
   ): Promise<void> {
     try {
       if (history && history.length > 0) {
         this.conversationHistory = history;
       }
+
+      const selectedModel = model || 'gpt-4'; // Default to GPT-4
 
       const fetchPromise = fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
         method: 'POST',
@@ -159,12 +161,13 @@ export class PluginMessageHandler {
         body: JSON.stringify({
           message: userMessage,
           history: this.conversationHistory,
-          currentDesign: layerJson
+          currentDesign: layerJson,
+          model: selectedModel // Pass the selected model to backend
         })
       });
 
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout after 240 seconds')), 240000);
+        setTimeout(() => reject(new Error('Request timeout after 480 seconds')), 480000);
       });
 
       const response = await Promise.race([fetchPromise, timeoutPromise]);
@@ -201,19 +204,23 @@ export class PluginMessageHandler {
   // ==================== AI CHAT FUNCTIONS ====================
   private async handleAIChatMessage(
     userMessage: string,
-    history?: Array<{ role: string; content: string }>
+    history?: Array<{ role: string; content: string }>,
+    model?: string
   ): Promise<void> {
     try {
       if (history && history.length > 0) {
         this.conversationHistory = history;
       }
 
+      const selectedModel = model || 'gpt-4'; // Default to GPT-4
+
       const fetchPromise = fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          history: this.conversationHistory
+          history: this.conversationHistory,
+          model: selectedModel // Pass the selected model to backend
         })
       });
 
