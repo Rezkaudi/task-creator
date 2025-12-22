@@ -20,10 +20,7 @@ export class CloudeDesignService implements IAiDesignService {
         this.apiKey = ENV_CONFIG.CLOUDE_API_KEY!;
         this.cloudeModel = ENV_CONFIG.CLOUDE_MODEL;
 
-        this.systemPrompt = fs.readFileSync(
-            path.join(__dirname, '../../../public/prompt/text-to-design-prompt.txt'),
-            'utf-8'
-        );
+        this.systemPrompt = '../../../public/prompt/text-to-design-prompt.txt';
     }
 
     async generateDesign(prompt: string): Promise<any> {

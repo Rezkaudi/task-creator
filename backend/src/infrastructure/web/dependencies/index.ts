@@ -41,7 +41,7 @@ export const setupDependencies = () => {
     const gptExtractTasksService = new GPTExtractTasksService();
 
     //const AiDesignService = new DeepSeekDesignService();
-     const AiDesignService = new CloudeDesignService();
+    const AiDesignService = new CloudeDesignService();
     // const AiDesignService = new GiminiDesignService();
   //const AiDesignService = new GPTDesignService();
 
