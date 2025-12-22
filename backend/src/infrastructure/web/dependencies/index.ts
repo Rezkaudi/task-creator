@@ -40,8 +40,8 @@ export const setupDependencies = () => {
     const trelloService = new TrelloService();
     const gptExtractTasksService = new GPTExtractTasksService();
 
-    const AiDesignService = new DeepSeekDesignService();
-    // const AiDesignService = new CloudeDesignService();
+    //const AiDesignService = new DeepSeekDesignService();
+     const AiDesignService = new CloudeDesignService();
     // const AiDesignService = new GiminiDesignService();
   //const AiDesignService = new GPTDesignService();
 
