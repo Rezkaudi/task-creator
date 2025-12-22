@@ -56,10 +56,10 @@ export type PluginMessage =
   | { type: 'export-all' }
   | { type: 'get-selection-info' }
   | { type: 'cancel' }
-  | { type: 'ai-chat-message'; message: string; history?: Array<{ role: string; content: string }> }
+  | { type: 'ai-chat-message'; message: string; history?: Array<{ role: string; content: string }>; model?: string }
   | { type: 'import-design-from-chat'; designData: unknown }
   | { type: 'request-layer-selection-for-edit' }
-  | { type: 'ai-edit-design'; message: string; history?: Array<{ role: string; content: string }>; layerJson: any }
+  | { type: 'ai-edit-design'; message: string; history?: Array<{ role: string; content: string }>; layerJson: any; model?: string }
   | { type: 'import-edited-design'; designData: unknown }
   // Version management messages
   | { type: 'load-versions' }

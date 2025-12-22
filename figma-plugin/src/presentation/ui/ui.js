@@ -1,7 +1,5 @@
-const API_BASE_URL = 'https://task-creator-api.onrender.com';
-// For local development:
-//const API_BASE_URL = 'http://localhost:5000';
-
+//const API_BASE_URL = 'https://task-creator-api.onrender.com';
+const API_BASE_URL ="http://localhost:5000"
 // ==================== STATE ====================
 let chatMessages = [];
 let conversationHistory = [];
@@ -10,8 +8,9 @@ let isGenerating = false;
 let currentExportData = null;
 let selectedVersionId = null;
 let versionsCache = [];
+let currentModel = 'gpt-4'; // Default model
 
-// NEW: Mode state
+// Mode state
 let currentMode = null; // 'create' or 'edit'
 let selectedLayerForEdit = null;
 let selectedLayerJson = null;
@@ -39,6 +38,15 @@ const chatMessagesEl = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send-btn');
 
+// Model Selection elements
+const modelFloatingBtn = document.getElementById('model-floating-btn');
+const modelPanel = document.getElementById('model-panel');
+const modelPanelBackdrop = document.getElementById('model-panel-backdrop');
+const closeModelPanel = document.getElementById('close-model-panel');
+const modelItems = document.querySelectorAll('.model-item');
+const modelBtnText = document.querySelector('.model-btn-text');
+const selectedModelInfo = document.getElementById('selected-model-info');
+
 // Export elements
 const exportSelectedBtn = document.getElementById('export-selected-btn');
 const exportAllBtn = document.getElementById('export-all-btn');
@@ -62,15 +70,126 @@ const saveDescription = document.getElementById('save-description');
 const confirmSaveBtn = document.getElementById('confirm-save-btn');
 const cancelSaveBtn = document.getElementById('cancel-save-btn');
 
+// ==================== MODEL SELECTION ====================
+function initModelSelection() {
+  // Floating button click handler
+  modelFloatingBtn.addEventListener('click', toggleModelPanel);
+  
+  // Close button handler
+  closeModelPanel.addEventListener('click', closeModelPanelFunc);
+  
+  // Backdrop click handler
+  modelPanelBackdrop.addEventListener('click', closeModelPanelFunc);
+  
+  // Model item click handlers
+  modelItems.forEach(item => {
+    item.addEventListener('click', () => {
+      selectModel(item.dataset.model);
+      closeModelPanelFunc();
+    });
+  });
+  
+  // Load saved model from localStorage
+  try {
+    const savedModel = localStorage.getItem('figma-ai-model');
+    if (savedModel) {
+      selectModel(savedModel, false);
+    }
+  } catch (e) {
+    // Ignore localStorage errors
+  }
+}
+
+function toggleModelPanel() {
+  if (modelPanel.style.display === 'block') {
+    closeModelPanelFunc();
+  } else {
+    openModelPanel();
+  }
+}
+
+function openModelPanel() {
+  modelPanel.style.display = 'block';
+  modelPanelBackdrop.style.display = 'block';
+}
+
+function closeModelPanelFunc() {
+  modelPanel.style.display = 'none';
+  modelPanelBackdrop.style.display = 'none';
+}
+
+function selectModel(model, showNotification = true) {
+  // Remove active class from all items
+  modelItems.forEach(item => item.classList.remove('active'));
+  
+  // Add active class to selected item
+  const selectedItem = document.querySelector(`.model-item[data-model="${model}"]`);
+  if (selectedItem) {
+    selectedItem.classList.add('active');
+    currentModel = model;
+    
+    // Update floating button text
+    updateModelButton(model);
+    
+    // Update selected model info
+    updateSelectedModelInfo(model);
+    
+    // Store in localStorage for persistence
+    try {
+      localStorage.setItem('figma-ai-model', model);
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+    
+    // Show notification
+    if (showNotification) {
+      showStatus(`✅ Switched to ${getModelName(model)}`, 'success');
+      setTimeout(hideStatus, 2000);
+    }
+  }
+}
+
+function updateModelButton(model) {
+  const modelNames = {
+    'gpt-4': 'GPT-4',
+    'gimini': 'Gemini',
+    'deepseek': 'DeepSeek',
+    'claude': 'Claude'
+  };
+  
+  const displayName = modelNames[model] || model;
+  modelBtnText.textContent = displayName;
+}
+
+function updateSelectedModelInfo(model) {
+  const modelNames = {
+    'gpt-4': 'GPT-4',
+    'gimini': 'Google Gemini',
+    'deepseek': 'DeepSeek',
+    'claude': 'Claude'
+  };
+  
+  const displayName = modelNames[model] || model;
+  selectedModelInfo.textContent = `Currently using: ${displayName}`;
+}
+
+function getModelName(model) {
+  const modelNames = {
+    'gpt-4': 'GPT-4',
+    'gimini': 'Google Gemini',
+    'deepseek': 'DeepSeek',
+    'claude': 'Claude'
+  };
+  return modelNames[model] || model;
+}
+
 // ==================== MODE SELECTION ====================
 createModeBtn.addEventListener('click', () => {
     currentMode = 'create';
     showChatInterface();
-    chatInput.placeholder = "e.g. Create a login page with email and password fields...";
 });
 
 editModeBtn.addEventListener('click', () => {
-    // Request selection from plugin
     showStatus('📍 Please select a layer to edit...', 'info');
     parent.postMessage({
         pluginMessage: { type: 'request-layer-selection-for-edit' }
@@ -84,14 +203,14 @@ backToModeBtn.addEventListener('click', () => {
 function showChatInterface() {
     console.log('🔥 showChatInterface called, mode:', currentMode);
     
-    // إخفاء شاشة اختيار الوضع
+    // Hide mode selection
     modeSelectionScreen.style.display = 'none';
     
-    // إظهار واجهة المحادثة - استخدام classes بدلاً من inline styles
+    // Show chat interface
     aiChatContainer.classList.add('show-chat');
     aiChatContainer.style.display = 'flex';
     
-    // إظهار أو إخفاء رأس وضع التعديل
+    // Show/hide edit mode header
     if (currentMode === 'edit') {
         editModeHeader.classList.add('show-header');
         editModeHeader.style.display = 'block';
@@ -100,14 +219,15 @@ function showChatInterface() {
         editModeHeader.style.display = 'none';
     }
     
-    // تنظيف المحادثة القديمة
+    // Clear old conversation
     chatMessages = [];
     conversationHistory = [];
     
-    // رسالة الترحيب المناسبة
+    // Welcome message
+    const modelName = getModelName(currentModel);
     const welcomeMessage = currentMode === 'edit' 
-        ? `Great! I'll help you edit "${selectedLayerForEdit}". What changes would you like to make?`
-        : "Hi! Describe your design and I'll create it for you. 🎨";
+        ? `I'll help you edit "${selectedLayerForEdit}" using ${modelName}. What changes would you like to make?`
+        : `Hi! I'll create your design using ${modelName}. Describe what you want. 🎨`;
     
     chatMessagesEl.innerHTML = `
         <div class="message assistant">
@@ -118,12 +238,11 @@ function showChatInterface() {
     `;
     chatMessagesEl.classList.add('show-messages');
     
-    // إظهار عناصر الإدخال بشكل قاطع
+    // Show input elements
     const inputContainer = document.getElementById('chat-input-container');
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send-btn');
     
-    // إضافة classes للعناصر لضمان ظهورها
     if (inputContainer) {
         inputContainer.classList.add('show-input');
         inputContainer.style.display = 'flex';
@@ -135,9 +254,8 @@ function showChatInterface() {
         input.disabled = false;
         input.value = '';
         input.placeholder = currentMode === 'edit' 
-            ? "e.g. Change the background color to blue, make the text larger..."
-            : "e.g. Create a login page with email and password fields...";
-        // تركيز مباشر على حقل الإدخال
+            ? `e.g. Change the background color to blue, make the text larger...`
+            : `e.g. Create a login page with email and password fields...`;
         setTimeout(() => {
             input.focus();
         }, 100);
@@ -150,7 +268,7 @@ function showChatInterface() {
         sendBtn.textContent = 'Send';
     }
     
-    // تأكد من تحديث السكرول
+    // Scroll to bottom
     setTimeout(() => {
         chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
     }, 50);
@@ -231,25 +349,28 @@ function sendChatMessage() {
     chatSendBtn.disabled = true;
 
     conversationHistory.push({ role: 'user', content: message });
-    addMessage('assistant', currentMode === 'edit' ? 'Editing your design...' : 'Creating your design...', true);
+    const modelName = getModelName(currentModel);
+    addMessage('assistant', currentMode === 'edit' ? `Editing with ${modelName}...` : `Creating with ${modelName}...`, true);
 
     if (currentMode === 'edit') {
-        // Send edit request
+        // Send edit request with model
         parent.postMessage({
             pluginMessage: {
                 type: 'ai-edit-design',
                 message: message,
                 history: conversationHistory,
-                layerJson: selectedLayerJson
+                layerJson: selectedLayerJson,
+                model: currentModel
             }
         }, '*');
     } else {
-        // Send create request
+        // Send create request with model
         parent.postMessage({
             pluginMessage: {
                 type: 'ai-chat-message',
                 message: message,
-                history: conversationHistory
+                history: conversationHistory,
+                model: currentModel
             }
         }, '*');
     }
@@ -355,7 +476,6 @@ function addDesignPreview(designData, previewHtml = null) {
 }
 
 // ==================== VERSION MANAGEMENT ====================
-
 async function loadVersions() {
     try {
         showStatus('📡 Loading versions...', 'info');
@@ -545,7 +665,6 @@ cancelSaveBtn.addEventListener('click', () => {
 });
 
 // ==================== EXPORT FUNCTIONS ====================
-
 exportSelectedBtn.addEventListener('click', () => {
     exportSelectedBtn.disabled = true;
     exportSelectedBtn.innerHTML = '<span class="loading"></span> Exporting...';
@@ -598,7 +717,6 @@ downloadJsonBtn.addEventListener('click', () => {
 });
 
 // ==================== UTILITY FUNCTIONS ====================
-
 function showStatus(message, type) {
     statusEl.textContent = message;
     statusEl.className = `status ${type}`;
@@ -715,19 +833,7 @@ function updateSelectionInfo(selection) {
     }
 }
 
-function handleExportSuccess(msg) {
-    currentExportData = msg.data;
-    exportOutput.value = JSON.stringify(msg.data, null, 2);
-    copyJsonBtn.disabled = false;
-    downloadJsonBtn.disabled = false;
-    saveToDbBtn.disabled = false;
-    exportStats.textContent = `✅ Exported ${msg.nodeCount} node(s)`;
-    showStatus(`✅ Exported ${msg.nodeCount} node(s)!`, 'success');
-    resetExportButtons();
-}
-
 // ==================== MAIN IMPORT HANDLERS ====================
-
 jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
 
 importBtn.addEventListener('click', async () => {
@@ -776,36 +882,11 @@ async function handleManualJson() {
     parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
 }
 
-async function callBackendForClaude(userPrompt) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000);
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/designs/generate-from-text`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: userPrompt }),
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        if (!response.ok) {
-            let errorMessage = `Server error: ${response.status}`;
-            try { const err = await response.json(); errorMessage = err.message || err.error || errorMessage; } catch (e) { }
-            throw new Error(errorMessage);
-        }
-        const result = await response.json();
-        return result.design || result.data || result;
-    } catch (error) {
-        if (error.name === 'AbortError') throw new Error('Request timed out.');
-        throw error;
-    }
-}
-
 cancelBtn.addEventListener('click', () => {
     parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
 });
 
 // ==================== PLUGIN MESSAGES ====================
-
 window.onmessage = async (event) => {
     const msg = event.data.pluginMessage;
     if (!msg) return;
@@ -860,21 +941,21 @@ window.onmessage = async (event) => {
             break;
 
         case 'import-success':
-    showStatus('✅ Design imported successfully!', 'success');
-    resetButton();
-    importVersionBtn.disabled = false;
-    importVersionBtn.innerHTML = '📥 Import to Figma';
-    setTimeout(hideStatus, 3000);
-    break;
+            showStatus('✅ Design imported successfully!', 'success');
+            resetButton();
+            importVersionBtn.disabled = false;
+            importVersionBtn.innerHTML = '📥 Import to Figma';
+            setTimeout(hideStatus, 3000);
+            break;
 
-    case 'design-updated':
-    console.log('🔄 Design updated, refreshing layer JSON for next edit');
-    selectedLayerJson = msg.layerJson;
-    showStatus('✅ Design updated! You can continue editing.', 'success');
-    setTimeout(hideStatus, 2000);
-    break;
+        case 'design-updated':
+            console.log('🔄 Design updated, refreshing layer JSON for next edit');
+            selectedLayerJson = msg.layerJson;
+            showStatus('✅ Design updated! You can continue editing.', 'success');
+            setTimeout(hideStatus, 2000);
+            break;
 
-    case 'import-error':
+        case 'import-error':
             showStatus(`❌ Import failed: ${msg.error}`, 'error');
             resetButton();
             importVersionBtn.disabled = false;
@@ -904,19 +985,37 @@ chatInput.addEventListener('input', function () {
     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
-// Initial setup - show mode selection
-resetToModeSelection();
+// Initial setup
+document.addEventListener('DOMContentLoaded', function() {
+    initModelSelection();
+    resetToModeSelection();
+});
 
 setTimeout(() => {
     parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
 }, 100);
 
-// Debug function to check visibility
-function debugVisibility() {
-    console.log('=== VISIBILITY CHECK ===');
-    console.log('Mode screen:', modeSelectionScreen.style.display);
-    console.log('Chat container:', aiChatContainer.style.display, 'Class:', aiChatContainer.className);
-    console.log('Chat input:', chatInput.style.display);
-    console.log('Send button:', chatSendBtn.style.display);
-    console.log('Edit header:', editModeHeader.style.display);
+// Helper function (keep existing)
+async function callBackendForClaude(userPrompt) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/designs/generate-from-text`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: userPrompt }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+            let errorMessage = `Server error: ${response.status}`;
+            try { const err = await response.json(); errorMessage = err.message || err.error || errorMessage; } catch (e) { }
+            throw new Error(errorMessage);
+        }
+        const result = await response.json();
+        return result.design || result.data || result;
+    } catch (error) {
+        if (error.name === 'AbortError') throw new Error('Request timed out.');
+        throw error;
+    }
 }

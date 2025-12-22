@@ -43,7 +43,7 @@ export const setupDependencies = () => {
     const AiDesignService = new DeepSeekDesignService();
     // const AiDesignService = new CloudeDesignService();
     // const AiDesignService = new GiminiDesignService();
-    // const AiDesignService = new GPTDesignService();
+  //const AiDesignService = new GPTDesignService();
 
     // Repositories
     const designVersionRepository = new TypeORMDesignVersionRepository();
