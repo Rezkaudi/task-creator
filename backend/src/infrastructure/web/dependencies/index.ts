@@ -1,7 +1,8 @@
+// src/infrastructure/web/dependencies/index.ts
+
 // Services
 import { TrelloService } from "../../services/trello.service";
 import { GPTExtractTasksService } from "../../services/gpt-extract-tasks.service";
-
 import { GPTDesignService } from "../../services/design/gpt-design.service";
 
 // Repositories
@@ -29,14 +30,14 @@ import { TaskController } from "../controllers/task.controller";
 import { TrelloController } from "../controllers/trello.controller";
 import { DesignController } from "../controllers/design.controller";
 import { DesignVersionController } from "../controllers/design-version.controller";
+import { AIModelsController } from "../controllers/ai-models.controller"; // ← NEW
+import { DesignSystemsController } from "../controllers/design-systems.controller";
 
 export const setupDependencies = () => {
     // Services
     const trelloService = new TrelloService();
     const gptExtractTasksService = new GPTExtractTasksService();
-
     const defaultAiDesignService = new GPTDesignService();
-
     const designVersionRepository = new TypeORMDesignVersionRepository();
 
     // Use Cases - Tasks
@@ -71,10 +72,18 @@ export const setupDependencies = () => {
         deleteDesignVersionUseCase
     );
 
+    // ✨ NEW: AI Models Controller
+    const aiModelsController = new AIModelsController();
+    const designSystemsController = new DesignSystemsController();
+
+
+
     return {
         taskController,
         trelloController,
         designController,
         designVersionController,
+        aiModelsController, // ← NEW
+        designSystemsController,
     };
 };

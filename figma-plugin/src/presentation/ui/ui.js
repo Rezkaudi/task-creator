@@ -1,5 +1,6 @@
 const API_BASE_URL = 'https://task-creator-api.onrender.com';
 //const API_BASE_URL ="http://localhost:5000"
+
 // ==================== STATE ====================
 let chatMessages = [];
 let conversationHistory = [];
@@ -8,7 +9,12 @@ let isGenerating = false;
 let currentExportData = null;
 let selectedVersionId = null;
 let versionsCache = [];
-let currentModel = 'gpt-4'; // Default model
+
+// Model & Design System state
+let currentModel = 'gpt-4';
+let availableModels = [];
+let currentDesignSystem = 'material-3';
+let availableDesignSystems = [];
 
 // Mode state
 let currentMode = null; // 'create' or 'edit'
@@ -43,9 +49,16 @@ const modelFloatingBtn = document.getElementById('model-floating-btn');
 const modelPanel = document.getElementById('model-panel');
 const modelPanelBackdrop = document.getElementById('model-panel-backdrop');
 const closeModelPanel = document.getElementById('close-model-panel');
-const modelItems = document.querySelectorAll('.model-item');
 const modelBtnText = document.querySelector('.model-btn-text');
 const selectedModelInfo = document.getElementById('selected-model-info');
+const currentModelNameEl = document.getElementById('current-model-name');
+
+// Design System Selection elements
+const designSystemFloatingBtn = document.getElementById('design-system-floating-btn');
+const designSystemPanel = document.getElementById('design-system-panel');
+const designSystemBtnText = document.querySelector('.design-system-btn-text');
+const selectedDesignSystemInfo = document.getElementById('selected-design-system-info');
+const currentDesignSystemNameEl = document.getElementById('current-design-system-name');
 
 // Export elements
 const exportSelectedBtn = document.getElementById('export-selected-btn');
@@ -81,22 +94,23 @@ function initModelSelection() {
   // Backdrop click handler
   modelPanelBackdrop.addEventListener('click', closeModelPanelFunc);
   
-  // Model item click handlers
-  modelItems.forEach(item => {
-    item.addEventListener('click', () => {
-      selectModel(item.dataset.model);
-      closeModelPanelFunc();
-    });
+  // Load models on first click
+  let modelsLoaded = false;
+  modelFloatingBtn.addEventListener('click', async () => {
+    if (!modelsLoaded) {
+      await fetchAIModels();
+      modelsLoaded = true;
+    }
   });
   
   // Load saved model from localStorage
   try {
     const savedModel = localStorage.getItem('figma-ai-model');
     if (savedModel) {
-      selectModel(savedModel, false);
+      currentModel = savedModel;
     }
   } catch (e) {
-    // Ignore localStorage errors
+    console.log('LocalStorage load error:', e);
   }
 }
 
@@ -118,69 +132,240 @@ function closeModelPanelFunc() {
   modelPanelBackdrop.style.display = 'none';
 }
 
-function selectModel(model, showNotification = true) {
-  // Remove active class from all items
-  modelItems.forEach(item => item.classList.remove('active'));
+function selectModel(modelId, showNotification = true) {
+  const model = availableModels.find(m => m.id === modelId);
+  if (!model || !model.available) return;
+
+  // Update current model
+  currentModel = modelId;
   
-  // Add active class to selected item
-  const selectedItem = document.querySelector(`.model-item[data-model="${model}"]`);
-  if (selectedItem) {
-    selectedItem.classList.add('active');
-    currentModel = model;
-    
-    // Update floating button text
-    updateModelButton(model);
-    
-    // Update selected model info
-    updateSelectedModelInfo(model);
-    
-    // Store in localStorage for persistence
-    try {
-      localStorage.setItem('figma-ai-model', model);
-    } catch (e) {
-      // Ignore localStorage errors
-    }
-    
-    // Show notification
-    if (showNotification) {
-      showStatus(`✅ Switched to ${getModelName(model)}`, 'success');
-      setTimeout(hideStatus, 2000);
-    }
+  // Update UI
+  updateModelUI(model, showNotification);
+  
+  // Update all model items in the list
+  document.querySelectorAll('.model-item').forEach(item => {
+    const isActive = item.dataset.model === modelId;
+    item.classList.toggle('active', isActive);
+    item.querySelector('.model-item-check').textContent = isActive ? '✓' : '';
+  });
+  
+  // Store in localStorage
+  try {
+    localStorage.setItem('figma-ai-model', modelId);
+  } catch (e) {
+    console.log('LocalStorage save error:', e);
   }
 }
 
-function updateModelButton(model) {
-  const modelNames = {
-    'gpt-4': 'GPT-4',
-    'gimini': 'Gemini',
-    'deepseek': 'DeepSeek',
-    'claude': 'Claude'
-  };
+function updateModelUI(model, showNotification = true) {
+  // Update floating button text
+  if (modelBtnText) {
+    modelBtnText.textContent = model.displayName;
+  }
   
-  const displayName = modelNames[model] || model;
-  modelBtnText.textContent = displayName;
+  // Update selected model info
+  if (selectedModelInfo) {
+    selectedModelInfo.textContent = `Currently using: ${model.displayName}`;
+  }
+  
+  // Update current model name
+  if (currentModelNameEl) {
+    currentModelNameEl.textContent = model.displayName;
+  }
+  
+  // Show notification
+  if (showNotification) {
+    showStatus(`✅ Switched to ${model.displayName}`, 'success');
+    setTimeout(hideStatus, 2000);
+  }
 }
 
-function updateSelectedModelInfo(model) {
-  const modelNames = {
-    'gpt-4': 'GPT-4',
-    'gimini': 'Google Gemini',
-    'deepseek': 'DeepSeek',
-    'claude': 'Claude'
-  };
+// ==================== DESIGN SYSTEM SELECTION ====================
+function initDesignSystemSelection() {
+  // Floating button click handler
+  designSystemFloatingBtn.addEventListener('click', toggleDesignSystemPanel);
   
-  const displayName = modelNames[model] || model;
-  selectedModelInfo.textContent = `Currently using: ${displayName}`;
+  // Create backdrop for design system panel if it doesn't exist
+  if (!document.getElementById('design-system-panel-backdrop')) {
+    const backdrop = document.createElement('div');
+    backdrop.id = 'design-system-panel-backdrop';
+    backdrop.className = 'model-panel-backdrop';
+    backdrop.addEventListener('click', closeDesignSystemPanelFunc);
+    document.body.appendChild(backdrop);
+  }
+  
+  // Close button handler
+  document.getElementById('close-design-system-panel').addEventListener('click', closeDesignSystemPanelFunc);
+  
+  // Load design systems on first click
+  let systemsLoaded = false;
+  designSystemFloatingBtn.addEventListener('click', async () => {
+    if (!systemsLoaded) {
+      await fetchDesignSystems();
+      systemsLoaded = true;
+    }
+  });
+  
+  // Load saved design system from localStorage
+  try {
+    const savedSystem = localStorage.getItem('figma-design-system');
+    if (savedSystem) {
+      currentDesignSystem = savedSystem;
+    }
+  } catch (e) {
+    console.log('LocalStorage load error:', e);
+  }
 }
 
-function getModelName(model) {
-  const modelNames = {
-    'gpt-4': 'GPT-4',
-    'gimini': 'Google Gemini',
-    'deepseek': 'DeepSeek',
-    'claude': 'Claude'
-  };
-  return modelNames[model] || model;
+function toggleDesignSystemPanel() {
+  const panel = document.getElementById('design-system-panel');
+  if (panel.style.display === 'block') {
+    closeDesignSystemPanelFunc();
+  } else {
+    openDesignSystemPanel();
+  }
+}
+
+function openDesignSystemPanel() {
+  const panel = document.getElementById('design-system-panel');
+  const backdrop = document.getElementById('design-system-panel-backdrop');
+  panel.style.display = 'block';
+  backdrop.style.display = 'block';
+}
+
+function closeDesignSystemPanelFunc() {
+  const panel = document.getElementById('design-system-panel');
+  const backdrop = document.getElementById('design-system-panel-backdrop');
+  panel.style.display = 'none';
+  backdrop.style.display = 'none';
+}
+
+function selectDesignSystem(systemId, showNotification = true) {
+  const system = availableDesignSystems.find(s => s.id === systemId);
+  if (!system) return;
+
+  currentDesignSystem = systemId;
+  
+  // Update UI
+  updateDesignSystemUI(system, showNotification);
+  
+  // Update all system items in the list
+  document.querySelectorAll('#design-system-list .model-item').forEach(item => {
+    const isActive = item.dataset.system === systemId;
+    item.classList.toggle('active', isActive);
+    item.querySelector('.model-item-check').textContent = isActive ? '✓' : '';
+  });
+  
+  // Store in localStorage
+  try {
+    localStorage.setItem('figma-design-system', systemId);
+  } catch (e) {
+    console.log('LocalStorage save error:', e);
+  }
+}
+
+function updateDesignSystemUI(system, showNotification = true) {
+  if (designSystemBtnText) {
+    designSystemBtnText.textContent = system.displayName;
+  }
+  
+  if (selectedDesignSystemInfo) {
+    selectedDesignSystemInfo.textContent = `Currently using: ${system.displayName}`;
+  }
+  
+  if (currentDesignSystemNameEl) {
+    currentDesignSystemNameEl.textContent = system.displayName;
+  }
+  
+  if (showNotification) {
+    showStatus(`✅ Switched to ${system.displayName}`, 'success');
+    setTimeout(hideStatus, 2000);
+  }
+}
+
+async function fetchDesignSystems() {
+  try {
+    showDesignSystemStatus('🔄 Loading design systems...', 'info');
+    
+    const response = await fetch(`${API_BASE_URL}/api/design-systems`);
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to load design systems');
+    }
+    
+    availableDesignSystems = data.systems;
+    renderDesignSystemList(availableDesignSystems);
+    showDesignSystemStatus(`✅ Loaded ${data.count} design systems`, 'success');
+    
+    // Load saved design system
+    try {
+      const savedSystem = localStorage.getItem('figma-design-system');
+      if (savedSystem) {
+        selectDesignSystem(savedSystem, false);
+      } else if (availableDesignSystems.length > 0) {
+        selectDesignSystem(availableDesignSystems[0].id, false);
+      }
+    } catch (e) {
+      console.log('LocalStorage error:', e);
+    }
+    
+    setTimeout(() => hideDesignSystemStatus(), 2000);
+  } catch (error) {
+    console.error('Failed to fetch design systems:', error);
+    showDesignSystemStatus('⚠️ Using default system', 'warning');
+  }
+}
+
+function renderDesignSystemList(systems) {
+  const listEl = document.getElementById('design-system-list');
+  if (!listEl) return;
+  
+  if (!systems || systems.length === 0) {
+    listEl.innerHTML = `
+      <div class="model-empty">
+        <div class="model-empty-icon">⚠️</div>
+        <div class="model-empty-text">No design systems available</div>
+      </div>
+    `;
+    return;
+  }
+  
+  listEl.innerHTML = systems.map(system => `
+    <div class="model-item ${currentDesignSystem === system.id ? 'active' : ''}" 
+         data-system="${system.id}">
+      <div class="model-item-icon">${system.icon}</div>
+      <div class="model-item-info">
+        <div class="model-item-name">${escapeHtml(system.displayName)}</div>
+        <div class="model-item-desc">${escapeHtml(system.description)}</div>
+        ${system.provider ? `<div class="model-item-provider">${escapeHtml(system.provider)}</div>` : ''}
+      </div>
+      <div class="model-item-check">${currentDesignSystem === system.id ? '✓' : ''}</div>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('#design-system-list .model-item').forEach(item => {
+    item.addEventListener('click', () => {
+      selectDesignSystem(item.dataset.system);
+      closeDesignSystemPanelFunc();
+    });
+  });
+}
+
+function showDesignSystemStatus(message, type) {
+  const statusEl = document.getElementById('design-system-status');
+  if (statusEl) {
+    statusEl.textContent = message;
+    statusEl.className = `model-status ${type}`;
+    statusEl.style.display = 'block';
+  }
+}
+
+function hideDesignSystemStatus() {
+  const statusEl = document.getElementById('design-system-status');
+  if (statusEl) {
+    statusEl.style.display = 'none';
+  }
 }
 
 // ==================== MODE SELECTION ====================
@@ -224,10 +409,14 @@ function showChatInterface() {
     conversationHistory = [];
     
     // Welcome message
-    const modelName = getModelName(currentModel);
+    const model = availableModels.find(m => m.id === currentModel) || availableModels[0];
+    const system = availableDesignSystems.find(s => s.id === currentDesignSystem) || availableDesignSystems[0];
+    const modelName = model ? model.displayName : 'GPT-4';
+    const systemName = system ? system.displayName : 'Material 3';
+    
     const welcomeMessage = currentMode === 'edit' 
-        ? `I'll help you edit "${selectedLayerForEdit}" using ${modelName}. What changes would you like to make?`
-        : `Hi! I'll create your design using ${modelName}. Describe what you want. 🎨`;
+        ? `I'll help you edit "${selectedLayerForEdit}" using ${modelName} and ${systemName}. What changes would you like to make?`
+        : `Hi! I'll create your design using ${modelName} and ${systemName}. Describe what you want. 🎨`;
     
     chatMessagesEl.innerHTML = `
         <div class="message assistant">
@@ -349,28 +538,35 @@ function sendChatMessage() {
     chatSendBtn.disabled = true;
 
     conversationHistory.push({ role: 'user', content: message });
-    const modelName = getModelName(currentModel);
-    addMessage('assistant', currentMode === 'edit' ? `Editing with ${modelName}...` : `Creating with ${modelName}...`, true);
+    
+    const model = availableModels.find(m => m.id === currentModel) || availableModels[0];
+    const system = availableDesignSystems.find(s => s.id === currentDesignSystem) || availableDesignSystems[0];
+    const modelName = model.displayName;
+    const systemName = system.displayName;
+    
+    addMessage('assistant', currentMode === 'edit' 
+        ? `Editing with ${modelName} and ${systemName}...` 
+        : `Creating with ${modelName} and ${systemName}...`, true);
 
     if (currentMode === 'edit') {
-        // Send edit request with model
         parent.postMessage({
             pluginMessage: {
                 type: 'ai-edit-design',
                 message: message,
                 history: conversationHistory,
                 layerJson: selectedLayerJson,
-                model: currentModel
+                model: currentModel,
+                designSystem: currentDesignSystem 
             }
         }, '*');
     } else {
-        // Send create request with model
         parent.postMessage({
             pluginMessage: {
                 type: 'ai-chat-message',
                 message: message,
                 history: conversationHistory,
-                model: currentModel
+                model: currentModel,
+                designSystem: currentDesignSystem 
             }
         }, '*');
     }
@@ -476,6 +672,101 @@ function addDesignPreview(designData, previewHtml = null) {
 }
 
 // ==================== VERSION MANAGEMENT ====================
+async function fetchAIModels() {
+    try {
+        showModelStatus('🔄 Loading AI models...', 'info');
+        
+        const response = await fetch(`${API_BASE_URL}/api/ai-models`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load AI models');
+        }
+        
+        availableModels = data.models;
+        renderModelList(availableModels);
+        showModelStatus(`✅ Loaded ${data.count} models`, 'success');
+        
+        // Load saved model
+        try {
+            const savedModel = localStorage.getItem('figma-ai-model');
+            if (savedModel) {
+                selectModel(savedModel, false);
+            } else if (availableModels.length > 0) {
+                selectModel(availableModels[0].id, false);
+            }
+        } catch (e) {
+            console.log('LocalStorage error:', e);
+        }
+        
+        setTimeout(() => hideModelStatus(), 2000);
+    } catch (error) {
+        console.error('Failed to fetch AI models:', error);
+        showModelStatus('⚠️ Using default models', 'warning');
+        
+    }
+}
+
+function renderModelList(models) {
+    const modelListEl = document.getElementById('model-list');
+    if (!modelListEl) return;
+    
+    if (!models || models.length === 0) {
+        modelListEl.innerHTML = `
+            <div class="model-empty">
+                <div class="model-empty-icon">⚠️</div>
+                <div class="model-empty-text">No AI models available</div>
+            </div>
+        `;
+        return;
+    }
+    
+    modelListEl.innerHTML = models.map(model => `
+        <div class="model-item ${currentModel === model.id ? 'active' : ''}" 
+             data-model="${model.id}"
+             ${!model.available ? 'style="opacity: 0.5;"' : ''}>
+            <div class="model-item-icon">${model.icon}</div>
+            <div class="model-item-info">
+                <div class="model-item-name">${escapeHtml(model.displayName)}</div>
+                <div class="model-item-desc">${escapeHtml(model.description)}</div>
+                ${model.provider ? `<div class="model-item-provider">${escapeHtml(model.provider)}</div>` : ''}
+            </div>
+            <div class="model-item-check">${currentModel === model.id ? '✓' : ''}</div>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('.model-item').forEach(item => {
+        if (availableModels.find(m => m.id === item.dataset.model)?.available) {
+            item.addEventListener('click', () => {
+                selectModel(item.dataset.model);
+                closeModelPanelFunc();
+            });
+        }
+    });
+}
+
+function updateModelButton(model) {
+    if (modelBtnText) {
+        modelBtnText.textContent = model.displayName;
+    }
+}
+
+function showModelStatus(message, type) {
+    const modelStatusEl = document.getElementById('model-status');
+    if (modelStatusEl) {
+        modelStatusEl.textContent = message;
+        modelStatusEl.className = `model-status ${type}`;
+        modelStatusEl.style.display = 'block';
+    }
+}
+
+function hideModelStatus() {
+    const modelStatusEl = document.getElementById('model-status');
+    if (modelStatusEl) {
+        modelStatusEl.style.display = 'none';
+    }
+}
+
 async function loadVersions() {
     try {
         showStatus('📡 Loading versions...', 'info');
@@ -948,6 +1239,7 @@ window.onmessage = async (event) => {
             setTimeout(hideStatus, 3000);
             break;
 
+
         case 'design-updated':
             console.log('🔄 Design updated, refreshing layer JSON for next edit');
             selectedLayerJson = msg.layerJson;
@@ -980,21 +1272,17 @@ window.onmessage = async (event) => {
 };
 
 // ==================== INITIALIZATION ====================
-chatInput.addEventListener('input', function () {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-});
-
-// Initial setup
 document.addEventListener('DOMContentLoaded', function() {
     initModelSelection();
+    initDesignSystemSelection();
     resetToModeSelection();
+    fetchDesignSystems();
+    fetchAIModels();
+    
+    setTimeout(() => {
+        parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
+    }, 100);
 });
-
-setTimeout(() => {
-    parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
-}, 100);
-
 // Helper function (keep existing)
 async function callBackendForClaude(userPrompt) {
     const controller = new AbortController();
