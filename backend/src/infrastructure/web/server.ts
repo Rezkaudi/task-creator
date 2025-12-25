@@ -1,9 +1,9 @@
+// src/infrastructure/web/server.ts
+
 import cors from 'cors';
 import express, { Application, Request, Response, NextFunction } from 'express';
-
 import { corsOptions } from '../config/cors.config';
 import swaggerSpec from '../config/swagger.config';
-
 import swaggerUi from 'swagger-ui-express';
 
 // routes
@@ -11,8 +11,11 @@ import taskRoutes from './routes/task.routes';
 import trelloRoutes from './routes/trello.routes';
 import designRoutes from './routes/design.routes';
 import designVersionRoutes from './routes/design-version.routes';
+import aiModelsRoutes from './routes/ai-models.routes'; 
+import designSystemsRoutes from './routes/design-systems.routes';
 
 import { setupDependencies } from './dependencies';
+
 
 export class Server {
   private app: Application;
@@ -30,7 +33,7 @@ export class Server {
 
   private configureMiddleware(): void {
     this.app.use(cors(corsOptions));
-    this.app.use(express.json({ limit: '50mb' })); // Increased limit for large design JSON
+    this.app.use(express.json({ limit: '50mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   }
 
@@ -45,6 +48,8 @@ export class Server {
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
     this.app.use('/api/design-versions', designVersionRoutes(this.container.designVersionController));
+    this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController)); // ← NEW
+    this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     // API documentation redirect
@@ -75,6 +80,8 @@ export class Server {
       console.log(`🚀 Server running on port ${this.port}`);
       console.log(`📚 API Documentation: http://localhost:${this.port}/docs`);
       console.log(`⚕️  Health Check: http://localhost:${this.port}/health`);
+      console.log(`🤖 AI Models API: http://localhost:${this.port}/api/ai-models`);
+      console.log(`🎨 Design Systems API: http://localhost:${this.port}/api/design-systems`);
     });
   }
 

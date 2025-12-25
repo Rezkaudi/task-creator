@@ -1346,3 +1346,85 @@ button:disabled {
     display: none;
   }
 }
+/* Model loading styles */
+.model-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #6b7280;
+    gap: 12px;
+}
+
+.model-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.model-empty-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.model-empty-text {
+    font-size: 14px;
+}
+
+.model-status {
+    display: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.model-status.info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.model-status.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.model-status.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+
+
+
+/* Design System Floating Button */
+#design-system-floating-btn {
+  bottom: 140px; 
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+}
+
+#design-system-panel-backdrop {
+}
+
+@media (max-width: 500px) {
+  .model-floating-btn,
+  #design-system-floating-btn {
+    padding: 8px;
+  }
+  
+  .model-btn-text,
+  .design-system-btn-text {
+    display: none;
+  }
+}
+/* Add this to ui.css */
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
