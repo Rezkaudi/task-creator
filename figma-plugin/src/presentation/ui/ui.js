@@ -17,7 +17,7 @@ let currentDesignSystem = 'material-3';
 let availableDesignSystems = [];
 
 // Mode state
-let currentMode = null; // 'create' or 'edit'
+let currentMode = null; 
 let selectedLayerForEdit = null;
 let selectedLayerJson = null;
 
@@ -399,6 +399,9 @@ function showChatInterface() {
     if (currentMode === 'edit') {
         editModeHeader.classList.add('show-header');
         editModeHeader.style.display = 'block';
+        
+        const layerName = selectedLayerForEdit || 'selected layer';
+        selectedLayerNameEl.textContent = `"${layerName}"`;
     } else {
         editModeHeader.classList.remove('show-header');
         editModeHeader.style.display = 'none';
@@ -414,9 +417,12 @@ function showChatInterface() {
     const modelName = model ? model.displayName : 'GPT-4';
     const systemName = system ? system.displayName : 'Material 3';
     
-    const welcomeMessage = currentMode === 'edit' 
-        ? `I'll help you edit "${selectedLayerForEdit}" using ${modelName} and ${systemName}. What changes would you like to make?`
-        : `Hi! I'll create your design using ${modelName} and ${systemName}. Describe what you want. 🎨`;
+    let welcomeMessage;
+    if (currentMode === 'edit') {
+        welcomeMessage = `I'll help you edit <strong>"${selectedLayerForEdit}"</strong> using ${modelName} and ${systemName}. What changes would you like to make?`;
+    } else {
+        welcomeMessage = `Hi! I'll create your design using ${modelName} and ${systemName}. Describe what you want. 🎨`;
+    }
     
     chatMessagesEl.innerHTML = `
         <div class="message assistant">
@@ -556,7 +562,7 @@ function sendChatMessage() {
                 history: conversationHistory,
                 layerJson: selectedLayerJson,
                 model: currentModel,
-                designSystem: currentDesignSystem 
+                designSystemId: currentDesignSystem
             }
         }, '*');
     } else {
@@ -566,7 +572,7 @@ function sendChatMessage() {
                 message: message,
                 history: conversationHistory,
                 model: currentModel,
-                designSystem: currentDesignSystem 
+                designSystemId: currentDesignSystem 
             }
         }, '*');
     }
@@ -600,7 +606,8 @@ function removeLoadingMessages() {
     loadingEls.forEach(el => el.closest('.message').remove());
 }
 
-function addDesignPreview(designData, previewHtml = null) {
+// ==================== DESIGN PREVIEW FUNCTIONS ====================
+function addDesignPreview(designData, previewHtml = null, isEditMode = false, layerInfo = null) {
     const lastMessage = chatMessagesEl.lastElementChild;
     if (!lastMessage || !lastMessage.classList.contains('assistant')) return;
 
@@ -611,11 +618,24 @@ function addDesignPreview(designData, previewHtml = null) {
     previewEl.className = 'design-preview';
     const uniqueId = 'import-btn-' + Date.now();
 
-    const visualContent = previewHtml || '<div style="padding: 40px; color: #999;">Preview unavailable</div>';
+    const modeText = isEditMode ? '✏️ Edited Design Preview' : '✨ New Design Preview';
+    const buttonText = isEditMode ? 'Update in Figma' : 'Import to Figma';
+    
+    const layerInfoHtml = isEditMode && layerInfo ? 
+        `<div class="edit-layer-info">
+            <span class="editing-label">Editing:</span>
+            <span class="layer-name">${escapeHtml(layerInfo.name)}</span>
+            <span class="layer-type">(${escapeHtml(layerInfo.type)})</span>
+        </div>` : '';
+
+    const visualContent = previewHtml || generateDefaultPreview(designData, isEditMode);
 
     previewEl.innerHTML = `
     <div class="design-preview-header">
-      <span class="design-preview-title">✨ Design Preview</span>
+      <span class="design-preview-title">
+        ${modeText}
+        ${isEditMode ? '<span class="edit-badge">EDIT</span>' : '<span class="create-badge">NEW</span>'}
+      </span>
       <div class="preview-actions">
         <div class="zoom-controls">
           <button class="zoom-btn zoom-out">-</button>
@@ -624,11 +644,12 @@ function addDesignPreview(designData, previewHtml = null) {
           <button class="zoom-btn zoom-reset">Reset</button>
         </div>
         <button class="import-to-figma-btn" id="${uniqueId}" ${!designData ? 'disabled' : ''}>
-          Import to Figma
+          ${buttonText}
         </button>
       </div>
     </div>
-    <div class="design-preview-visual">
+    ${layerInfoHtml}
+    <div class="design-preview-visual ${isEditMode ? 'edit-mode' : 'create-mode'}">
       <div class="design-preview-content" style="transform: scale(1); transform-origin: top left; transition: transform 0.2s;">
         ${visualContent}
       </div>
@@ -660,15 +681,130 @@ function addDesignPreview(designData, previewHtml = null) {
     if (importButton && designData) {
         importButton.addEventListener('click', () => {
             importButton.disabled = true;
-            importButton.textContent = 'Importing...';
+            importButton.textContent = isEditMode ? 'Updating...' : 'Importing...';
+            
+            const messageType = isEditMode ? 'import-edited-design' : 'import-design-from-chat';
             parent.postMessage({
                 pluginMessage: {
-                    type: currentMode === 'edit' ? 'import-edited-design' : 'import-design-from-chat',
-                    designData: designData
+                    type: messageType,
+                    designData: designData,
+                    isEditMode: isEditMode,
+                    ...(isEditMode && { layerId: selectedLayerForEdit })
                 }
             }, '*');
         });
     }
+}
+
+function generateDefaultPreview(designData, isEditMode = false) {
+    if (!designData) {
+        return '<div style="padding: 40px; color: #999; text-align: center;">Preview unavailable</div>';
+    }
+    
+    try {
+        if (isEditMode) {
+            return generateEditModePreview(designData);
+        } else {
+            return generateCreateModePreview(designData);
+        }
+    } catch (error) {
+        console.error('Error generating preview:', error);
+        return '<div style="padding: 20px; background: #fef2f2; color: #dc2626; border-radius: 8px;">Error generating preview</div>';
+    }
+}
+
+function generateCreateModePreview(designData) {
+    let html = '<div class="create-preview-container">';
+    
+    const name = designData.name || 'New Design';
+    const type = designData.type || 'FRAME';
+    const childrenCount = designData.children ? designData.children.length : 0;
+    
+    html += `
+        <div class="design-summary">
+            <div class="design-name">${escapeHtml(name)}</div>
+            <div class="design-type">${escapeHtml(type)}</div>
+            <div class="design-stats">${childrenCount} elements</div>
+        </div>
+    `;
+    
+    if (designData.children && designData.children.length > 0) {
+        html += '<div class="design-elements">';
+        
+        designData.children.slice(0, 5).forEach((child, index) => {
+            const childName = child.name || `Element ${index + 1}`;
+            const childType = child.type || 'NODE';
+            const icon = getElementIcon(childType);
+            
+            html += `
+                <div class="design-element">
+                    <span class="element-icon">${icon}</span>
+                    <span class="element-name">${escapeHtml(childName)}</span>
+                    <span class="element-type">${escapeHtml(childType)}</span>
+                </div>
+            `;
+        });
+        
+        if (designData.children.length > 5) {
+            html += `<div class="more-elements">+ ${designData.children.length - 5} more elements</div>`;
+        }
+        
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function generateEditModePreview(designData) {
+    let html = '<div class="edit-preview-container">';
+    
+    html += `
+        <div class="edit-notice">
+            <div class="notice-icon">✏️</div>
+            <div class="notice-text">
+                <strong>Editing Mode Active</strong>
+                <small>Preview shows the updated design</small>
+            </div>
+        </div>
+    `;
+    
+    if (designData.children && designData.children.length > 0) {
+        html += '<div class="edited-design">';
+        
+        designData.children.forEach((child, index) => {
+            const isSelected = selectedLayerForEdit && 
+                (child.name === selectedLayerForEdit || child.id === selectedLayerForEdit);
+            
+            html += `
+                <div class="edited-element ${isSelected ? 'selected-element' : ''}">
+                    <span class="element-status">${isSelected ? '🎯' : '🔹'}</span>
+                    <span class="element-name">${escapeHtml(child.name || `Element ${index + 1}`)}</span>
+                    <span class="element-type">${escapeHtml(child.type || 'NODE')}</span>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function getElementIcon(type) {
+    const icons = {
+        'FRAME': '🖼️',
+        'GROUP': '👥',
+        'TEXT': '📝',
+        'RECTANGLE': '⬜',
+        'ELLIPSE': '⭕',
+        'LINE': '📏',
+        'VECTOR': '🔺',
+        'COMPONENT': '🧩',
+        'INSTANCE': '🔗'
+    };
+    return icons[type] || '🔲';
 }
 
 // ==================== VERSION MANAGEMENT ====================
@@ -1208,6 +1344,20 @@ window.onmessage = async (event) => {
             break;
 
         case 'ai-chat-response':
+            isGenerating = false;
+            chatSendBtn.disabled = false;
+            removeLoadingMessages();
+
+            addMessage('assistant', msg.message);
+            conversationHistory.push({ role: 'assistant', content: msg.message });
+
+            if (msg.designData || msg.previewHtml) {
+                currentDesignData = msg.designData;
+                // وضع الإنشاء
+                addDesignPreview(msg.designData, msg.previewHtml, false, null);
+            }
+            break;
+
         case 'ai-edit-response':
             isGenerating = false;
             chatSendBtn.disabled = false;
@@ -1218,7 +1368,12 @@ window.onmessage = async (event) => {
 
             if (msg.designData || msg.previewHtml) {
                 currentDesignData = msg.designData;
-                addDesignPreview(msg.designData, msg.previewHtml);
+                const layerInfo = {
+                    name: selectedLayerForEdit,
+                    type: selectedLayerJson?.type || 'LAYER',
+                    id: selectedLayerJson?.id || ''
+                };
+                addDesignPreview(msg.designData, msg.previewHtml, true, layerInfo);
             }
             break;
 
@@ -1238,7 +1393,6 @@ window.onmessage = async (event) => {
             importVersionBtn.innerHTML = '📥 Import to Figma';
             setTimeout(hideStatus, 3000);
             break;
-
 
         case 'design-updated':
             console.log('🔄 Design updated, refreshing layer JSON for next edit');
@@ -1283,6 +1437,7 @@ document.addEventListener('DOMContentLoaded', function() {
         parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
     }, 100);
 });
+
 // Helper function (keep existing)
 async function callBackendForClaude(userPrompt) {
     const controller = new AbortController();

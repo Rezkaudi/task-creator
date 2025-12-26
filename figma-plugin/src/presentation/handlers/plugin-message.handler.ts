@@ -43,7 +43,7 @@ export class PluginMessageHandler {
     switch (message.type) {
       case 'ai-chat-message':
         if (message.message !== undefined) {
-          await this.handleAIChatMessage(message.message, message.history, message.model);
+          await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId);
         }
         break;
 
@@ -53,7 +53,7 @@ export class PluginMessageHandler {
 
       case 'ai-edit-design':
         if (message.message !== undefined && message.layerJson !== undefined) {
-          await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model);
+          await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model,message.designSystemId);
         }
         break;
 
@@ -146,7 +146,8 @@ export class PluginMessageHandler {
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
     layerJson: any,
-    model?: string
+    model?: string,
+    designSystemId?: string
   ): Promise<void> {
     try {
       if (history && history.length > 0) {
@@ -162,7 +163,8 @@ export class PluginMessageHandler {
           message: userMessage,
           history: this.conversationHistory,
           currentDesign: layerJson,
-          model: selectedModel // Pass the selected model to backend
+          model: selectedModel,
+          designSystemId: designSystemId // Pass the selected model to backend
         })
       });
 
@@ -205,7 +207,8 @@ export class PluginMessageHandler {
   private async handleAIChatMessage(
     userMessage: string,
     history?: Array<{ role: string; content: string }>,
-    model?: string
+    model?: string,
+    designSystemId?: string
   ): Promise<void> {
     try {
       if (history && history.length > 0) {
@@ -220,7 +223,8 @@ export class PluginMessageHandler {
         body: JSON.stringify({
           message: userMessage,
           history: this.conversationHistory,
-          model: selectedModel // Pass the selected model to backend
+          model: selectedModel,
+          designSystemId: designSystemId 
         })
       });
 

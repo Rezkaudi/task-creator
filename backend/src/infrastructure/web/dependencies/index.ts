@@ -83,7 +83,7 @@ export const setupDependencies = () => {
         trelloController,
         designController,
         designVersionController,
-        aiModelsController, // ← NEW
+        aiModelsController, 
         designSystemsController,
     };
 };

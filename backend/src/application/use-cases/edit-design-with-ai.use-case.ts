@@ -1,3 +1,4 @@
+
 import { IAiDesignService, ConversationMessage, DesignGenerationResult } from "../../domain/services/IAiDesignService";
 
 export class EditDesignWithAIUseCase {
@@ -6,7 +7,8 @@ export class EditDesignWithAIUseCase {
     async execute(
         message: string,
         history: ConversationMessage[],
-        currentDesign: any
+        currentDesign: any,
+        designSystemId?: string
     ): Promise<DesignGenerationResult> {
         if (!message || message.trim().length === 0) {
             throw new Error('Message is required to edit the design.');
@@ -18,6 +20,11 @@ export class EditDesignWithAIUseCase {
 
         const validHistory = Array.isArray(history) ? history : [];
 
-        return this.aiDesignService.editDesignWithAI(message, validHistory, currentDesign);
+        return this.aiDesignService.editDesignWithAI(
+            message, 
+            validHistory, 
+            currentDesign, 
+            designSystemId
+        );
     }
 }

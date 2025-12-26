@@ -4,12 +4,13 @@ import { GenerateDesignFromConversationUseCase } from '../../../application/use-
 import { EditDesignWithAIUseCase } from '../../../application/use-cases/edit-design-with-ai.use-case';
 import { DesignGenerationResult } from '../../../domain/services/IAiDesignService';
 
-// أضيفي imports الـservices
 import { GPTDesignService } from '../../services/design/gpt-design.service';
 import { DeepSeekDesignService } from '../../services/design/deepseek-design.service';
 import { CloudeDesignService } from '../../services/design/cloude-design.service';
 import { GiminiDesignService } from '../../services/design/gimini-design.service';
 import { IAiDesignService } from '../../../domain/services/IAiDesignService';
+import { isModelAvailable } from '../../config/ai-models.config'; 
+import { getDesignSystemById } from '../../config/design-systems.config'; 
 
 export class DesignController {
     constructor(
@@ -18,7 +19,7 @@ export class DesignController {
         private readonly editDesignWithAIUseCase: EditDesignWithAIUseCase
     ) { }
 
-    
+  
     private createDesignService(model?: string): IAiDesignService {
         const selectedModel = (model || 'gpt-4').toLowerCase();
         console.log(`🎯 Creating AI service for model: ${selectedModel}`);
@@ -45,11 +46,33 @@ export class DesignController {
         }
     }
 
+   
+    private validateModelAndDesignSystem(model: string, designSystemId?: string): { valid: boolean; error?: string } {
+        if (!isModelAvailable(model)) {
+            return {
+                valid: false,
+                error: `Model '${model}' is not available or invalid`
+            };
+        }
+
+        if (designSystemId && designSystemId !== 'none') {
+            const designSystem = getDesignSystemById(designSystemId);
+            if (!designSystem) {
+                return {
+                    valid: false,
+                    error: `Design System '${designSystemId}' is not available or invalid`
+                };
+            }
+        }
+
+        return { valid: true };
+    }
+
     /**
      * Generate design from simple text prompt
      */
     async generateFromText(req: Request, res: Response): Promise<void> {
-        const { prompt, model } = req.body;
+        const { prompt, model, designSystemId } = req.body; 
 
         try {
             if (!prompt) {
@@ -60,17 +83,33 @@ export class DesignController {
                 return;
             }
 
+            const validation = this.validateModelAndDesignSystem(model || 'gpt-4', designSystemId);
+            if (!validation.valid) {
+                res.status(400).json({
+                    success: false,
+                    message: validation.error
+                });
+                return;
+            }
+
             console.log(`🎨 Generating design with model: ${model || 'gpt-4 (default)'}`);
+            if (designSystemId && designSystemId !== 'none') {
+                console.log(`🎨 Design System: ${designSystemId}`);
+            }
             
             const designService = this.createDesignService(model);
             const useCase = new GenerateDesignFromTextUseCase(designService);
             
-            const designData = await useCase.execute(prompt);
+            const designData = await useCase.execute(prompt, designSystemId);
             
             res.status(200).json({
                 success: true,
                 message: 'Design generated successfully',
-                design: designData
+                design: designData,
+                metadata: {
+                    model: model || 'gpt-4',
+                    designSystem: designSystemId || 'none'
+                }
             });
             
         } catch (error) {
@@ -79,7 +118,10 @@ export class DesignController {
             res.status(500).json({ 
                 success: false, 
                 message,
-                model: model || 'gpt-4'
+                metadata: {
+                    model: model || 'gpt-4',
+                    designSystem: designSystemId || 'none'
+                }
             });
         }
     }
@@ -88,7 +130,7 @@ export class DesignController {
      * Generate design from conversation with history
      */
     async generateFromConversation(req: Request, res: Response): Promise<void> {
-        const { message, history, model } = req.body;
+        const { message, history, model, designSystemId } = req.body; 
 
         try {
             if (!message) {
@@ -99,9 +141,19 @@ export class DesignController {
                 return;
             }
 
+            const validation = this.validateModelAndDesignSystem(model || 'gpt-4', designSystemId);
+            if (!validation.valid) {
+                res.status(400).json({
+                    success: false,
+                    message: validation.error
+                });
+                return;
+            }
+
             console.log("--- Received Conversation Request ---");
             console.log("Message:", message);
             console.log("Model:", model || 'gpt-4 (default)');
+            console.log("Design System:", designSystemId || 'none');
             console.log("History length:", history ? history.length : 0);
 
             const designService = this.createDesignService(model);
@@ -109,7 +161,8 @@ export class DesignController {
             
             const result: DesignGenerationResult = await useCase.execute(
                 message,
-                history || []
+                history || [],
+                designSystemId 
             );
 
             console.log("--- Generated Design Result ---");
@@ -121,7 +174,11 @@ export class DesignController {
                 success: true,
                 message: result.message,
                 design: result.design,
-                previewHtml: result.previewHtml
+                previewHtml: result.previewHtml,
+                metadata: {
+                    model: model || 'gpt-4',
+                    designSystem: designSystemId || 'none'
+                }
             });
 
         } catch (error) {
@@ -130,7 +187,10 @@ export class DesignController {
             res.status(500).json({
                 success: false,
                 message,
-                model: model || 'gpt-4'
+                metadata: {
+                    model: model || 'gpt-4',
+                    designSystem: designSystemId || 'none'
+                }
             });
         }
     }
@@ -139,7 +199,7 @@ export class DesignController {
      * Edit existing design with AI
      */
     async editWithAI(req: Request, res: Response): Promise<void> {
-        const { message, history, currentDesign, model } = req.body;
+        const { message, history, currentDesign, model, designSystemId } = req.body; 
 
         try {
             if (!message) {
@@ -158,9 +218,19 @@ export class DesignController {
                 return;
             }
 
+            const validation = this.validateModelAndDesignSystem(model || 'gpt-4', designSystemId);
+            if (!validation.valid) {
+                res.status(400).json({
+                    success: false,
+                    message: validation.error
+                });
+                return;
+            }
+
             console.log("--- Received Edit Request ---");
             console.log("Message:", message);
             console.log("Model:", model || 'gpt-4 (default)');
+            console.log("Design System:", designSystemId || 'none');
             console.log("History length:", history ? history.length : 0);
             console.log("Current Design:", currentDesign ? "Present" : "Missing");
 
@@ -170,7 +240,8 @@ export class DesignController {
             const result: DesignGenerationResult = await useCase.execute(
                 message,
                 history || [],
-                currentDesign
+                currentDesign,
+                designSystemId 
             );
 
             console.log("--- Edit Result ---");
@@ -182,7 +253,11 @@ export class DesignController {
                 success: true,
                 message: result.message,
                 design: result.design,
-                previewHtml: result.previewHtml
+                previewHtml: result.previewHtml,
+                metadata: {
+                    model: model || 'gpt-4',
+                    designSystem: designSystemId || 'none'
+                }
             });
 
         } catch (error) {
@@ -191,7 +266,10 @@ export class DesignController {
             res.status(500).json({
                 success: false,
                 message,
-                model: model || 'gpt-4'
+                metadata: {
+                    model: model || 'gpt-4',
+                    designSystem: designSystemId || 'none'
+                }
             });
         }
     }
