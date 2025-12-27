@@ -53,7 +53,7 @@ export class PluginMessageHandler {
 
       case 'ai-edit-design':
         if (message.message !== undefined && message.layerJson !== undefined) {
-          await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model,message.designSystemId);
+          await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model, message.designSystemId);
         }
         break;
 
@@ -119,9 +119,9 @@ export class PluginMessageHandler {
       }
 
       const selectedNode = selection[0];
-      
+
       const exportResult = await this.exportSelectedUseCase.execute();
-      
+
       if (!exportResult.success || exportResult.nodes.length === 0) {
         throw new Error('Failed to export selected layer');
       }
@@ -129,7 +129,7 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({
         type: 'layer-selected-for-edit',
         layerName: selectedNode.name,
-        layerJson: exportResult.nodes[0] 
+        layerJson: exportResult.nodes[0]
       });
 
     } catch (error) {
@@ -163,7 +163,7 @@ export class PluginMessageHandler {
           message: userMessage,
           history: this.conversationHistory,
           currentDesign: layerJson,
-          model: selectedModel,
+          modelId: selectedModel,
           designSystemId: designSystemId // Pass the selected model to backend
         })
       });
@@ -223,8 +223,8 @@ export class PluginMessageHandler {
         body: JSON.stringify({
           message: userMessage,
           history: this.conversationHistory,
-          model: selectedModel,
-          designSystemId: designSystemId 
+          modelId: selectedModel,
+          designSystemId: designSystemId
         })
       });
 
@@ -298,13 +298,13 @@ export class PluginMessageHandler {
       } else {
         this.notificationPort.notify('✅ Edited design imported successfully!');
       }
-      
+
       this.uiPort.postMessage({ type: 'import-success' });
-      
+
       // Export the new design using ExportSelectedUseCase (same format!)
       try {
         const exportResult = await this.exportSelectedUseCase.execute();
-        
+
         if (exportResult.success && exportResult.nodes.length > 0) {
           this.uiPort.postMessage({
             type: 'design-updated',

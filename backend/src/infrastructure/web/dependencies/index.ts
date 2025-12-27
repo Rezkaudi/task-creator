@@ -2,8 +2,9 @@
 
 // Services
 import { TrelloService } from "../../services/trello.service";
-import { GPTExtractTasksService } from "../../services/gpt-extract-tasks.service";
-import { GPTDesignService } from "../../services/design/gpt-design.service";
+import { AiExtractTasksService } from "../../services/ai-extract-tasks.service";
+import { AiGenerateDesignService } from "../../services/ai-generate-design.service";
+import { PromptBuilderService } from "../../services/prompt-builder.service";
 
 // Repositories
 import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-version.repository";
@@ -36,16 +37,17 @@ import { DesignSystemsController } from "../controllers/design-systems.controlle
 export const setupDependencies = () => {
     // Services
     const trelloService = new TrelloService();
-    const gptExtractTasksService = new GPTExtractTasksService();
-    const defaultAiDesignService = new GPTDesignService();
+    const promptBuilderService = new PromptBuilderService();
+    const aiExtractTasksService = new AiExtractTasksService();
     const designVersionRepository = new TypeORMDesignVersionRepository();
+    const defaultAiDesignService = new AiGenerateDesignService(promptBuilderService);
 
     // Use Cases - Tasks
     const getBoardListsUseCase = new GetBoardListsUseCase(trelloService);
-    const extractTasksUseCase = new ExtractTasksUseCase(gptExtractTasksService);
+    const extractTasksUseCase = new ExtractTasksUseCase(aiExtractTasksService);
     const addTasksToTrelloUseCase = new AddTasksToTrelloUseCase(trelloService);
-    const generateDesignUseCase = new GenerateDesignUseCase(gptExtractTasksService);
-    
+    const generateDesignUseCase = new GenerateDesignUseCase(aiExtractTasksService);
+
     const generateDesignFromTextUseCase = new GenerateDesignFromTextUseCase(defaultAiDesignService);
     const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(defaultAiDesignService);
     const editDesignWithAIUseCase = new EditDesignWithAIUseCase(defaultAiDesignService);
@@ -83,7 +85,7 @@ export const setupDependencies = () => {
         trelloController,
         designController,
         designVersionController,
-        aiModelsController, 
+        aiModelsController,
         designSystemsController,
     };
 };

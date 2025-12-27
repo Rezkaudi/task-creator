@@ -1,0 +1,35 @@
+import fs from 'fs';
+import path from 'path';
+
+export const textToDesignSystemPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/text-to-design-prompt.txt'),
+    'utf-8'
+).trim();
+
+export const tasksToDesignSystemPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/tasks-to-design-prompt.txt'),
+    'utf-8'
+).trim();
+
+export const meetingToTasksPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/meeting-to-tasks-prompt.txt'),
+    'utf-8'
+).trim();
+
+export const material3Prompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/design-systems/material-3.txt'),
+    'utf-8'
+).trim();
+
+export const shadcnUiPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/design-systems/shadcn-ui.txt'),
+    'utf-8'
+).trim();
+
+export const antDesignPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/design-systems/ant-design.txt'),
+    'utf-8'
+).trim();
+
+
+

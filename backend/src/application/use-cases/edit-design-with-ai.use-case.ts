@@ -8,6 +8,7 @@ export class EditDesignWithAIUseCase {
         message: string,
         history: ConversationMessage[],
         currentDesign: any,
+        modelId: string,
         designSystemId?: string
     ): Promise<DesignGenerationResult> {
         if (!message || message.trim().length === 0) {
@@ -21,9 +22,10 @@ export class EditDesignWithAIUseCase {
         const validHistory = Array.isArray(history) ? history : [];
 
         return this.aiDesignService.editDesignWithAI(
-            message, 
-            validHistory, 
-            currentDesign, 
+            message,
+            validHistory,
+            currentDesign,
+            modelId,
             designSystemId
         );
     }

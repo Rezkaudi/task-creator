@@ -1,0 +1,92 @@
+
+# shadcn/ui Design System Guidelines
+
+## Core Philosophy
+- Minimal, clean design with focus on accessibility
+- Components are composable and reusable
+- No heavy decorations, let content shine
+- Dark mode friendly from the start
+
+## Color System (CSS Variables Concept)
+- Use neutral colors as base:
+  - Background: { r: 1, g: 1, b: 1 } (light) or { r: 0.02, g: 0.02, b: 0.02 } (dark)
+  - Foreground: { r: 0.02, g: 0.02, b: 0.02 } (light) or { r: 0.98, g: 0.98, b: 0.98 } (dark)
+  - Primary: { r: 0.09, g: 0.09, b: 0.11 } (slate-900)
+  - Accent: { r: 0.96, g: 0.96, b: 0.97 } (slate-100)
+  - Border: { r: 0.89, g: 0.89, b: 0.91 } (slate-200)
+- All colors in 0-1 range
+
+## Shape & Borders
+- Border radius: Subtle and consistent
+  - Small: 4px (inputs, badges)
+  - Medium: 6px (buttons, cards)
+  - Large: 8px (dialogs, popovers)
+- Border width: 1px (thin and delicate)
+- Border color: Use muted neutral (opacity: 0.2)
+
+## Spacing System
+- Use 4px base unit: 4, 8, 12, 16, 20, 24, 32, 40px
+- Component padding: typically 12-16px
+- Section spacing: 24-32px
+- Page margins: 16-24px
+
+## Typography
+Use system fonts (Inter, SF Pro, or similar):
+- Heading 1: 36px, weight: 700
+- Heading 2: 30px, weight: 600
+- Heading 3: 24px, weight: 600
+- Body: 14px, weight: 400
+- Small: 12px, weight: 400
+- Line height: 1.5 for body, 1.2 for headings
+
+## Accessibility Requirements (CRITICAL)
+- All interactive elements MUST have:
+  - Minimum 44x44px touch target
+  - Visible focus states (2px ring with primary color)
+  - Proper contrast ratios (4.5:1 minimum for text)
+- Include role hints in component names when relevant
+
+## Component Patterns
+
+### Buttons
+- Height: 36px (small), 40px (default), 44px (large)
+- Padding: horizontal 16px, vertical 8px
+- Corner radius: 6px
+- Variants:
+  - Default: border: 1px, background: transparent, hover: background with opacity 0.05
+  - Primary: solid background, no border
+  - Ghost: no background, no border, hover: background opacity 0.1
+
+### Input Fields
+- Height: 36px
+- Border: 1px solid border-color
+- Corner radius: 4px
+- Focus state: 2px ring with primary color, offset: 2px
+- Padding: horizontal 12px
+
+### Cards
+- Border: 1px solid border-color
+- Corner radius: 8px
+- Padding: 16px or 24px
+- Background: white or very subtle background
+- NO drop shadows (use borders instead)
+
+### Dialogs & Popovers
+- Corner radius: 8px
+- Border: 1px solid border-color
+- Padding: 24px
+- Use subtle shadow: { type: "DROP_SHADOW", radius: 20, offset: { x: 0, y: 10 }, color: { r: 0, g: 0, b: 0, a: 0.1 } }
+
+## Layout Rules
+- Use auto-layout (layoutMode: "VERTICAL" or "HORIZONTAL")
+- Prefer clean, grid-based layouts
+- Standard container: max-width 1280px
+- Grid columns: 12-column system with 16px gaps
+
+## Effects & Animations (Indicate in design)
+- Transitions should feel snappy (200ms)
+- Use ease-in-out timing
+- Hover states: subtle opacity or background changes
+- No heavy animations or effects
+
+CRITICAL: Keep designs minimal, accessible, and composable. Avoid over-styling.
