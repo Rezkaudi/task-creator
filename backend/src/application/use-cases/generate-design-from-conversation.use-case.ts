@@ -1,4 +1,3 @@
-// src/application/use-cases/generate-design-from-conversation.use-case.ts
 
 import { IAiDesignService, ConversationMessage, DesignGenerationResult } from "../../domain/services/IAiDesignService";
 
@@ -7,7 +6,8 @@ export class GenerateDesignFromConversationUseCase {
 
     async execute(
         message: string,
-        history: ConversationMessage[]
+        history: ConversationMessage[],
+        designSystemId?: string 
     ): Promise<DesignGenerationResult> {
         if (!message || message.trim().length === 0) {
             throw new Error('Message is required to generate a design.');
@@ -15,6 +15,10 @@ export class GenerateDesignFromConversationUseCase {
 
         const validHistory = Array.isArray(history) ? history : [];
 
-        return this.aiDesignService.generateDesignFromConversation(message, validHistory);
+        return this.aiDesignService.generateDesignFromConversation(
+            message, 
+            validHistory, 
+            designSystemId
+        );
     }
 }

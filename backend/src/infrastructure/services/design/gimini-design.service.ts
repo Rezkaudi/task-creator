@@ -1,7 +1,6 @@
-import fs from 'fs';
-import path from 'path';
 import { ENV_CONFIG } from '../../config/env.config';
 import { ConversationMessage, DesignGenerationResult, IAiDesignService } from "../../../domain/services/IAiDesignService";
+import { PromptBuilderService } from './prompt-builder.service'; 
 
 interface GeminiApiResponse {
     candidates: Array<{
@@ -14,20 +13,25 @@ interface GeminiApiResponse {
 }
 
 export class GiminiDesignService implements IAiDesignService {
-    private systemPrompt: string;
+    private promptBuilder: PromptBuilderService; 
     private model = ENV_CONFIG.MODELS.GEMINI_2_5_FLASH;
 
     constructor() {
-
-        this.systemPrompt = fs.readFileSync(
-            path.join(__dirname, '../../../../public/prompt/text-to-design-prompt.txt'),
-            'utf-8'
-        );
+        this.promptBuilder = new PromptBuilderService();
     }
 
-    async generateDesign(prompt: string): Promise<any> {
+   
+    async generateDesign(prompt: string, designSystemId?: string): Promise<any> { 
         try {
-            const fullPrompt = `${this.systemPrompt}\n\nUser Request: Generate a Figma design JSON for: "${prompt}"`;
+            const systemPrompt = this.promptBuilder.buildSystemPrompt(designSystemId);
+            const enrichedPrompt = this.promptBuilder.enrichUserMessage(
+                `Generate a Figma design JSON for: "${prompt}"`,
+                designSystemId
+            );
+
+            console.log(`🎨 Generating design with Gemini${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
+
+            const fullPrompt = `${systemPrompt}\n\n${enrichedPrompt}`;
 
             const response = await fetch(`${this.model.baseURL}/${this.model.name}:generateContent?key=${this.model.apiKey}`, {
                 method: 'POST',
@@ -69,14 +73,18 @@ export class GiminiDesignService implements IAiDesignService {
         }
     }
 
+  
     async generateDesignFromConversation(
         userMessage: string,
-        history: ConversationMessage[]
+        history: ConversationMessage[],
+        designSystemId?: string 
     ): Promise<DesignGenerationResult> {
         try {
-            const messages = this.buildConversationForGemini(userMessage, history);
+            const messages = this.buildConversationForGemini(userMessage, history, designSystemId);
 
             console.log("--- 1. Sending Conversation to Gemini for JSON ---");
+            console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
+
             const response = await fetch(`${this.model.baseURL}/${this.model.name}:generateContent?key=${this.model.apiKey}`, {
                 method: 'POST',
                 headers: {
@@ -133,17 +141,19 @@ export class GiminiDesignService implements IAiDesignService {
         }
     }
 
+   
     async editDesignWithAI(
         userMessage: string,
         history: ConversationMessage[],
-        currentDesign: any
+        currentDesign: any,
+        designSystemId?: string 
     ): Promise<DesignGenerationResult> {
         try {
             const simplifiedDesign = this.simplifyDesignForAI(currentDesign);
-
-            const messages = this.buildEditConversationForGemini(userMessage, history, simplifiedDesign);
+            const messages = this.buildEditConversationForGemini(userMessage, history, simplifiedDesign, designSystemId); 
 
             console.log("--- 1. Sending Edit Request to Gemini ---");
+            console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
             console.log("Design size:", JSON.stringify(simplifiedDesign).length, "characters");
 
             const response = await fetch(`${this.model.baseURL}/${this.model.name}:generateContent?key=${this.model.apiKey}`, {
@@ -209,20 +219,20 @@ export class GiminiDesignService implements IAiDesignService {
         }
     }
 
-    // ===== Helper Methods =====
-
+   
     private buildConversationForGemini(
         currentMessage: string,
-        history: ConversationMessage[]
+        history: ConversationMessage[],
+        designSystemId?: string
     ): Array<{ parts: Array<{ text: string }> }> {
         const messages: Array<{ parts: Array<{ text: string }> }> = [];
 
-        // Add system prompt as first user message
+        const systemPrompt = this.promptBuilder.buildConversationSystemPrompt(designSystemId);
+
         messages.push({
-            parts: [{ text: this.buildConversationSystemPrompt() }]
+            parts: [{ text: systemPrompt }]
         });
 
-        // Add conversation history
         for (const msg of history) {
             messages.push({
                 parts: [{ text: msg.content }]
@@ -240,13 +250,16 @@ export class GiminiDesignService implements IAiDesignService {
     private buildEditConversationForGemini(
         currentMessage: string,
         history: ConversationMessage[],
-        currentDesign: any
+        currentDesign: any,
+        designSystemId?: string
     ): Array<{ parts: Array<{ text: string }> }> {
         const messages: Array<{ parts: Array<{ text: string }> }> = [];
 
+        const systemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId);
+
         // Add system prompt
         messages.push({
-            parts: [{ text: this.buildEditSystemPrompt() }]
+            parts: [{ text: systemPrompt }]
         });
 
         // Add recent history (last 5 messages)
@@ -329,51 +342,8 @@ ${JSON.stringify(designJson, null, 2)}`;
         return htmlContent;
     }
 
-    private buildConversationSystemPrompt(): string {
-        return `${this.systemPrompt}
-
-When replying:
-1. Start with a brief description of what was created/modified
-2. Then provide the complete design JSON array
-
-Example:
-
-Created a login page with email and password fields.
-
-[
-  {
-    "name": "Login Page",
-    "type": "FRAME",
-    ...
-  }
-]`;
-    }
-
-    private buildEditSystemPrompt(): string {
-        return `${this.systemPrompt}
-
-**EDITING MODE:**
-
-You will receive:
-1. The current design in JSON format
-2. User's edit request
-
-**YOUR TASK:**
-- Understand the current design
-- Apply ONLY the requested changes
-- Keep everything else exactly as is
-- Return the COMPLETE design (not just changes)
-
-**CRITICAL RULES:**
-- Maintain exact structure and hierarchy
-- Use same node types unless explicitly asked to change
-- Colors must be 0-1 range (NOT 0-255)
-- Keep all properties not mentioned in edit request
-- For TEXT nodes: include all required properties
-
-**OUTPUT FORMAT:**
-Brief description + complete JSON array`;
-    }
+    // private buildConversationSystemPrompt()
+    // private buildEditSystemPrompt()
 
     private simplifyDesignForAI(design: any): any {
         if (Array.isArray(design)) {

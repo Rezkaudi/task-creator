@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { ENV_CONFIG } from '../../config/env.config';
 import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../../domain/services/IAiDesignService';
+import { PromptBuilderService } from './prompt-builder.service';
 
 interface ClaudeApiResponse {
     content: Array<{
@@ -13,12 +14,14 @@ interface ClaudeApiResponse {
 export class CloudeDesignService implements IAiDesignService {
     private readonly apiKey: string;
     private readonly cloudeModel: string;
+    private promptBuilder: PromptBuilderService;
     private systemPrompt: string;
     private readonly apiUrl = 'https://api.anthropic.com/v1/messages';
 
     constructor() {
         this.apiKey = ENV_CONFIG.CLOUDE_API_KEY!;
         this.cloudeModel = ENV_CONFIG.CLOUDE_MODEL;
+        this.promptBuilder = new PromptBuilderService();
 
         this.systemPrompt = '../../../public/prompt/text-to-design-prompt.txt';
     }
@@ -62,7 +65,8 @@ export class CloudeDesignService implements IAiDesignService {
 
     async generateDesignFromConversation(
         userMessage: string,
-        history: ConversationMessage[]
+        history: ConversationMessage[],
+        designSystemId?: string
     ): Promise<DesignGenerationResult> {
         try {
             const messages = this.buildConversationMessages(userMessage, history);
@@ -77,7 +81,7 @@ export class CloudeDesignService implements IAiDesignService {
                 },
                 body: JSON.stringify({
                     model: this.cloudeModel,
-                    system: this.buildConversationSystemPrompt(),
+                    system: this.systemPrompt,
                     max_tokens: 16384,
                     messages: messages
                 })
@@ -127,7 +131,8 @@ export class CloudeDesignService implements IAiDesignService {
     async editDesignWithAI(
         userMessage: string,
         history: ConversationMessage[],
-        currentDesign: any
+        currentDesign: any,
+        designSystemId?: string
     ): Promise<DesignGenerationResult> {
         try {
             // STEP 1: Convert design to simplified but complete format
@@ -147,7 +152,7 @@ export class CloudeDesignService implements IAiDesignService {
                 },
                 body: JSON.stringify({
                     model: this.cloudeModel,
-                    system: this.buildEditSystemPrompt(),
+                    system: this.systemPrompt,
                     max_tokens: 16384,
                     messages: messages
                 })

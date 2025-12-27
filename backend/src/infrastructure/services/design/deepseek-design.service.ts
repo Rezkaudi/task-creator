@@ -1,9 +1,8 @@
 import OpenAI from 'openai';
-import fs from 'fs';
-import path from 'path';
 import { ENV_CONFIG } from '../../config/env.config';
 import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../../domain/services/IAiDesignService';
 import { FigmaDesign } from '../../../domain/entities/figma-design.entity';
+import { PromptBuilderService } from './prompt-builder.service'; 
 
 interface AiMessage {
     role: 'system' | 'user' | 'assistant';
@@ -12,9 +11,8 @@ interface AiMessage {
 
 export class DeepSeekDesignService implements IAiDesignService {
     private openai: OpenAI;
-    private systemPrompt: string;
+    private promptBuilder: PromptBuilderService;
     private model = ENV_CONFIG.MODELS.DEEPSEEK_AI_DEEPSEEK_V3_2_NOVITA;
-
 
     constructor() {
         this.openai = new OpenAI({
@@ -22,19 +20,25 @@ export class DeepSeekDesignService implements IAiDesignService {
             apiKey: this.model.apiKey,
         });
 
-        this.systemPrompt = fs.readFileSync(
-            path.join(__dirname, '../../../../public/prompt/text-to-design-prompt.txt'),
-            'utf-8'
-        );
+        this.promptBuilder = new PromptBuilderService();
     }
 
-    async generateDesign(prompt: string): Promise<any> {
+ 
+    async generateDesign(prompt: string, designSystemId?: string): Promise<any> { 
         try {
+            const systemPrompt = this.promptBuilder.buildSystemPrompt(designSystemId);
+            const enrichedPrompt = this.promptBuilder.enrichUserMessage(
+                `Generate a Figma design JSON for: "${prompt}"`,
+                designSystemId
+            );
+
+            console.log(`🎨 Generating design with DeepSeek${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
+
             const completion = await this.openai.chat.completions.create({
                 model: this.model.name,
                 messages: [
-                    { role: 'system', content: this.systemPrompt },
-                    { role: 'user', content: `Generate a Figma design JSON for: "${prompt}"` }
+                    { role: 'system', content: systemPrompt }, 
+                    { role: 'user', content: enrichedPrompt }
                 ],
                 max_completion_tokens: this.model.maxTokens,
                 response_format: { type: 'json_object' },
@@ -42,7 +46,7 @@ export class DeepSeekDesignService implements IAiDesignService {
 
             const responseText = completion.choices[0]?.message?.content;
             if (!responseText) {
-                throw new Error("GPT API returned empty response.");
+                throw new Error("DeepSeek API returned empty response.");
             }
             console.log("responseText", responseText);
 
@@ -51,18 +55,22 @@ export class DeepSeekDesignService implements IAiDesignService {
 
         } catch (error) {
             console.error("An error occurred in generateDesign:", error);
-            throw new Error(`Failed to generate design from GPT. Original error: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(`Failed to generate design from DeepSeek. Original error: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
+    
     async generateDesignFromConversation(
         userMessage: string,
-        history: ConversationMessage[]
+        history: ConversationMessage[],
+        designSystemId?: string 
     ): Promise<DesignGenerationResult> {
         try {
-            const messages = this.buildConversationMessages(userMessage, history);
+            const messages = this.buildConversationMessages(userMessage, history, designSystemId);
 
-            console.log("--- 1. Sending Conversation to GPT for JSON ---");
+            console.log("--- 1. Sending Conversation to DeepSeek for JSON ---");
+            console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
+
             const completion = await this.openai.chat.completions.create({
                 model: this.model.name,
                 messages: messages,
@@ -71,7 +79,7 @@ export class DeepSeekDesignService implements IAiDesignService {
 
             const responseText = completion.choices[0]?.message?.content;
             if (!responseText) {
-                throw new Error("GPT API returned empty response.");
+                throw new Error("DeepSeek API returned empty response.");
             }
 
             const designData = this.extractDesignFromResponse(responseText);
@@ -101,15 +109,18 @@ export class DeepSeekDesignService implements IAiDesignService {
         }
     }
 
+   
     async editDesignWithAI(
         userMessage: string,
         history: ConversationMessage[],
-        currentDesign: FigmaDesign[]
+        currentDesign: FigmaDesign[],
+        designSystemId?: string 
     ): Promise<DesignGenerationResult> {
         try {
-            const messages = this.buildEditConversationMessages(userMessage, history, currentDesign);
+            const messages = this.buildEditConversationMessages(userMessage, history, currentDesign, designSystemId); // ✅ تمرير designSystemId
 
-            console.log("--- 1. Sending Edit Request to GPT ---");
+            console.log("--- 1. Sending Edit Request to DeepSeek ---");
+            console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
             console.log("Design size:", JSON.stringify(currentDesign).length, "characters");
 
             const completion = await this.openai.chat.completions.create({
@@ -120,10 +131,10 @@ export class DeepSeekDesignService implements IAiDesignService {
 
             const responseText = completion.choices[0]?.message?.content;
             if (!responseText) {
-                throw new Error("GPT API returned empty response.");
+                throw new Error("DeepSeek API returned empty response.");
             }
 
-            console.log("--- 2. Received response from GPT ---");
+            console.log("--- 2. Received response from DeepSeek ---");
 
             let designData = this.extractDesignFromResponse(responseText);
 
@@ -158,6 +169,7 @@ export class DeepSeekDesignService implements IAiDesignService {
         }
     }
 
+ 
     private async generateHtmlPreview(designJson: object): Promise<string> {
         const prompt = `Based on the following design JSON, generate a single, self-contained HTML block to visually represent this design.
 - Use inline CSS for styling.
@@ -183,7 +195,7 @@ ${JSON.stringify(designJson, null, 2)}`;
 
         const htmlContent = completion.choices[0]?.message?.content;
         if (!htmlContent) {
-            throw new Error("Invalid or empty HTML preview response from GPT.");
+            throw new Error("Invalid or empty HTML preview response from DeepSeek.");
         }
 
         let cleaned = htmlContent;
@@ -198,10 +210,13 @@ ${JSON.stringify(designJson, null, 2)}`;
 
     private buildConversationMessages(
         currentMessage: string,
-        history: ConversationMessage[]
+        history: ConversationMessage[],
+        designSystemId?: string
     ): AiMessage[] {
+        const systemPrompt = this.promptBuilder.buildConversationSystemPrompt(designSystemId); 
+
         const messages: AiMessage[] = [
-            { role: 'system', content: this.buildConversationSystemPrompt() }
+            { role: 'system', content: systemPrompt } 
         ];
 
         for (const msg of history) {
@@ -222,10 +237,13 @@ ${JSON.stringify(designJson, null, 2)}`;
     private buildEditConversationMessages(
         currentMessage: string,
         history: ConversationMessage[],
-        currentDesign: any
+        currentDesign: any,
+        designSystemId?: string
     ): AiMessage[] {
+        const systemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId); 
+
         const messages: AiMessage[] = [
-            { role: 'system', content: this.buildEditSystemPrompt() }
+            { role: 'system', content: systemPrompt } 
         ];
 
         const recentHistory = history.slice(-5);
@@ -260,64 +278,7 @@ INSTRUCTIONS:
         return messages;
     }
 
-    private buildConversationSystemPrompt(): string {
-        return `${this.systemPrompt}
-
-When replying:
-1. Start with a brief description of what was created/modified
-2. Then provide the complete design JSON array
-
-Example:
-
-Created a login page with email and password fields.
-
-[
-  {
-    "name": "Login Page",
-    "type": "FRAME",
-    ...
-  }
-]`;
-    }
-
-    private buildEditSystemPrompt(): string {
-        return `${this.systemPrompt}
-
-**EDITING MODE:**
-
-You will receive:
-1. The current design in JSON format
-2. User's edit request
-
-**YOUR TASK:**
-- Understand the current design
-- Apply ONLY the requested changes
-- Keep everything else exactly as is
-- Return the COMPLETE design (not just changes)
-
-**CRITICAL RULES:**
-- Maintain exact structure and hierarchy
-- Use same node types unless explicitly asked to change
-- Colors must be 0-1 range (NOT 0-255)
-- Keep all properties not mentioned in edit request
-- For TEXT nodes: include all required properties (characters, fontSize, fontName, textAlignHorizontal, textAlignVertical, lineHeight)
-
-**OUTPUT FORMAT:**
-Brief description + complete JSON array
-
-Example:
-
-Changed background to blue.
-
-[
-  {
-    "name": "Design",
-    "type": "FRAME",
-    ...
-  }
-]`;
-    }
-
+  
     private extractDesignFromResponse(response: string): any {
         try {
             let cleaned = response.trim();
