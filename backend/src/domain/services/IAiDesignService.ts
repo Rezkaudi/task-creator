@@ -23,7 +23,7 @@ export interface IAiDesignService {
      * @param designSystemId - Optional Design System ID (material-3, shadcn-ui, ant-design, none)
      * @returns Promise with generated design JSON
      */
-    generateDesign(prompt: string, designSystemId?: string): Promise<any>;
+    generateDesign(prompt: string, modelId?: string, designSystemId?: string): Promise<any>;
 
     /**
      * Generate design from conversation with history
@@ -36,6 +36,7 @@ export interface IAiDesignService {
     generateDesignFromConversation(
         userMessage: string,
         history: ConversationMessage[],
+        modelId?: string,
         designSystemId?: string
     ): Promise<DesignGenerationResult>;
 
@@ -52,6 +53,7 @@ export interface IAiDesignService {
         userMessage: string,
         history: ConversationMessage[],
         currentDesign: any,
+        modelId?: string,
         designSystemId?: string
     ): Promise<DesignGenerationResult>;
 }

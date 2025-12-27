@@ -6,8 +6,7 @@ import { DesignSystemsController } from '../controllers/design-systems.controlle
 export default function designSystemsRoutes(controller: DesignSystemsController): Router {
   const router = Router();
 
-  router.get('/', (req, res) => controller.getAvailableDesignSystems(req, res));
-  router.get('/:id', (req, res) => controller.getDesignSystemById(req, res));
+  router.get('/', (req, res) => controller.getAllDesignSystems(req, res));
 
   return router;
 }

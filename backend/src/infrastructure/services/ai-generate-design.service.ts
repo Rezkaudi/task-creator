@@ -1,30 +1,25 @@
 import OpenAI from 'openai';
-import { ENV_CONFIG } from '../../config/env.config';
-import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../../domain/services/IAiDesignService';
-import { FigmaDesign } from '../../../domain/entities/figma-design.entity';
-import { PromptBuilderService } from './prompt-builder.service'; 
+import { FigmaDesign } from '../../domain/entities/figma-design.entity';
+import { AIModelConfig, getModelById } from '../config/ai-models.config';
+import { PromptBuilderService } from './prompt-builder.service';
+import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../domain/services/IAiDesignService';
 
 interface AiMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
 }
 
-export class GPTDesignService implements IAiDesignService {
-    private openai: OpenAI;
-    private promptBuilder: PromptBuilderService; 
-    private model = ENV_CONFIG.MODELS.GPT4O;
+export class AiGenerateDesignService implements IAiDesignService {
+    private promptBuilder: PromptBuilderService;
 
-    constructor() {
-        this.openai = new OpenAI({
-            apiKey: ENV_CONFIG.OPENAI_API_KEY,
-        });
-
-        this.promptBuilder = new PromptBuilderService();
+    constructor(promptBuilderService: PromptBuilderService) {
+        this.promptBuilder = promptBuilderService;
     }
 
-  
-    async generateDesign(prompt: string, designSystemId?: string): Promise<any> { 
+    async generateDesign(prompt: string, modelId?: string, designSystemId?: string): Promise<any> {
         try {
+            const aiModel: AIModelConfig = getModelById(modelId)
+
             const systemPrompt = this.promptBuilder.buildSystemPrompt(designSystemId);
             const enrichedPrompt = this.promptBuilder.enrichUserMessage(
                 `Generate a Figma design JSON for: "${prompt}"`,
@@ -33,13 +28,19 @@ export class GPTDesignService implements IAiDesignService {
 
             console.log(`🎨 Generating design with GPT-4${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
 
-            const completion = await this.openai.chat.completions.create({
-                model: this.model.name,
+
+            const openai: OpenAI = new OpenAI({
+                baseURL: aiModel.baseURL,
+                apiKey: aiModel.apiKey,
+            });
+
+            const completion = await openai.chat.completions.create({
+                model: aiModel.id,
                 messages: [
-                    { role: 'system', content: systemPrompt }, 
+                    { role: 'system', content: systemPrompt },
                     { role: 'user', content: enrichedPrompt }
                 ],
-                max_completion_tokens: this.model.maxTokens,
+                max_completion_tokens: aiModel.maxTokens,
                 response_format: { type: 'json_object' },
             });
 
@@ -58,22 +59,28 @@ export class GPTDesignService implements IAiDesignService {
         }
     }
 
-    
     async generateDesignFromConversation(
         userMessage: string,
         history: ConversationMessage[],
-        designSystemId?: string 
+        modelId?: string,
+        designSystemId?: string,
     ): Promise<DesignGenerationResult> {
         try {
-            const messages = this.buildConversationMessages(userMessage, history, designSystemId); 
+
+            const messages = this.buildConversationMessages(userMessage, history, designSystemId);
+            const aiModel: AIModelConfig = getModelById(modelId)
+            const openai: OpenAI = new OpenAI({
+                baseURL: aiModel.baseURL,
+                apiKey: aiModel.apiKey,
+            });
 
             console.log("--- 1. Sending Conversation to GPT for JSON ---");
             console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
 
-            const completion = await this.openai.chat.completions.create({
-                model: this.model.name,
+            const completion = await openai.chat.completions.create({
+                model: aiModel.id,
                 messages: messages,
-                max_completion_tokens: this.model.maxTokens,
+                max_completion_tokens: aiModel.maxTokens,
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -88,7 +95,7 @@ export class GPTDesignService implements IAiDesignService {
             if (designData) {
                 try {
                     console.log("--- 3. Requesting HTML preview ---");
-                    previewHtml = await this.generateHtmlPreview(designData);
+                    previewHtml = await this.generateHtmlPreview(designData, openai, aiModel);
                     console.log("--- 4. HTML Preview Generated ---");
                 } catch (previewError) {
                     console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
@@ -112,19 +119,26 @@ export class GPTDesignService implements IAiDesignService {
         userMessage: string,
         history: ConversationMessage[],
         currentDesign: FigmaDesign[],
-        designSystemId?: string 
+        modelId?: string,
+        designSystemId?: string,
     ): Promise<DesignGenerationResult> {
         try {
-            const messages = this.buildEditConversationMessages(userMessage, history, currentDesign, designSystemId); 
+            const messages = this.buildEditConversationMessages(userMessage, history, currentDesign, designSystemId);
+            const aiModel: AIModelConfig = getModelById(modelId);
 
             console.log("--- 1. Sending Edit Request to GPT ---");
             console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
             console.log("Design size:", JSON.stringify(currentDesign).length, "characters");
 
-            const completion = await this.openai.chat.completions.create({
-                model: this.model.name,
+            const openai: OpenAI = new OpenAI({
+                baseURL: aiModel.baseURL,
+                apiKey: aiModel.apiKey,
+            });
+
+            const completion = await openai.chat.completions.create({
+                model: aiModel.id,
                 messages: messages,
-                max_completion_tokens: this.model.maxTokens,
+                max_completion_tokens: aiModel.maxTokens,
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -147,7 +161,7 @@ export class GPTDesignService implements IAiDesignService {
             if (designData) {
                 try {
                     console.log("--- 3. Requesting HTML preview for edited design ---");
-                    previewHtml = await this.generateHtmlPreview(designData);
+                    previewHtml = await this.generateHtmlPreview(designData, openai, aiModel);
                     console.log("--- 4. HTML Preview Generated ---");
                 } catch (previewError) {
                     console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
@@ -167,9 +181,7 @@ export class GPTDesignService implements IAiDesignService {
         }
     }
 
-    
-
-    private async generateHtmlPreview(designJson: object): Promise<string> {
+    private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<string> {
         const prompt = `Based on the following design JSON, generate a single, self-contained HTML block to visually represent this design.
 - Use inline CSS for styling.
 - Use flexbox or grid for layouts.
@@ -180,8 +192,8 @@ export class GPTDesignService implements IAiDesignService {
 Here is the JSON data:
 ${JSON.stringify(designJson, null, 2)}`;
 
-        const completion = await this.openai.chat.completions.create({
-            model: this.model.name,
+        const completion = await openai.chat.completions.create({
+            model: aiModel.id,
             messages: [
                 {
                     role: 'system',
@@ -189,7 +201,7 @@ ${JSON.stringify(designJson, null, 2)}`;
                 },
                 { role: 'user', content: prompt }
             ],
-            max_tokens: this.model.maxTokens,
+            max_tokens: aiModel.maxTokens,
             temperature: 0.7,
         });
 
@@ -213,10 +225,10 @@ ${JSON.stringify(designJson, null, 2)}`;
         history: ConversationMessage[],
         designSystemId?: string
     ): AiMessage[] {
-        const systemPrompt = this.promptBuilder.buildConversationSystemPrompt(designSystemId); 
+        const systemPrompt = this.promptBuilder.buildConversationSystemPrompt(designSystemId);
 
         const messages: AiMessage[] = [
-            { role: 'system', content: systemPrompt } 
+            { role: 'system', content: systemPrompt }
         ];
 
         for (const msg of history) {
@@ -240,10 +252,10 @@ ${JSON.stringify(designJson, null, 2)}`;
         currentDesign: any,
         designSystemId?: string
     ): AiMessage[] {
-        const systemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId); 
+        const systemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId);
 
         const messages: AiMessage[] = [
-            { role: 'system', content: systemPrompt } 
+            { role: 'system', content: systemPrompt }
         ];
 
         const recentHistory = history.slice(-5);
@@ -257,18 +269,18 @@ ${JSON.stringify(designJson, null, 2)}`;
         const designStr = JSON.stringify(currentDesign, null, 2);
 
         const editRequest = `CURRENT DESIGN:
-\`\`\`json
-${designStr}
-\`\`\`
-
-USER REQUEST: ${currentMessage}
-
-INSTRUCTIONS:
-1. Understand the current design structure
-2. Apply the user's requested changes
-3. Keep everything else unchanged
-4. Return the complete modified design as valid JSON array
-5. Start your response with a brief description, then the JSON`;
+   \`\`\`json
+   ${designStr}
+   \`\`\`
+   
+   USER REQUEST: ${currentMessage}
+   
+   INSTRUCTIONS:
+   1. Understand the current design structure
+   2. Apply the user's requested changes
+   3. Keep everything else unchanged
+   4. Return the complete modified design as valid JSON array
+   5. Start your response with a brief description, then the JSON`;
 
         messages.push({
             role: 'user',

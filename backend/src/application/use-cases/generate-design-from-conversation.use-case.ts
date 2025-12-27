@@ -7,7 +7,8 @@ export class GenerateDesignFromConversationUseCase {
     async execute(
         message: string,
         history: ConversationMessage[],
-        designSystemId?: string 
+        modelId?: string,
+        designSystemId?: string
     ): Promise<DesignGenerationResult> {
         if (!message || message.trim().length === 0) {
             throw new Error('Message is required to generate a design.');
@@ -16,8 +17,9 @@ export class GenerateDesignFromConversationUseCase {
         const validHistory = Array.isArray(history) ? history : [];
 
         return this.aiDesignService.generateDesignFromConversation(
-            message, 
-            validHistory, 
+            message,
+            validHistory,
+            modelId,
             designSystemId
         );
     }
