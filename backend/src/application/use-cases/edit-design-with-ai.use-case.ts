@@ -9,7 +9,7 @@ export class EditDesignWithAIUseCase {
         history: ConversationMessage[],
         currentDesign: any,
         modelId: string,
-        designSystemId?: string
+        designSystemId: string
     ): Promise<DesignGenerationResult> {
         if (!message || message.trim().length === 0) {
             throw new Error('Message is required to edit the design.');

@@ -11,10 +11,11 @@ import taskRoutes from './routes/task.routes';
 import trelloRoutes from './routes/trello.routes';
 import designRoutes from './routes/design.routes';
 import designVersionRoutes from './routes/design-version.routes';
-import aiModelsRoutes from './routes/ai-models.routes'; 
+import aiModelsRoutes from './routes/ai-models.routes';
 import designSystemsRoutes from './routes/design-systems.routes';
 
 import { setupDependencies } from './dependencies';
+import { logger } from './middleware/logger.middleware';
 
 
 export class Server {
@@ -32,6 +33,7 @@ export class Server {
   }
 
   private configureMiddleware(): void {
+    this.app.use(logger);
     this.app.use(cors(corsOptions));
     this.app.use(express.json({ limit: '50mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));

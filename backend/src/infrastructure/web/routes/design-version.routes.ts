@@ -1,12 +1,16 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from 'express';
 import { DesignVersionController } from "../controllers/design-version.controller";
+import { saveDesignVersionValidation, designVersionIdParamValidation } from "../validation";
+import { validateRequest } from '../middleware/validation.middleware';
 
 const designVersionRoutes = (designVersionController: DesignVersionController): Router => {
     const router = Router();
 
     // Save a new design version
-    router.post("/", (req, res, next) =>
-        designVersionController.saveVersion(req, res, next)
+    router.post("/",
+        saveDesignVersionValidation,
+        validateRequest,
+        (req: Request, res: Response, next: NextFunction) => designVersionController.saveVersion(req, res, next)
     );
 
     // Get all design versions (metadata only, without full JSON)
@@ -15,13 +19,17 @@ const designVersionRoutes = (designVersionController: DesignVersionController): 
     );
 
     // Get a specific design version by ID (includes full JSON)
-    router.get("/:id", (req, res, next) =>
-        designVersionController.getVersionById(req, res, next)
+    router.get("/:id",
+        designVersionIdParamValidation,
+        validateRequest,
+        (req: Request, res: Response, next: NextFunction) => designVersionController.getVersionById(req, res, next)
     );
 
     // Delete a design version
-    router.delete("/:id", (req, res, next) =>
-        designVersionController.deleteVersion(req, res, next)
+    router.delete("/:id",
+        designVersionIdParamValidation,
+        validateRequest,
+        (req: Request, res: Response, next: NextFunction) => designVersionController.deleteVersion(req, res, next)
     );
 
     return router;

@@ -55,22 +55,10 @@ export function getDesignSystems() {
   }));
 }
 
-export function getDesignSystemById(id: string | undefined): DesignSystemConfig {
-  if (!id) {
-    id = DEFAULT_DESIGN_SYSTEM_ID
-  }
+export function getDesignSystemById(id: string): DesignSystemConfig {
   const system = DESIGN_SYSTEMS.find(system => system.id === id);
   if (!system) {
     throw new Error(`Design System with ID '${id}' not found or not available.`);
   }
   return system;
-}
-
-export function getDesignSystemPrompt(id?: string): string {
-  if (!id || id === 'none') {
-    return '';
-  }
-
-  const system = getDesignSystemById(id);
-  return system?.promptTemplate || '';
 }

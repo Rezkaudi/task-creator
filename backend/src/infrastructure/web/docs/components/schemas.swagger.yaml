@@ -450,6 +450,126 @@ components:
           items:
             $ref: "#/components/schemas/ConversationMessage"
           description: Conversation history for context
+
+    DesignGenerationEditRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Create a modern login page with dark theme"
+          description: Design prompt or modification request
+          minLength: 1
+          maxLength: 1000
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversationMessage"
+          description: Conversation history for context
         currentDesign:
           type: object
           description: Current design to modify (for edit requests)
+
+    # AI Model schema
+    AIModel:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - icon
+      properties:
+        id:
+          type: string
+          example: "gpt-4"
+          description: "Unique identifier for the AI model"
+          minLength: 1
+          maxLength: 100
+        name:
+          type: string
+          example: "GPT-4"
+          description: "Display name of the AI model"
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+          example: "Best overall quality"
+          description: "Description of the AI model's capabilities"
+          minLength: 1
+          maxLength: 200
+        icon:
+          type: string
+          example: "GPT"
+          description: "Icon identifier for UI display"
+          minLength: 1
+          maxLength: 10
+
+    # Design System schema
+    DesignSystem:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - icon
+      properties:
+        id:
+          type: string
+          example: "material-3"
+          description: "Unique identifier for the design system"
+          minLength: 1
+          maxLength: 50
+        name:
+          type: string
+          example: "Material Design 3"
+          description: "Display name of the design system"
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+          example: "Google's latest design system"
+          description: "Description of the design system characteristics"
+          minLength: 1
+          maxLength: 200
+        icon:
+          type: string
+          example: "M3"
+          description: "Icon identifier for UI display"
+          minLength: 1
+          maxLength: 10
+
+    # Model selection request (for design generation endpoints)
+    ModelSelectionRequest:
+      type: object
+      properties:
+        modelId:
+          type: string
+          example: "gpt-4"
+          description: "ID of the AI model to use"
+          enum:
+            [
+              "gpt-4",
+              "claude-sonnet-4-20250514",
+              "gemini-2.5-flash",
+              "gpt-5.2",
+              "o3",
+              "deepseek-ai/DeepSeek-V3.2:novita",
+              "Qwen/Qwen2.5-7B-Instruct",
+            ]
+        designSystemId:
+          type: string
+          example: "material-3"
+          description: "ID of the design system to use"
+          enum: ["material-3", "shadcn-ui", "ant-design", "none"]
+
+    # Enhanced design generation request with model and design system
+    EnhancedDesignGenerationRequest:
+      allOf:
+        - $ref: "#/components/schemas/DesignGenerationRequest"
+        - $ref: "#/components/schemas/ModelSelectionRequest"
+
+    EnhancedDesignGenerationEditRequest:
+      allOf:
+        - $ref: "#/components/schemas/DesignGenerationEditRequest"
+        - $ref: "#/components/schemas/ModelSelectionRequest"

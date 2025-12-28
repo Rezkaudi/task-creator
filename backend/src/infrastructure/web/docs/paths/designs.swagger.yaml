@@ -32,22 +32,15 @@
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - prompt
-            properties:
-              prompt:
-                type: string
-                example: "Create a modern login page with dark theme"
-                minLength: 1
-                maxLength: 1000
-          examples:
-            SimplePrompt:
-              value:
-                prompt: "Login page with email and password"
-            DetailedPrompt:
-              value:
-                prompt: "Dashboard with: 1) Left sidebar navigation 2) Header with user menu 3) Analytics cards 4) Data table with pagination 5) Footer with copyright"
+            allOf:
+              - $ref: "#/components/schemas/ModelSelectionRequest"
+              - type: object
+                required:
+                  - prompt
+                properties:
+                  prompt:
+                    type: string
+                    example: "Create a modern login page with dark theme"
     responses:
       "200":
         $ref: "#/components/responses/DesignGenerationSuccess"
@@ -85,20 +78,15 @@
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/DesignGenerationRequest"
-          examples:
-            FirstMessage:
-              value:
-                message: "Create a login page"
-                history: []
-            FollowUp:
-              value:
-                message: "Make it dark theme"
-                history:
-                  - role: "user"
-                    content: "Create a login page"
-                  - role: "assistant"
-                    content: "Created a light-themed login page"
+            allOf:
+              - $ref: "#/components/schemas/EnhancedDesignGenerationRequest"
+              - type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                    example: "Create a login page"
     responses:
       "200":
         $ref: "#/components/responses/DesignGenerationSuccess"
@@ -143,34 +131,19 @@
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - message
-              - currentDesign
-            properties:
-              message:
-                type: string
-                example: "Change the button color to blue"
-                minLength: 1
-              history:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ConversationMessage"
-              currentDesign:
-                $ref: "#/components/schemas/FigmaDesign"
-          examples:
-            SimpleEdit:
-              value:
-                message: "Change the button color to blue"
-                currentDesign:
-                  - name: "Button"
-                    type: "RECTANGLE"
-                    fills:
-                      - type: "SOLID"
-                        color:
-                          r: 1
-                          g: 0
-                          b: 0
+            allOf:
+              - $ref: "#/components/schemas/EnhancedDesignGenerationEditRequest"
+              - type: object
+                required:
+                  - message
+                  - currentDesign
+                properties:
+                  message:
+                    type: string
+                    example: "Change the button color to blue"
+                    minLength: 1
+                  currentDesign:
+                    $ref: "#/components/schemas/FigmaDesign"
     responses:
       "200":
         $ref: "#/components/responses/DesignGenerationSuccess"

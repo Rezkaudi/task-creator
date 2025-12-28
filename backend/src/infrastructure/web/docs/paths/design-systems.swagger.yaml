@@ -1,0 +1,51 @@
+/api/design-systems:
+  get:
+    tags:
+      - Design Systems
+    summary: Get all available design systems
+    description: |
+      # Available Design Systems
+
+      Retrieve a list of all available design systems that can be used for design generation.
+      Each design system provides consistent styling and component patterns.
+
+      ## Supported Design Systems:
+      - **Material Design 3**: Google's latest design system with dynamic colors and elevation
+      - **shadcn/ui**: Minimal, accessible components with composable patterns
+      - **Ant Design**: Enterprise-grade design system for data-heavy applications
+      - **None**: No specific design system (default styling)
+
+      ## Design System Properties:
+      - **id**: Unique identifier for the design system
+      - **name**: Display name of the design system
+      - **description**: Brief description of design system characteristics
+      - **icon**: Visual icon for UI display
+
+      ## Default Design System:
+      The default is `none` if no design system is specified.
+    operationId: getDesignSystems
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    responses:
+      "200":
+        description: Design systems retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    count:
+                      type: integer
+                      example: 1
+                      description: Number of available design systems
+                    systems:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/DesignSystem"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"

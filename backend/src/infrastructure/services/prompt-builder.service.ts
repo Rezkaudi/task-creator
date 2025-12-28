@@ -4,8 +4,8 @@ import { textToDesignSystemPrompt } from '../config/prompt.config';
 
 export class PromptBuilderService {
 
-    buildSystemPrompt(designSystemId?: string): string {
-        if (!designSystemId || designSystemId === 'none') {
+    buildSystemPrompt(designSystemId: string): string {
+        if (!designSystemId) {
             return textToDesignSystemPrompt;
         }
 
@@ -32,7 +32,7 @@ Do NOT deviate from these specifications unless explicitly requested.
     }
 
 
-    buildConversationSystemPrompt(designSystemId?: string): string {
+    buildConversationSystemPrompt(designSystemId: string): string {
         const basePrompt = this.buildSystemPrompt(designSystemId);
 
         const designSystemNote = this.getDesignSystemNote(designSystemId);
@@ -71,7 +71,7 @@ Created a login page with email and password fields${designSystemNote}.
 `;
     }
 
-    buildEditSystemPrompt(designSystemId?: string): string {
+    buildEditSystemPrompt(designSystemId: string): string {
         const basePrompt = this.buildSystemPrompt(designSystemId);
 
         const designSystemName = this.getDesignSystemDisplayName(designSystemId);
@@ -141,8 +141,8 @@ Changed background to blue${designSystemNote}.
 `;
     }
 
-    enrichUserMessage(message: string, designSystemId?: string): string {
-        if (!designSystemId || designSystemId === 'none') {
+    enrichUserMessage(message: string, designSystemId: string): string {
+        if (!designSystemId) {
             return message;
         }
 
@@ -157,8 +157,8 @@ Changed background to blue${designSystemNote}.
     }
 
 
-    getDesignSystemDisplayName(designSystemId?: string): string {
-        if (!designSystemId || designSystemId === 'none') {
+    getDesignSystemDisplayName(designSystemId: string): string {
+        if (!designSystemId) {
             return 'None';
         }
 
@@ -167,8 +167,8 @@ Changed background to blue${designSystemNote}.
     }
 
 
-    private getDesignSystemNote(designSystemId?: string): string {
-        if (!designSystemId || designSystemId === 'none') {
+    private getDesignSystemNote(designSystemId: string): string {
+        if (!designSystemId) {
             return '';
         }
 

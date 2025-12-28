@@ -1,0 +1,14 @@
+# Add these tags to your Swagger configuration
+tags:
+  - name: AI Models
+    description: AI model selection and configuration
+  - name: Design Systems
+    description: Design system selection and configuration
+  - name: Designs
+    description: AI-powered design generation and editing
+  - name: Tasks
+    description: Task extraction and management
+  - name: Trello
+    description: Trello integration
+  - name: Versions
+    description: Design version management

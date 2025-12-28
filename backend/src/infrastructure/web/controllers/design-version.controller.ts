@@ -16,26 +16,7 @@ export class DesignVersionController {
         try {
             const { description, designJson } = req.body;
 
-            if (!description || typeof description !== "string") {
-                res.status(400).json({
-                    success: false,
-                    message: "Description is required and must be a string",
-                });
-                return;
-            }
-
-            if (!designJson) {
-                res.status(400).json({
-                    success: false,
-                    message: "Design JSON is required",
-                });
-                return;
-            }
-
-            const version = await this.saveDesignVersionUseCase.execute(
-                description,
-                designJson
-            );
+            const version = await this.saveDesignVersionUseCase.execute(description, designJson);
 
             console.log(`✅ Saved design version ${version.version}: ${description}`);
 
@@ -69,14 +50,6 @@ export class DesignVersionController {
         try {
             const id = parseInt(req.params.id);
 
-            if (isNaN(id)) {
-                res.status(400).json({
-                    success: false,
-                    message: "Invalid version ID",
-                });
-                return;
-            }
-
             const version = await this.getDesignVersionByIdUseCase.execute(id);
 
             if (!version) {
@@ -100,14 +73,6 @@ export class DesignVersionController {
     async deleteVersion(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const id = parseInt(req.params.id);
-
-            if (isNaN(id)) {
-                res.status(400).json({
-                    success: false,
-                    message: "Invalid version ID",
-                });
-                return;
-            }
 
             await this.deleteDesignVersionUseCase.execute(id);
 
