@@ -367,25 +367,22 @@ CREATE TABLE design_versions (
     **Backend** (`backend/.env`):
 
     ```env
-    # Server
     NODE_ENV=development
     PORT=5000
 
-    # PostgreSQL
-    DATABASE_URL="postgresql://postgres:password@localhost:5432/design_versions_db"
+    # PostgreSQL Configuration
+    DATABASE_URL="postgresql://postgres:root@localhost:5432/design_versions_db"
 
-    # OpenAI (for task extraction)
-    OPENAI_API_KEY=sk-...
-    OPENAI_MODEL=gpt-4
+    # AI Model Configuration
+    OPENAI_API_KEY=your_openai_key_here
+    GEMINI_API_KEY=your_gemini_key_here
+    CLAUDE_API_KEY=your_claude_key_here
+    HAMGINGFACE_API_KEY=your_hamgingface_key_here
 
-    # Claude (for design generation)
-    CLAUDE_API=sk-ant-...
-    MODEL_CLAUDE=claude-sonnet-4-20250514
-
-    # Trello (optional)
-    TRELLO_API_KEY=...
-    TRELLO_TOKEN=...
-    TRELLO_BOARD_ID=...
+    # Trello Configuration
+    TRELLO_API_KEY=your_trello_key_here
+    TRELLO_TOKEN=your_trello_token_here
+    TRELLO_BOARD_ID=your_board_id_here
     ```
 
     **Frontend** (`frontend/.env`):

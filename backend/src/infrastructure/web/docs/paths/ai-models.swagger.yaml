@@ -1,0 +1,49 @@
+/api/ai-models:
+  get:
+    tags:
+      - AI Models
+    summary: Get all available AI models
+    description: |
+      # Available AI Models
+
+      Retrieve a list of all available AI models that can be used for design generation.
+      Each model has different capabilities, pricing, and characteristics.
+
+      ## Model Categories:
+      - **Paid Models**: GPT-4, Claude (higher quality, paid API)
+      - **Free Models**: Gemini, DeepSeek, Qwen (free tiers available)
+
+      ## Model Properties:
+      - **id**: Unique identifier for the model
+      - **name**: Display name of the model
+      - **description**: Brief description of model capabilities
+      - **icon**: Visual icon for UI display
+
+      ## Default Model:
+      The default model is `gpt-4` if no model is specified.
+    operationId: getAIModels
+    security:
+      - ApiKeyAuth: []
+      - FigmaUserAuth: []
+    responses:
+      "200":
+        description: AI models retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    count:
+                      type: integer
+                      example: 1
+                      description: Number of available models
+                    models:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/AIModel"
+      # "401":
+      #   $ref: "#/components/responses/Unauthorized"
+      # "500":
+      #   $ref: "#/components/responses/InternalServerError"

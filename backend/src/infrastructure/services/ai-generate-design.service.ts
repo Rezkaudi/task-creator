@@ -3,6 +3,7 @@ import { FigmaDesign } from '../../domain/entities/figma-design.entity';
 import { AIModelConfig, getModelById } from '../config/ai-models.config';
 import { PromptBuilderService } from './prompt-builder.service';
 import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../domain/services/IAiDesignService';
+import { htmlPreviewPrompt } from '../config/prompt.config';
 
 interface AiMessage {
     role: 'system' | 'user' | 'assistant';
@@ -16,8 +17,11 @@ export class AiGenerateDesignService implements IAiDesignService {
         this.promptBuilder = promptBuilderService;
     }
 
-    async generateDesign(prompt: string, modelId?: string, designSystemId?: string): Promise<any> {
+    async generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any> {
         try {
+            console.log("modelId", modelId);
+            console.log("designSystemId", designSystemId);
+
             const aiModel: AIModelConfig = getModelById(modelId)
 
             const systemPrompt = this.promptBuilder.buildSystemPrompt(designSystemId);
@@ -62,10 +66,12 @@ export class AiGenerateDesignService implements IAiDesignService {
     async generateDesignFromConversation(
         userMessage: string,
         history: ConversationMessage[],
-        modelId?: string,
-        designSystemId?: string,
+        modelId: string,
+        designSystemId: string,
     ): Promise<DesignGenerationResult> {
         try {
+            console.log("modelId", modelId);
+            console.log("designSystemId", designSystemId);
 
             const messages = this.buildConversationMessages(userMessage, history, designSystemId);
             const aiModel: AIModelConfig = getModelById(modelId)
@@ -75,7 +81,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             });
 
             console.log("--- 1. Sending Conversation to GPT for JSON ---");
-            console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
 
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
@@ -119,10 +124,13 @@ export class AiGenerateDesignService implements IAiDesignService {
         userMessage: string,
         history: ConversationMessage[],
         currentDesign: FigmaDesign[],
-        modelId?: string,
-        designSystemId?: string,
+        modelId: string,
+        designSystemId: string,
     ): Promise<DesignGenerationResult> {
         try {
+            console.log("modelId", modelId);
+            console.log("designSystemId", designSystemId);
+
             const messages = this.buildEditConversationMessages(userMessage, history, currentDesign, designSystemId);
             const aiModel: AIModelConfig = getModelById(modelId);
 
@@ -182,15 +190,8 @@ export class AiGenerateDesignService implements IAiDesignService {
     }
 
     private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<string> {
-        const prompt = `Based on the following design JSON, generate a single, self-contained HTML block to visually represent this design.
-- Use inline CSS for styling.
-- Use flexbox or grid for layouts.
-- The output must be ONLY the HTML code, without any explanation, comments, or markdown like \`\`\`html. Just provide the raw HTML.
-- Make it as visually accurate as possible, but keep it simple. This is for a small preview inside a chat bubble.
-- Ensure text is readable and elements are reasonably spaced.
 
-Here is the JSON data:
-${JSON.stringify(designJson, null, 2)}`;
+        const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
 
         const completion = await openai.chat.completions.create({
             model: aiModel.id,
@@ -201,7 +202,7 @@ ${JSON.stringify(designJson, null, 2)}`;
                 },
                 { role: 'user', content: prompt }
             ],
-            max_tokens: aiModel.maxTokens,
+            max_completion_tokens: aiModel.maxTokens,
             temperature: 0.7,
         });
 
@@ -223,7 +224,7 @@ ${JSON.stringify(designJson, null, 2)}`;
     private buildConversationMessages(
         currentMessage: string,
         history: ConversationMessage[],
-        designSystemId?: string
+        designSystemId: string
     ): AiMessage[] {
         const systemPrompt = this.promptBuilder.buildConversationSystemPrompt(designSystemId);
 
@@ -250,7 +251,7 @@ ${JSON.stringify(designJson, null, 2)}`;
         currentMessage: string,
         history: ConversationMessage[],
         currentDesign: any,
-        designSystemId?: string
+        designSystemId: string
     ): AiMessage[] {
         const systemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId);
 

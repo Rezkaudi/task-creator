@@ -7,8 +7,8 @@ export class GenerateDesignFromConversationUseCase {
     async execute(
         message: string,
         history: ConversationMessage[],
-        modelId?: string,
-        designSystemId?: string
+        modelId: string,
+        designSystemId: string
     ): Promise<DesignGenerationResult> {
         if (!message || message.trim().length === 0) {
             throw new Error('Message is required to generate a design.');

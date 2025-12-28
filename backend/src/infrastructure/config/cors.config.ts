@@ -15,17 +15,13 @@ export const allowedOrigins = [
 
 export const corsOptions: CorsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-        console.log('Incoming request origin:', origin);
-
-        // Allow requests with no origin (like Figma plugins, mobile apps, curl, etc.)
+        // allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'));
         }
-
-        // Allow all origins for development
-        return callback(null, true);
     },
     credentials: true
 };

@@ -31,5 +31,10 @@ export const antDesignPrompt = fs.readFileSync(
     'utf-8'
 ).trim();
 
+export const htmlPreviewPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/html-preview.txt'),
+    'utf-8'
+).trim();
+
 
 

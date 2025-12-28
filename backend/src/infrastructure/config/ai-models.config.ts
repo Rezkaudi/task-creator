@@ -61,7 +61,7 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'Gem',
     maxTokens: 128000,
     apiKey: ENV_CONFIG.GEMINI_API_KEY,
-    baseURL: "https://generativelanguage.googleapis.com/v1beta/models"
+    baseURL: "https://generativelanguage.googleapis.com/v1beta"
   },
   {
     id: 'deepseek-ai/DeepSeek-V3.2:novita',
@@ -93,11 +93,7 @@ export function getModels() {
   }));
 }
 
-export function getModelById(id: string | undefined): AIModelConfig {
-  if (!id) {
-    id = DEFAULT_MODEL_ID;
-  }
-
+export function getModelById(id: string): AIModelConfig {
   const model = AI_MODELS.find(model => model.id === id);
   if (!model) {
     throw new Error(`Model with ID '${id}' not found or not available.`);
