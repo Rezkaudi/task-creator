@@ -20,7 +20,6 @@ export const DESIGN_SYSTEMS: DesignSystemConfig[] = [
     icon: 'M3',
     promptTemplate: material3Prompt
   },
-
   {
     id: 'shadcn-ui',
     name: 'shadcn/ui',
@@ -28,7 +27,6 @@ export const DESIGN_SYSTEMS: DesignSystemConfig[] = [
     icon: 'S',
     promptTemplate: shadcnUiPrompt
   },
-
   {
     id: 'ant-design',
     name: 'Ant Design',
@@ -36,7 +34,6 @@ export const DESIGN_SYSTEMS: DesignSystemConfig[] = [
     icon: 'A',
     promptTemplate: antDesignPrompt
   },
-
   {
     id: 'none',
     name: 'None',
@@ -56,7 +53,7 @@ export function getDesignSystems() {
 }
 
 export function getDesignSystemById(id: string): DesignSystemConfig {
-  const system = DESIGN_SYSTEMS.find(system => system.id === id);
+  const system = DESIGN_SYSTEMS.find(system => system.id === id.toString());
   if (!system) {
     throw new Error(`Design System with ID '${id}' not found or not available.`);
   }
