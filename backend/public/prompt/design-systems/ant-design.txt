@@ -1,0 +1,140 @@
+
+# Ant Design System Guidelines
+
+## Design Principles
+- Enterprise-grade reliability and clarity
+- Rich component library with consistent patterns
+- Data-heavy interface friendly
+- Professional and business-appropriate aesthetics
+
+## Color System
+Use Ant Design color palette:
+- Primary (Daybreak Blue): { r: 0.09, g: 0.45, b: 1 } (#1890ff)
+- Success: { r: 0.32, g: 0.78, b: 0.47 } (#52c41a)
+- Warning: { r: 0.98, g: 0.65, b: 0.11 } (#faad14)
+- Error: { r: 0.96, g: 0.24, b: 0.24 } (#f5222d)
+- Info: { r: 0.09, g: 0.45, b: 1 } (same as primary)
+- Neutral colors:
+  - Text primary: { r: 0, g: 0, b: 0, a: 0.85 }
+  - Text secondary: { r: 0, g: 0, b: 0, a: 0.65 }
+  - Text disabled: { r: 0, g: 0, b: 0, a: 0.25 }
+  - Border: { r: 0.85, g: 0.85, b: 0.85 } (#d9d9d9)
+  - Background: { r: 0.98, g: 0.98, b: 0.98 } (#fafafa)
+
+## Grid System
+- 24-column grid (NOT 12)
+- Gutter: 16px default (can be 8px, 16px, 24px)
+- Container max-width: 1200px
+- Breakpoints:
+  - xs: <576px
+  - sm: ≥576px
+  - md: ≥768px
+  - lg: ≥992px
+  - xl: ≥1200px
+  - xxl: ≥1600px
+
+## Spacing System
+- Base unit: 8px
+- Common spacing values: 8, 16, 24, 32, 40, 48px
+- Component margin bottom: 16px (forms) or 24px (sections)
+
+## Shape & Borders
+- Border radius:
+  - Small: 2px (inputs, small buttons)
+  - Default: 4px (buttons, cards)
+  - Large: 8px (modals, large cards)
+- Border width: 1px standard
+- Border style: solid
+
+## Typography
+Use Chinese/English compatible fonts:
+- Font family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto
+- Font sizes:
+  - Display: 38px, weight: 600
+  - Heading 1: 30px, weight: 600
+  - Heading 2: 24px, weight: 600
+  - Heading 3: 20px, weight: 600
+  - Body: 14px, weight: 400 (main size)
+  - Small: 12px, weight: 400
+- Line height: 1.5715 (Ant Design standard)
+- For Chinese text: consider slightly larger line-height (1.6-1.8)
+
+## Component Specifications
+
+### Buttons
+- Height: 24px (small), 32px (default), 40px (large)
+- Padding: 4px 15px (default)
+- Border radius: 2px
+- States:
+  - Default: border + transparent background
+  - Primary: solid primary color background
+  - Dashed: dashed border
+  - Text: no border, no background
+  - Link: looks like a link
+- Include hover state: opacity or color shift
+
+### Form Elements
+- Input height: 32px (default), 24px (small), 40px (large)
+- Border: 1px solid #d9d9d9
+- Border radius: 2px
+- Padding: 4px 11px
+- Focus state: border-color changes to primary, 2px shadow
+- Label: positioned above or inline (12px font, secondary text color)
+
+### Cards
+- Border: 1px solid #f0f0f0
+- Border radius: 2px
+- Padding: 24px
+- Header padding: 16px 24px
+- Body padding: 24px
+- Shadow: { type: "DROP_SHADOW", radius: 6, offset: { x: 0, y: 2 }, color: { r: 0, g: 0, b: 0, a: 0.03 } }
+
+### Tables
+- Header background: #fafafa
+- Header text: weight 500
+- Row height: 54px (default)
+- Cell padding: 16px
+- Border: 1px solid #f0f0f0
+- Hover row: background #f5f5f5
+- Selected row: background #e6f7ff
+
+### Modals & Drawers
+- Border radius: 4px
+- Header height: 55px
+- Footer height: 56px
+- Padding: 24px
+- Mask background: { r: 0, g: 0, b: 0, a: 0.45 }
+
+### Navigation
+- Menu item height: 40px
+- Menu padding: 0 24px
+- Selected background: #e6f7ff (light blue tint)
+- Active border: 2px left border with primary color
+
+## Shadows & Elevation
+- Shadow-1 (hover): { type: "DROP_SHADOW", radius: 4, offset: { x: 0, y: 2 }, color: { r: 0, g: 0, b: 0, a: 0.08 } }
+- Shadow-2 (card): { type: "DROP_SHADOW", radius: 6, offset: { x: 0, y: 2 }, color: { r: 0, g: 0, b: 0, a: 0.12 } }
+- Shadow-3 (drawer): { type: "DROP_SHADOW", radius: 16, offset: { x: 0, y: 8 }, color: { r: 0, g: 0, b: 0, a: 0.15 } }
+
+## Layout Patterns
+- Use 24-column grid with auto-layout
+- Standard page padding: 24px
+- Section spacing: 24px vertically
+- Component spacing within sections: 16px
+- Form item spacing: 24px vertically
+
+## Z-Index Levels (for reference in layering)
+- Dropdown: 1050
+- Modal mask: 1000
+- Modal: 1000
+- Notification: 1010
+- Message: 1010
+- Tooltip: 1060
+
+## Enterprise Considerations
+- Data tables are common: use proper alignment and spacing
+- Forms often have many fields: use clear grouping and spacing
+- Professional color choices: avoid overly bright or playful colors
+- Respect information hierarchy: clear headings, organized sections
+
+CRITICAL: Follow Ant Design specifications exactly for enterprise consistency. Pay attention to the 24-column grid and standard component heights.

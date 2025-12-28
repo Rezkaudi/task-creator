@@ -1,71 +1,106 @@
-// src/infrastructure/config/ai-models.config.ts
+import { ENV_CONFIG } from './env.config';
 
 export interface AIModelConfig {
   id: string;
   name: string;
-  displayName: string;
   description: string;
   icon: string;
-  available: boolean;
-  provider?: string;
+  maxTokens: number;
+  apiKey: string;
+  baseURL: string;
 }
 
+export const DEFAULT_MODEL_ID = 'gpt-4'; // default model
+
 export const AI_MODELS: AIModelConfig[] = [
+  // paid
+  {
+    id: 'gpt-5.2',
+    name: 'GPT-5.2',
+    description: 'Best overall quality',
+    icon: 'GPT',
+    maxTokens: 128000,
+    apiKey: ENV_CONFIG.OPENAI_API_KEY,
+    baseURL: "https://api.openai.com/v1",
+
+  },
   {
     id: 'gpt-4',
     name: 'GPT-4',
-    displayName: 'GPT-4',
     description: 'Best overall quality',
     icon: 'GPT',
-    available: true,
-    provider: 'OpenAI'
+    maxTokens: 16384,
+    apiKey: ENV_CONFIG.OPENAI_API_KEY,
+    baseURL: "https://api.openai.com/v1",
+
   },
   {
-    id: 'gimini',
-    name: 'Gemini',
-    displayName: 'Gemini',
-    description: 'Creative & visual',
-    icon: 'Gem',
-    available: true,
-    provider: 'Google'
+    id: 'o3',
+    name: 'O3',
+    description: 'Best overall quality',
+    icon: 'GPT',
+    maxTokens: 16384,
+    apiKey: ENV_CONFIG.OPENAI_API_KEY,
+    baseURL: "https://api.openai.com/v1",
   },
   {
-    id: 'deepseek',
-    name: 'DeepSeek',
-    displayName: 'DeepSeek',
-    description: 'Fast & efficient',
-    icon: 'DS',
-    available: true,
-    provider: 'DeepSeek'
-  },
-  {
-    id: 'claude',
+    id: 'claude-sonnet-4-20250514',
     name: 'Claude',
-    displayName: 'Claude',
     description: 'Detailed & contextual',
     icon: 'Cl',
-    available: true,
-    provider: 'Anthropic'
-  }
+    maxTokens: 64000,
+    apiKey: ENV_CONFIG.CLAUDE_API_KEY,
+    baseURL: "https://api.anthropic.com/v1"
+  },
+
+  // free
+  {
+    id: 'gemini-2.5-flash',
+    name: 'Gemini-2.5-Flash',
+    description: 'Creative & visual',
+    icon: 'Gem',
+    maxTokens: 128000,
+    apiKey: ENV_CONFIG.GEMINI_API_KEY,
+    baseURL: "https://generativelanguage.googleapis.com/v1beta/models"
+  },
+  {
+    id: 'deepseek-ai/DeepSeek-V3.2:novita',
+    name: 'DeepSeek-V3.2:novita',
+    description: 'Fast & efficient',
+    icon: 'DS',
+    maxTokens: 64000,
+    apiKey: ENV_CONFIG.HAMGINGFACE_API_KEY,
+    baseURL: "https://router.huggingface.co/v1"
+  },
+  {
+    id: 'Qwen/Qwen2.5-7B-Instruct',
+    name: 'Qwen2.5-7B-Instruct',
+    description: 'Fast & efficient',
+    icon: 'QW',
+    maxTokens: 64000,
+    apiKey: ENV_CONFIG.HAMGINGFACE_API_KEY,
+    baseURL: "https://router.huggingface.co/v1"
+  },
+
 ];
 
-/**
- * Get all available AI models
- */
-export function getAvailableModels(): AIModelConfig[] {
-  return AI_MODELS.filter(model => model.available);
+export function getModels() {
+  return AI_MODELS.map(model => ({
+    id: model.id,
+    name: model.name,
+    description: model.description,
+    icon: model.icon
+  }));
 }
 
-/**
- * Get a specific model by ID
- */
-export function getModelById(id: string): AIModelConfig | undefined {
-  return AI_MODELS.find(model => model.id === id && model.available);
-}
+export function getModelById(id: string | undefined): AIModelConfig {
+  if (!id) {
+    id = DEFAULT_MODEL_ID;
+  }
 
-/**
- * Check if a model is available
- */
-export function isModelAvailable(id: string): boolean {
-  return AI_MODELS.some(model => model.id === id && model.available);
+  const model = AI_MODELS.find(model => model.id === id);
+  if (!model) {
+    throw new Error(`Model with ID '${id}' not found or not available.`);
+  }
+  return model;
 }

@@ -1,51 +1,40 @@
-// src/infrastructure/services/design/prompt-builder.service.ts
-
-import fs from 'fs';
-import path from 'path';
-import { getDesignSystemById } from '../../config/design-systems.config';
+import { getDesignSystemById } from '../config/design-systems.config';
+import { textToDesignSystemPrompt } from '../config/prompt.config';
 
 
 export class PromptBuilderService {
-    private baseSystemPrompt: string;
-
-    constructor() {
-        this.baseSystemPrompt = fs.readFileSync(
-            path.join(__dirname, '../../../../public/prompt/text-to-design-prompt.txt'),
-            'utf-8'
-        );
-    }
 
     buildSystemPrompt(designSystemId?: string): string {
         if (!designSystemId || designSystemId === 'none') {
-            return this.baseSystemPrompt;
+            return textToDesignSystemPrompt;
         }
 
         const designSystem = getDesignSystemById(designSystemId);
-        
+
         if (!designSystem || !designSystem.promptTemplate) {
             console.warn(`⚠️ Design System '${designSystemId}' not found, using base prompt`);
-            return this.baseSystemPrompt;
+            return textToDesignSystemPrompt;
         }
 
-        return `${this.baseSystemPrompt}
+        return `${textToDesignSystemPrompt}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎨 DESIGN SYSTEM: ${designSystem.displayName}
+🎨 DESIGN SYSTEM: ${designSystem.name}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ${designSystem.promptTemplate}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ CRITICAL: All generated designs MUST strictly follow ${designSystem.displayName} guidelines.
+⚠️ CRITICAL: All generated designs MUST strictly follow ${designSystem.name} guidelines.
 Do NOT deviate from these specifications unless explicitly requested.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
     }
 
- 
+
     buildConversationSystemPrompt(designSystemId?: string): string {
         const basePrompt = this.buildSystemPrompt(designSystemId);
-        
+
         const designSystemNote = this.getDesignSystemNote(designSystemId);
 
         return `${basePrompt}
@@ -84,9 +73,9 @@ Created a login page with email and password fields${designSystemNote}.
 
     buildEditSystemPrompt(designSystemId?: string): string {
         const basePrompt = this.buildSystemPrompt(designSystemId);
-        
+
         const designSystemName = this.getDesignSystemDisplayName(designSystemId);
-        
+
         const designSystemMaintainNote = designSystemName
             ? `- MAINTAIN ${designSystemName} design patterns and standards`
             : '';
@@ -152,7 +141,6 @@ Changed background to blue${designSystemNote}.
 `;
     }
 
-   
     enrichUserMessage(message: string, designSystemId?: string): string {
         if (!designSystemId || designSystemId === 'none') {
             return message;
@@ -165,20 +153,20 @@ Changed background to blue${designSystemNote}.
 
         return `${message}
 
-[Design System: ${designSystem.displayName}]`;
+[Design System: ${designSystem.name}]`;
     }
 
-   
+
     getDesignSystemDisplayName(designSystemId?: string): string {
         if (!designSystemId || designSystemId === 'none') {
             return 'None';
         }
 
         const designSystem = getDesignSystemById(designSystemId);
-        return designSystem?.displayName ?? 'None';
+        return designSystem?.name ?? 'None';
     }
 
-    
+
     private getDesignSystemNote(designSystemId?: string): string {
         if (!designSystemId || designSystemId === 'none') {
             return '';

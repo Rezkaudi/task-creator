@@ -1,45 +1,34 @@
 import OpenAI from 'openai';
-import fs from 'fs';
-import path from 'path';
 
 import { IExtractTasks } from '../../domain/services/IExtractTasks';
-import { ENV_CONFIG } from '../config/env.config';
 import { Task } from '../../domain/entities/task.entity';
 import { FigmaDesign } from '../../domain/entities/figma-design.entity';
+import { getModelById } from '../config/ai-models.config';
+import { meetingToTasksPrompt, tasksToDesignSystemPrompt } from '../config/prompt.config';
 
-export class GPTExtractTasksService implements IExtractTasks {
+export class AiExtractTasksService implements IExtractTasks {
     private openai: OpenAI;
-    private systemTasksPrompt: string;
-    private systemDesignPrompt: string;
+    private model = getModelById('o3');
 
     constructor() {
         this.openai = new OpenAI({
-            apiKey: ENV_CONFIG.OPENAI_API_KEY,
+            baseURL: this.model.baseURL,
+            apiKey: this.model.apiKey,
         });
-
-        this.systemTasksPrompt = fs.readFileSync(
-            path.join(__dirname, '../../../public/prompt/meeting-to-tasks-prompt-v1.txt'),
-            'utf-8'
-        );
-
-        this.systemDesignPrompt = fs.readFileSync(
-            path.join(__dirname, '../../../public/prompt/tasks-to-design-prompt.txt'),
-            'utf-8'
-        );
     }
 
     async extractTasksFromText(text: string): Promise<Task[]> {
         try {
             console.log('🤖 Calling OpenAI API...');
             console.log("text :", this.cleanText(text))
-            console.log("systemTasksPrompt :", this.cleanText(this.systemTasksPrompt))
+            console.log("meetingToTasksPrompt :", this.cleanText(meetingToTasksPrompt))
 
 
             const completion = await this.openai.chat.completions.create({
-                model: ENV_CONFIG.OPENAI_MODEL,
+                model: this.model.id,
                 messages: [
                     {
-                        role: 'system', content: this.cleanText(this.systemTasksPrompt)
+                        role: 'system', content: this.cleanText(meetingToTasksPrompt)
                     },
                     {
                         role: 'user', content: this.cleanText(text)
@@ -94,10 +83,14 @@ export class GPTExtractTasksService implements IExtractTasks {
             console.log('📝 User prompt:', userPrompt.substring(0, 200) + '...');
 
             const completion = await this.openai.chat.completions.create({
-                model: ENV_CONFIG.OPENAI_MODEL,
+                model: this.model.id,
                 messages: [
-                    { role: 'system', content: this.cleanText(this.systemDesignPrompt) },
-                    { role: 'user', content: this.cleanText(userPrompt) },
+                    {
+                        role: 'system', content: this.cleanText(tasksToDesignSystemPrompt)
+                    },
+                    {
+                        role: 'user', content: this.cleanText(userPrompt)
+                    },
                 ],
                 response_format: { type: 'json_object' },
                 // temperature: 0.3,

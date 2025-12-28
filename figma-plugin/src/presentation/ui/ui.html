@@ -171,49 +171,50 @@ Example format:
     <div class="model-btn-icon">🤖</div>
     <span class="model-btn-text">GPT-4</span>
   </div>
-<div id="design-system-floating-btn" class="model-floating-btn" style="bottom: 140px;">
-  <div class="model-btn-icon">🎨</div>
-  <span class="design-system-btn-text">Material 3</span>
-</div>
-
-<div id="design-system-panel" class="model-panel">
-  <div class="model-panel-header">
-    <h3>🎨 Select Design System</h3>
-    <button id="close-design-system-panel" class="close-model-panel">×</button>
+  <div id="design-system-floating-btn" class="model-floating-btn" style="bottom: 140px;">
+    <div class="model-btn-icon">🎨</div>
+    <span class="design-system-btn-text">None</span>
   </div>
-  
-  <div id="design-system-list" class="model-list">
-    <div class="model-loading">
-      <div class="loading-spinner"></div>
-      <span>Loading design systems...</span>
+
+  <div id="design-system-panel" class="model-panel">
+    <div class="model-panel-header">
+      <h3>🎨 Select Design System</h3>
+      <button id="close-design-system-panel" class="close-model-panel">×</button>
+    </div>
+
+    <div id="design-system-list" class="model-list">
+      <div class="model-loading">
+        <div class="loading-spinner"></div>
+        <span>Loading design systems...</span>
+      </div>
+    </div>
+
+    <div class="model-panel-footer">
+      <span id="selected-design-system-info">Currently using: <span id="current-design-system-name">Material Design
+          3</span></span>
+      <div id="design-system-status" class="model-status"></div>
     </div>
   </div>
-  
-  <div class="model-panel-footer">
-    <span id="selected-design-system-info">Currently using: <span id="current-design-system-name">Material Design 3</span></span>
-    <div id="design-system-status" class="model-status"></div>
-  </div>
-</div>
 
   <!-- Model Selection Panel (hidden initially) -->
-<div id="model-panel" class="model-panel">
-  <div class="model-panel-header">
-    <h3>🤖 Select AI Model</h3>
-    <button id="close-model-panel" class="close-model-panel">×</button>
-  </div>
-  
-  <div id="model-list" class="model-list">
-    <div class="model-loading">
-      <div class="loading-spinner"></div>
-      <span>Loading AI models...</span>
+  <div id="model-panel" class="model-panel">
+    <div class="model-panel-header">
+      <h3>🤖 Select AI Model</h3>
+      <button id="close-model-panel" class="close-model-panel">×</button>
+    </div>
+
+    <div id="model-list" class="model-list">
+      <div class="model-loading">
+        <div class="loading-spinner"></div>
+        <span>Loading AI models...</span>
+      </div>
+    </div>
+
+    <div class="model-panel-footer">
+      <span id="selected-model-info">Currently using: <span id="current-model-name">GPT-4</span></span>
+      <div id="model-status" class="model-status"></div>
     </div>
   </div>
-  
-  <div class="model-panel-footer">
-    <span id="selected-model-info">Currently using: <span id="current-model-name">GPT-4</span></span>
-    <div id="model-status" class="model-status"></div>
-  </div>
-</div>
 
   <!-- Backdrop for model panel -->
   <div id="model-panel-backdrop" class="model-panel-backdrop"></div>
