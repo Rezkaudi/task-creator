@@ -5,6 +5,7 @@ import { AddTasksToTrelloUseCase } from "../../../application/use-cases/add-task
 import { GenerateDesignUseCase } from "../../../application/use-cases/generate-design.use-case";
 
 import { TaskExtractionResponse } from "../../../application/dto/task.dto.enhanced";
+import { FigmaDesign } from "../../../domain/entities/figma-design.entity";
 
 // SIMPLE IN-MEMORY STORAGE 
 let latestDesignData: any = null;
@@ -43,7 +44,7 @@ export class TaskController {
             console.log(`🎯 Created ${createdCards.length} cards in Trello`);
 
             // Step 3: Automatically generate Figma design if requested
-            let designData = null;
+            let designData: FigmaDesign[] = [];
             if (generateDesign) {
                 try {
                     console.log('🎨 Automatically generating Figma design...');

@@ -203,7 +203,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                 { role: 'user', content: prompt }
             ],
             max_completion_tokens: aiModel.maxTokens,
-            temperature: 0.7,
         });
 
         const htmlContent = completion.choices[0]?.message?.content;
