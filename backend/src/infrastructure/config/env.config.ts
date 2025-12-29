@@ -7,6 +7,7 @@ export const ENV_CONFIG = {
     CLAUDE_API_KEY: process.env.CLAUDE_API_KEY!,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY!,
     HAMGINGFACE_API_KEY: process.env.HAMGINGFACE_API_KEY!,
+    OPEN_ROUTER_API_KEY: process.env.OPEN_ROUTER_API_KEY!,
 
     // Trello API Configuration
     TRELLO_API_BASE_URL: 'https://api.trello.com/1',

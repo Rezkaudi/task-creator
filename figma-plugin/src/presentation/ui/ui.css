@@ -104,7 +104,7 @@ textarea.valid:not(.design-preview textarea) {
 }
 
 button:not(.design-preview button) {
-    flex: 1;
+    /* flex: 1; */
     padding: 12px 24px;
     border: none;
     border-radius: 8px;
@@ -1246,6 +1246,30 @@ button:disabled:not(.design-preview button) {
 
 .model-list {
     padding: 8px;
+    max-height: 300px;
+    /* Adjust this value as needed */
+    overflow-y: auto;
+    min-height: 0;
+    /* Important for flex containers */
+}
+
+/* Optional: Style the scrollbar */
+.model-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.model-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.model-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.model-list::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
 }
 
 .model-item {

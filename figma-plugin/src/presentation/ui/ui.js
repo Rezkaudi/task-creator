@@ -1437,8 +1437,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Helper function (keep existing)
 async function callBackendForClaude(userPrompt) {
-    // const controller = new AbortController();
-    // const timeoutId = setTimeout(() => controller.abort(), 120000);
     try {
         const response = await fetch(`${API_BASE_URL}/api/designs/generate-from-text`, {
             method: 'POST',
@@ -1450,7 +1448,6 @@ async function callBackendForClaude(userPrompt) {
             }),
             signal: controller.signal
         });
-        // clearTimeout(timeoutId);
         if (!response.ok) {
             let errorMessage = `Server error: ${response.status}`;
             try { const err = await response.json(); errorMessage = err.message || err.error || errorMessage; } catch (e) { }
