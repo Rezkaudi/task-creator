@@ -156,7 +156,7 @@ export class PluginMessageHandler {
 
       const selectedModel = model || 'gpt-4'; // Default to GPT-4
 
-      const fetchPromise = fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
+      const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -167,12 +167,6 @@ export class PluginMessageHandler {
           designSystemId: designSystemId // Pass the selected model to backend
         })
       });
-
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout after 480 seconds')), 480000);
-      });
-
-      const response = await Promise.race([fetchPromise, timeoutPromise]);
 
       if (!response.ok) {
         let errorMessage = `Server error: ${response.status}`;
@@ -217,7 +211,7 @@ export class PluginMessageHandler {
 
       const selectedModel = model || 'gpt-4'; // Default to GPT-4
 
-      const fetchPromise = fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
+      const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -227,12 +221,6 @@ export class PluginMessageHandler {
           designSystemId: designSystemId
         })
       });
-
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout after 240 seconds')), 240000);
-      });
-
-      const response = await Promise.race([fetchPromise, timeoutPromise]);
 
       if (!response.ok) {
         let errorMessage = `Server error: ${response.status}`;

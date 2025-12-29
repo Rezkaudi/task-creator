@@ -2,8 +2,8 @@
  * Plugin configuration constants
  */
 export const PluginConfig = {
-  UI_WIDTH: 580,
-  UI_HEIGHT: 780,
+  UI_WIDTH: 780,
+  UI_HEIGHT: 900,
   THEME_COLORS: true,
 } as const;
 
@@ -11,9 +11,9 @@ export const PluginConfig = {
  * API Configuration
  */
 export const ApiConfig = {
-  BASE_URL: 'https://task-creator-api.onrender.com',
+  // BASE_URL: 'https://task-creator-api.onrender.com',
   // For local development, use:
-  //BASE_URL: 'http://localhost:5000',
+  BASE_URL: 'http://localhost:5000',
 } as const;
 
 /**

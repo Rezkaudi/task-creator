@@ -44,7 +44,7 @@ export class AiGenerateDesignService implements IAiDesignService {
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: enrichedPrompt }
                 ],
-                max_completion_tokens: aiModel.maxTokens,
+                // max_completion_tokens: aiModel.maxTokens,
                 response_format: { type: 'json_object' },
             });
 
@@ -85,7 +85,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                max_completion_tokens: aiModel.maxTokens,
+                // max_completion_tokens: aiModel.maxTokens,
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -146,7 +146,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                max_completion_tokens: aiModel.maxTokens,
+                // max_completion_tokens: aiModel.maxTokens,
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -202,7 +202,7 @@ export class AiGenerateDesignService implements IAiDesignService {
                 },
                 { role: 'user', content: prompt }
             ],
-            max_completion_tokens: aiModel.maxTokens,
+            // max_completion_tokens: aiModel.maxTokens,
         });
 
         const htmlContent = completion.choices[0]?.message?.content;

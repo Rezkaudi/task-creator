@@ -63,6 +63,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.GEMINI_API_KEY,
     baseURL: "https://generativelanguage.googleapis.com/v1beta"
   },
+
+  // huggingface
   {
     id: 'deepseek-ai/DeepSeek-V3.2:novita',
     name: 'DeepSeek-V3.2:novita',
@@ -82,7 +84,329 @@ export const AI_MODELS: AIModelConfig[] = [
     baseURL: "https://router.huggingface.co/v1"
   },
 
+  // openrouter
+  {
+    id: 'allenai/olmo-3.1-32b-think:free',
+    name: 'Olmo-3.1-32b-Think',
+    description: 'Fast & efficient',
+    icon: 'OL',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'xiaomi/mimo-v2-flash:free',
+    name: 'Mimo-V2-Flash',
+    description: 'Fast & efficient',
+    icon: 'MI',
+    maxTokens: 262144,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'nvidia/nemotron-3-nano-30b-a3b:free',
+    name: 'Nemotron-3-Nano-30B-A3B',
+    description: 'Fast & efficient',
+    icon: 'NM',
+    maxTokens: 262144,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'mistralai/devstral-2512:free',
+    name: 'Devstral-2512',
+    description: 'Fast & efficient',
+    icon: 'DS',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'nex-agi/deepseek-v3.1-nex-n1:free',
+    name: 'DeepSeek-V3.1-Nex-N1',
+    description: 'Fast & efficient',
+    icon: 'DS',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'arcee-ai/trinity-mini:free',
+    name: 'Trinity-Mini',
+    description: 'Fast & efficient',
+    icon: 'TR',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'tngtech/tng-r1t-chimera:free',
+    name: 'TNG-R1T-Chimera',
+    description: 'Fast & efficient',
+    icon: 'TR',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'allenai/olmo-3-32b-think:free',
+    name: 'Olmo-3-32b-Think',
+    description: 'Fast & efficient',
+    icon: 'OL',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'kwaipilot/kat-coder-pro:free',
+    name: 'Kat-Coder-Pro',
+    description: 'Fast & efficient',
+    icon: 'KC',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'nvidia/nemotron-nano-12b-v2-vl:free',
+    name: 'Nemotron-Nano-12B-V2-VL',
+    description: 'Fast & efficient',
+    icon: 'NM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'alibaba/tongyi-deepresearch-30b-a3b:free',
+    name: 'Tongyi-DeepResearch-30B-A3B',
+    description: 'Fast & efficient',
+    icon: 'TY',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'nvidia/nemotron-nano-9b-v2:free',
+    name: 'Nemotron-Nano-9B-V2',
+    description: 'Fast & efficient',
+    icon: 'NM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'openai/gpt-oss-120b:free',
+    name: 'GPT-OSS-120B',
+    description: 'Fast & efficient',
+    icon: 'GO',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'openai/gpt-oss-20b:free',
+    name: 'GPT-OSS-20B',
+    description: 'Fast & efficient',
+    icon: 'GO',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'z-ai/glm-4.5-air:free',
+    name: 'GLM-4.5-Air',
+    description: 'Fast & efficient',
+    icon: 'GL',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'qwen/qwen3-coder:free',
+    name: 'Qwen3-Coder',
+    description: 'Fast & efficient',
+    icon: 'QW',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'moonshotai/kimi-k2:free',
+    name: 'Kimi-K2',
+    description: 'Fast & efficient',
+    icon: 'KM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+    name: 'Dolphin-Mistral-24B-Venice-Edition',
+    description: 'Fast & efficient',
+    icon: 'DM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'google/gemma-3n-e2b-it:free',
+    name: 'Gemma-3N-E2B-IT',
+    description: 'Fast & efficient',
+    icon: 'GM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'tngtech/deepseek-r1t2-chimera:free',
+    name: 'Deepseek-R1T2-Chimera',
+    description: 'Fast & efficient',
+    icon: 'DS',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'deepseek/deepseek-r1-0528:free',
+    name: 'Deepseek-R1-0528',
+    description: 'Fast & efficient',
+    icon: 'DS',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'google/gemma-3n-e4b-it:free',
+    name: 'Gemma-3N-E4B-IT',
+    description: 'Fast & efficient',
+    icon: 'GM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'qwen/qwen3-4b:free',
+    name: 'Qwen3-4B',
+    description: 'Fast & efficient',
+    icon: 'QW',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'tngtech/deepseek-r1t-chimera:free',
+    name: 'Deepseek-R1T-Chimera',
+    description: 'Fast & efficient',
+    icon: 'DS',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'mistralai/mistral-small-3.1-24b-instruct:free',
+    name: 'Mistral-Small-3.1-24B-Instruct',
+    description: 'Fast & efficient',
+    icon: 'MS',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'google/gemma-3-4b-it:free',
+    name: 'Gemma-3-4B-IT',
+    description: 'Fast & efficient',
+    icon: 'GM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'google/gemma-3-12b-it:free',
+    name: 'Gemma-3-12B-IT',
+    description: 'Fast & efficient',
+    icon: 'GM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'google/gemma-3-27b-it:free',
+    name: 'Gemma-3-27B-IT',
+    description: 'Fast & efficient',
+    icon: 'GM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'google/gemini-2.0-flash-exp:free',
+    name: 'Gemini-2.0-Flash-Exp',
+    description: 'Fast & efficient',
+    icon: 'GM',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'meta-llama/llama-3.3-70b-instruct:free',
+    name: 'Llama-3.3-70B-Instruct',
+    description: 'Fast & efficient',
+    icon: 'LL',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'meta-llama/llama-3.2-3b-instruct:free',
+    name: 'Llama-3.2-3B-Instruct',
+    description: 'Fast & efficient',
+    icon: 'LL',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'qwen/qwen-2.5-vl-7b-instruct:free',
+    name: 'Qwen-2.5-VL-7B-Instruct',
+    description: 'Fast & efficient',
+    icon: 'QW',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'nousresearch/hermes-3-llama-3.1-405b:free',
+    name: 'Hermes-3-Llama-3.1-405B',
+    description: 'Fast & efficient',
+    icon: 'HR',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'meta-llama/llama-3.1-405b-instruct:free',
+    name: 'Llama-3.1-405B-Instruct',
+    description: 'Fast & efficient',
+    icon: 'LL',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  },
+  {
+    id: 'mistralai/mistral-7b-instruct:free',
+    name: 'Mistral-7B-Instruct',
+    description: 'Fast & efficient',
+    icon: 'MS',
+    maxTokens: 65536,
+    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1"
+  }
 ];
+
+
+
+
+
+
 
 export function getModels() {
   return AI_MODELS.map(model => ({
