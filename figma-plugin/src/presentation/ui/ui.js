@@ -918,6 +918,7 @@ async function loadVersions() {
         hideStatus();
     } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
+        setTimeout(hideStatus, 2000);
         versionsList.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">⚠️</div>
@@ -1381,6 +1382,7 @@ window.onmessage = async (event) => {
             removeLoadingMessages();
             addMessage('assistant', `Error: ${msg.error}`);
             showStatus(`❌ ${msg.error}`, 'error');
+            setTimeout(hideStatus, 2000);
             break;
 
         case 'import-success':
