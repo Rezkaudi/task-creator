@@ -154,7 +154,7 @@ export class PluginMessageHandler {
         this.conversationHistory = history;
       }
 
-      const selectedModel = model || 'gpt-4'; // Default to GPT-4
+      const selectedModel = model || 'gpt-4.1'; // Default to GPT-4.1
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
         method: 'POST',
@@ -209,7 +209,7 @@ export class PluginMessageHandler {
         this.conversationHistory = history;
       }
 
-      const selectedModel = model || 'gpt-4'; // Default to GPT-4
+      const selectedModel = model || 'gpt-4.1'; // Default to GPT-4.1
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
         method: 'POST',

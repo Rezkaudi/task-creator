@@ -11,7 +11,7 @@ let selectedVersionId = null;
 let versionsCache = [];
 
 // Model & Design System state
-let currentModel = 'gpt-4';
+let currentModel = 'gpt-4.1';
 let availableModels = [];
 let currentDesignSystem = 'none';
 let availableDesignSystems = [];
@@ -413,7 +413,7 @@ function showChatInterface() {
     // Welcome message
     const model = availableModels.find(m => m.id === currentModel);
     const system = availableDesignSystems.find(s => s.id === currentDesignSystem);
-    const modelName = model ? model.name : 'GPT-4';
+    const modelName = model ? model.name : 'GPT-4.1';
     const systemName = system ? system.name : 'None';
 
     let welcomeMessage;
