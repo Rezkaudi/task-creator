@@ -1,5 +1,7 @@
 // src/domain/services/IAiDesignService.ts
 
+import { CostBreakdown } from "./IAiCostCanculator";
+
 export interface ConversationMessage {
     role: string;
     content: string;
@@ -9,6 +11,7 @@ export interface DesignGenerationResult {
     message: string;
     design: any;
     previewHtml?: string | null;
+    cost: CostBreakdown;
 }
 
 /**

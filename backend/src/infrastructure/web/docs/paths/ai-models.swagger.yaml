@@ -20,7 +20,7 @@
       - **icon**: Visual icon for UI display
 
       ## Default Model:
-      The default model is `gpt-4` if no model is specified.
+      The default model is `gpt-4.1` if no model is specified.
     operationId: getAIModels
     security:
       - ApiKeyAuth: []

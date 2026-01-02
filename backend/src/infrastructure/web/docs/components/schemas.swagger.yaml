@@ -482,13 +482,13 @@ components:
       properties:
         id:
           type: string
-          example: "gpt-4"
+          example: "gpt-4.1"
           description: "Unique identifier for the AI model"
           minLength: 1
           maxLength: 100
         name:
           type: string
-          example: "GPT-4"
+          example: "GPT-4.1"
           description: "Display name of the AI model"
           minLength: 1
           maxLength: 50
@@ -545,7 +545,7 @@ components:
       properties:
         modelId:
           type: string
-          example: "gpt-4"
+          example: "gpt-4.1"
           description: "ID of the AI model to use"
           enum:
             [

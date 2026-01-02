@@ -19,7 +19,8 @@ export class DesignController {
             res.status(200).json({
                 success: true,
                 message: 'Design generated successfully',
-                design: designData,
+                design: designData.design,
+                cost: designData.cost,
                 metadata: {
                     model: modelId,
                     designSystem: designSystemId
@@ -57,6 +58,7 @@ export class DesignController {
                 message: result.message,
                 design: result.design,
                 previewHtml: result.previewHtml,
+                cost: result.cost,
                 metadata: {
                     model: modelId,
                     designSystem: designSystemId
@@ -95,6 +97,7 @@ export class DesignController {
                 message: result.message,
                 design: result.design,
                 previewHtml: result.previewHtml,
+                cost: result.cost,
                 metadata: {
                     model: modelId,
                     designSystem: designSystemId

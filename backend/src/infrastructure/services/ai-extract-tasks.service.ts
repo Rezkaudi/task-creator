@@ -5,12 +5,15 @@ import { Task } from '../../domain/entities/task.entity';
 import { FigmaDesign } from '../../domain/entities/figma-design.entity';
 import { getModelById } from '../config/ai-models.config';
 import { meetingToTasksPrompt, tasksToDesignSystemPrompt } from '../config/prompt.config';
+import { IAiCostCalculator } from '../../domain/services/IAiCostCanculator';
 
 export class AiExtractTasksService implements IExtractTasks {
     private openai: OpenAI;
     private model = getModelById('o3');
+    private costCalculator: IAiCostCalculator;
 
-    constructor() {
+    constructor(costCalculator: IAiCostCalculator) {
+        this.costCalculator = costCalculator;
         this.openai = new OpenAI({
             baseURL: this.model.baseURL,
             apiKey: this.model.apiKey,
