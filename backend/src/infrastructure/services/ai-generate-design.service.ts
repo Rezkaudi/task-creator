@@ -4,6 +4,7 @@ import { AIModelConfig, getModelById } from '../config/ai-models.config';
 import { PromptBuilderService } from './prompt-builder.service';
 import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../domain/services/IAiDesignService';
 import { htmlPreviewPrompt } from '../config/prompt.config';
+import { CostBreakdown, IAiCostCalculator } from '../../domain/services/IAiCostCanculator';
 
 interface AiMessage {
     role: 'system' | 'user' | 'assistant';
@@ -12,9 +13,11 @@ interface AiMessage {
 
 export class AiGenerateDesignService implements IAiDesignService {
     private promptBuilder: PromptBuilderService;
+    private costCalculator: IAiCostCalculator;
 
-    constructor(promptBuilderService: PromptBuilderService) {
+    constructor(promptBuilderService: PromptBuilderService, costCalculator: IAiCostCalculator) {
         this.promptBuilder = promptBuilderService;
+        this.costCalculator = costCalculator;
     }
 
     async generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any> {
@@ -36,6 +39,8 @@ export class AiGenerateDesignService implements IAiDesignService {
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
+                timeout: 120000, // Increase to 30 seconds
+                // maxRetries: 3,  // Add retry logic
             });
 
             const completion = await openai.chat.completions.create({
@@ -49,13 +54,30 @@ export class AiGenerateDesignService implements IAiDesignService {
             });
 
             const responseText = completion.choices[0]?.message?.content;
+            const usage = completion.usage;
+
             if (!responseText) {
                 throw new Error("GPT API returned empty response.");
             }
-            console.log("responseText", responseText);
 
+            console.log("responseText", responseText);
             const jsonDesign = JSON.parse(responseText);
-            return jsonDesign;
+
+            // Calculate cost
+            let costBreakdown: CostBreakdown | null = null;
+            if (usage) {
+                costBreakdown = this.costCalculator.calculateCost(
+                    aiModel,
+                    usage.prompt_tokens || this.costCalculator.estimateTokens(systemPrompt + enrichedPrompt),
+                    usage.completion_tokens || this.costCalculator.estimateTokens(responseText)
+                );
+                console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
+            }
+
+            return {
+                design: jsonDesign,
+                cost: costBreakdown
+            };
 
         } catch (error) {
             console.error("An error occurred in generateDesign:", error);
@@ -78,6 +100,8 @@ export class AiGenerateDesignService implements IAiDesignService {
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
+                timeout: 120000, // Increase to 30 seconds
+                // maxRetries: 3,  // Add retry logic
             });
 
             console.log("--- 1. Sending Conversation to GPT for JSON ---");
@@ -97,10 +121,16 @@ export class AiGenerateDesignService implements IAiDesignService {
             const aiMessage = this.extractMessageFromResponse(responseText);
 
             let previewHtml: string | null = null;
+            let inputTokensForPreview = 0;
+            let outputTokensForPreview = 0;
+
             if (designData) {
                 try {
                     console.log("--- 3. Requesting HTML preview ---");
-                    previewHtml = await this.generateHtmlPreview(designData, openai, aiModel);
+                    const { design, inputTokens, outputTokens } = await this.generateHtmlPreview(designData, openai, aiModel);
+                    previewHtml = design
+                    inputTokensForPreview = inputTokens;
+                    outputTokensForPreview = outputTokens;
                     console.log("--- 4. HTML Preview Generated ---");
                 } catch (previewError) {
                     console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
@@ -108,10 +138,29 @@ export class AiGenerateDesignService implements IAiDesignService {
                 }
             }
 
+            // Calculate cost
+            let costBreakdown: CostBreakdown | null = null;
+            const usage = completion.usage;
+
+            if (usage) {
+                costBreakdown = this.costCalculator.calculateCost(
+                    aiModel,
+                    usage.prompt_tokens + inputTokensForPreview,
+                    usage.completion_tokens + outputTokensForPreview
+                );
+                console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
+            } else {
+                // Estimate tokens if usage not available
+                const inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages) + inputTokensForPreview);
+                const outputTokens = this.costCalculator.estimateTokens(responseText + outputTokensForPreview);
+                costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
+            }
+
             return {
                 message: aiMessage,
                 design: designData,
-                previewHtml: previewHtml
+                previewHtml: previewHtml,
+                cost: costBreakdown
             };
 
         } catch (error) {
@@ -141,6 +190,8 @@ export class AiGenerateDesignService implements IAiDesignService {
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
+                timeout: 120000, // Increase to 30 seconds
+                // maxRetries: 3,  // Add retry logic
             });
 
             const completion = await openai.chat.completions.create({
@@ -166,10 +217,16 @@ export class AiGenerateDesignService implements IAiDesignService {
             const aiMessage = this.extractMessageFromResponse(responseText);
 
             let previewHtml: string | null = null;
+            let inputTokensForPreview = 0;
+            let outputTokensForPreview = 0;
+
             if (designData) {
                 try {
                     console.log("--- 3. Requesting HTML preview for edited design ---");
-                    previewHtml = await this.generateHtmlPreview(designData, openai, aiModel);
+                    const { design, inputTokens, outputTokens } = await this.generateHtmlPreview(designData, openai, aiModel);
+                    previewHtml = design
+                    inputTokensForPreview = inputTokens;
+                    outputTokensForPreview = outputTokens;
                     console.log("--- 4. HTML Preview Generated ---");
                 } catch (previewError) {
                     console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
@@ -177,10 +234,29 @@ export class AiGenerateDesignService implements IAiDesignService {
                 }
             }
 
+            // Calculate cost
+            let costBreakdown: CostBreakdown | null = null;
+            const usage = completion.usage;
+
+            if (usage) {
+                costBreakdown = this.costCalculator.calculateCost(
+                    aiModel,
+                    usage.prompt_tokens + inputTokensForPreview,
+                    usage.completion_tokens + outputTokensForPreview
+                );
+                console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
+            } else {
+                // Estimate tokens if usage not available
+                const inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages) + inputTokensForPreview);
+                const outputTokens = this.costCalculator.estimateTokens(responseText + outputTokensForPreview);
+                costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
+            }
+
             return {
                 message: aiMessage,
                 design: designData,
-                previewHtml: previewHtml
+                previewHtml: previewHtml,
+                cost: costBreakdown
             };
 
         } catch (error) {
@@ -189,19 +265,20 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
     }
 
-    private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<string> {
+    private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<{ design: string, inputTokens: number, outputTokens: number }> {
 
         const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
+        const messages: AiMessage[] = [
+            {
+                role: 'system',
+                content: "You are an expert at converting design JSON into a single, clean HTML block with inline CSS for preview purposes. You only output raw HTML code."
+            },
+            { role: 'user', content: prompt }
+        ]
 
         const completion = await openai.chat.completions.create({
             model: aiModel.id,
-            messages: [
-                {
-                    role: 'system',
-                    content: "You are an expert at converting design JSON into a single, clean HTML block with inline CSS for preview purposes. You only output raw HTML code."
-                },
-                { role: 'user', content: prompt }
-            ],
+            messages: messages,
             // max_completion_tokens: aiModel.maxTokens,
         });
 
@@ -217,7 +294,23 @@ export class AiGenerateDesignService implements IAiDesignService {
             cleaned = cleaned.substring(3, cleaned.length - 3).trim();
         }
 
-        return cleaned;
+        // Calculate cost
+
+        let inputTokens: number = 0
+        let outputTokens: number = 0
+
+        const usage = completion.usage
+
+        if (usage) {
+            inputTokens = usage.prompt_tokens;
+            outputTokens = usage.completion_tokens;
+        } else {
+            // Estimate tokens if usage not available
+            inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages));
+            outputTokens = this.costCalculator.estimateTokens(htmlContent);
+        }
+
+        return { design: cleaned, inputTokens, outputTokens };
     }
 
     private buildConversationMessages(
@@ -289,8 +382,6 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         return messages;
     }
-
-
 
     private extractDesignFromResponse(response: string): any {
         try {

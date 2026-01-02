@@ -8,9 +8,12 @@ export interface AIModelConfig {
   maxTokens: number;
   apiKey: string;
   baseURL: string;
+  // Pricing in USD per million tokens
+  inputPricePerMillion: number;
+  outputPricePerMillion: number;
 }
 
-export const DEFAULT_MODEL_ID = 'gpt-4'; // default model
+export const DEFAULT_MODEL_ID = 'gpt-4.1'; // default model
 
 export const AI_MODELS: AIModelConfig[] = [
   // paid
@@ -22,17 +25,30 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 128000,
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
-
+    inputPricePerMillion: 1.75,
+    outputPricePerMillion: 14.00
   },
   {
-    id: 'gpt-4',
-    name: 'GPT-4',
+    id: 'gpt-5',
+    name: 'GPT-5',
+    description: 'Best overall quality',
+    icon: 'GPT',
+    maxTokens: 128000,
+    apiKey: ENV_CONFIG.OPENAI_API_KEY,
+    baseURL: "https://api.openai.com/v1",
+    inputPricePerMillion: 1.25,
+    outputPricePerMillion: 10.00
+  },
+  {
+    id: 'gpt-4.1',
+    name: 'GPT-4.1',
     description: 'Best overall quality',
     icon: 'GPT',
     maxTokens: 16384,
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
-
+    inputPricePerMillion: 2.00,
+    outputPricePerMillion: 8.00
   },
   {
     id: 'o3',
@@ -42,15 +58,19 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 16384,
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
+    inputPricePerMillion: 2.00,
+    outputPricePerMillion: 8.00
   },
   {
     id: 'claude-sonnet-4-20250514',
     name: 'Claude',
     description: 'Detailed & contextual',
     icon: 'Cl',
-    maxTokens: 64000,
+    maxTokens: 12800,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
-    baseURL: "https://api.anthropic.com/v1"
+    baseURL: "https://api.anthropic.com/v1",
+    inputPricePerMillion: 3.00,
+    outputPricePerMillion: 15.00
   },
 
   // free
@@ -61,7 +81,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'Gem',
     maxTokens: 128000,
     apiKey: ENV_CONFIG.GEMINI_API_KEY,
-    baseURL: "https://generativelanguage.googleapis.com/v1beta"
+    baseURL: "https://generativelanguage.googleapis.com/v1beta",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
 
   // huggingface
@@ -72,7 +94,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'DS',
     maxTokens: 64000,
     apiKey: ENV_CONFIG.HAMGINGFACE_API_KEY,
-    baseURL: "https://router.huggingface.co/v1"
+    baseURL: "https://router.huggingface.co/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'Qwen/Qwen2.5-7B-Instruct',
@@ -81,7 +105,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'QW',
     maxTokens: 64000,
     apiKey: ENV_CONFIG.HAMGINGFACE_API_KEY,
-    baseURL: "https://router.huggingface.co/v1"
+    baseURL: "https://router.huggingface.co/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
 
   // openrouter
@@ -92,7 +118,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'OL',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'xiaomi/mimo-v2-flash:free',
@@ -101,7 +129,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'MI',
     maxTokens: 262144,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'nvidia/nemotron-3-nano-30b-a3b:free',
@@ -110,7 +140,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'NM',
     maxTokens: 262144,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'mistralai/devstral-2512:free',
@@ -119,7 +151,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'DS',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'nex-agi/deepseek-v3.1-nex-n1:free',
@@ -128,7 +162,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'DS',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'arcee-ai/trinity-mini:free',
@@ -137,7 +173,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'TR',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'tngtech/tng-r1t-chimera:free',
@@ -146,7 +184,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'TR',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'allenai/olmo-3-32b-think:free',
@@ -155,7 +195,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'OL',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'kwaipilot/kat-coder-pro:free',
@@ -164,7 +206,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'KC',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'nvidia/nemotron-nano-12b-v2-vl:free',
@@ -173,7 +217,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'NM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'alibaba/tongyi-deepresearch-30b-a3b:free',
@@ -182,7 +228,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'TY',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'nvidia/nemotron-nano-9b-v2:free',
@@ -191,7 +239,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'NM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'openai/gpt-oss-120b:free',
@@ -200,7 +250,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GO',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'openai/gpt-oss-20b:free',
@@ -209,7 +261,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GO',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'z-ai/glm-4.5-air:free',
@@ -218,7 +272,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GL',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'qwen/qwen3-coder:free',
@@ -227,7 +283,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'QW',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'moonshotai/kimi-k2:free',
@@ -236,7 +294,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'KM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
@@ -245,7 +305,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'DM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'google/gemma-3n-e2b-it:free',
@@ -254,7 +316,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'tngtech/deepseek-r1t2-chimera:free',
@@ -263,7 +327,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'DS',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'deepseek/deepseek-r1-0528:free',
@@ -272,7 +338,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'DS',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'google/gemma-3n-e4b-it:free',
@@ -281,7 +349,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'qwen/qwen3-4b:free',
@@ -290,7 +360,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'QW',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'tngtech/deepseek-r1t-chimera:free',
@@ -299,7 +371,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'DS',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'mistralai/mistral-small-3.1-24b-instruct:free',
@@ -308,7 +382,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'MS',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'google/gemma-3-4b-it:free',
@@ -317,7 +393,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'google/gemma-3-12b-it:free',
@@ -326,7 +404,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'google/gemma-3-27b-it:free',
@@ -335,7 +415,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'google/gemini-2.0-flash-exp:free',
@@ -344,7 +426,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'GM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'meta-llama/llama-3.3-70b-instruct:free',
@@ -353,7 +437,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'LL',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'meta-llama/llama-3.2-3b-instruct:free',
@@ -362,7 +448,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'LL',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'qwen/qwen-2.5-vl-7b-instruct:free',
@@ -371,7 +459,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'QW',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'nousresearch/hermes-3-llama-3.1-405b:free',
@@ -380,7 +470,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'HR',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'meta-llama/llama-3.1-405b-instruct:free',
@@ -389,7 +481,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'LL',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'mistralai/mistral-7b-instruct:free',
@@ -398,7 +492,9 @@ export const AI_MODELS: AIModelConfig[] = [
     icon: 'MS',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1"
+    baseURL: "https://openrouter.ai/api/v1",
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   }
 ];
 

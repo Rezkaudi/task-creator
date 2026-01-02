@@ -5,6 +5,7 @@ import { TrelloService } from "../../services/trello.service";
 import { AiExtractTasksService } from "../../services/ai-extract-tasks.service";
 import { AiGenerateDesignService } from "../../services/ai-generate-design.service";
 import { PromptBuilderService } from "../../services/prompt-builder.service";
+import { AiCostCalculatorService } from "../../services/ai-cost.calculator.service";
 
 // Repositories
 import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-version.repository";
@@ -38,9 +39,10 @@ export const setupDependencies = () => {
     // Services
     const trelloService = new TrelloService();
     const promptBuilderService = new PromptBuilderService();
-    const aiExtractTasksService = new AiExtractTasksService();
+    const aiCostCalculatorService = new AiCostCalculatorService()
     const designVersionRepository = new TypeORMDesignVersionRepository();
-    const defaultAiDesignService = new AiGenerateDesignService(promptBuilderService);
+    const aiExtractTasksService = new AiExtractTasksService(aiCostCalculatorService);
+    const defaultAiDesignService = new AiGenerateDesignService(promptBuilderService, aiCostCalculatorService);
 
     // Use Cases - Tasks
     const getBoardListsUseCase = new GetBoardListsUseCase(trelloService);
