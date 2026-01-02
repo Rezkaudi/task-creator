@@ -32,7 +32,6 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             console.log(`🎨 Generating design with GPT-4${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
 
-
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
@@ -44,7 +43,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: enrichedPrompt }
                 ],
-                // max_completion_tokens: aiModel.maxTokens,
                 response_format: { type: 'json_object' },
             });
 
@@ -81,11 +79,11 @@ export class AiGenerateDesignService implements IAiDesignService {
             });
 
             console.log("--- 1. Sending Conversation to GPT for JSON ---");
+            console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
 
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                // max_completion_tokens: aiModel.maxTokens,
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -146,7 +144,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                // max_completion_tokens: aiModel.maxTokens,
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -189,7 +186,11 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
     }
 
-    private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<string> {
+    private async generateHtmlPreview(
+        designJson: object, 
+        openai: OpenAI, 
+        aiModel: AIModelConfig
+    ): Promise<string> {
 
         const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
 
@@ -202,7 +203,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                 },
                 { role: 'user', content: prompt }
             ],
-            // max_completion_tokens: aiModel.maxTokens,
         });
 
         const htmlContent = completion.choices[0]?.message?.content;
@@ -220,6 +220,7 @@ export class AiGenerateDesignService implements IAiDesignService {
         return cleaned;
     }
 
+    // ✅ FIX: Add design system reminder to conversation messages
     private buildConversationMessages(
         currentMessage: string,
         history: ConversationMessage[],
@@ -238,14 +239,32 @@ export class AiGenerateDesignService implements IAiDesignService {
             });
         }
 
+        // ✅ Add design system reminder in user message
+        let enrichedMessage = currentMessage;
+        if (designSystemId) {
+            const designSystemName = this.promptBuilder.getDesignSystemDisplayName(designSystemId);
+            enrichedMessage = `${currentMessage}
+
+IMPORTANT REMINDER: You MUST strictly follow the ${designSystemName} design system rules including:
+- Use ONLY the approved color tokens and palette
+- Follow the exact typography scale and font families
+- Apply proper spacing tokens and layout grid
+- Use correct component variants and styles
+- Maintain consistent design patterns`;
+        }
+
         messages.push({
             role: 'user',
-            content: currentMessage
+            content: enrichedMessage
         });
+
+        console.log(`📝 Conversation: ${messages.length} messages | Design System: ${designSystemId ? this.promptBuilder.getDesignSystemDisplayName(designSystemId) : 'None'} | Reminder: ${!!designSystemId}`);
 
         return messages;
     }
 
+    // ✅ FIX: Add explicit design system reminder to edit messages
+    // Now detects if design system changed and enforces migration
     private buildEditConversationMessages(
         currentMessage: string,
         history: ConversationMessage[],
@@ -268,29 +287,129 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         const designStr = JSON.stringify(currentDesign, null, 2);
 
+        // ✅ Detect if design system might have changed
+        const currentDesignSystemInHistory = this.detectDesignSystemInHistory(recentHistory);
+        const isDesignSystemChanged = currentDesignSystemInHistory && 
+                                      currentDesignSystemInHistory !== designSystemId;
+
+        // ✅ Add explicit design system constraints with migration warning
+        let designSystemReminder = '';
+        if (designSystemId) {
+            const designSystemName = this.promptBuilder.getDesignSystemDisplayName(designSystemId);
+            
+            if (isDesignSystemChanged) {
+                // ⚠️ DESIGN SYSTEM CHANGED - Need migration
+                designSystemReminder = `
+   
+   ⚠️⚠️⚠️ CRITICAL: DESIGN SYSTEM MIGRATION REQUIRED ⚠️⚠️⚠️
+   
+   The current design was built with a DIFFERENT design system, but you MUST now convert it to ${designSystemName}.
+   
+   🔄 MIGRATION INSTRUCTIONS:
+   
+   1. REPLACE ALL COLORS with ${designSystemName} color tokens
+      - Map old colors to equivalent ${designSystemName} colors
+      - Example: If old primary was blue, use ${designSystemName}'s primary blue token
+      - DO NOT keep any colors from the previous design system
+   
+   2. REPLACE ALL TYPOGRAPHY with ${designSystemName} type scale
+      - Map old font sizes to ${designSystemName} scale
+      - Use ${designSystemName} font families and weights
+      - Update line heights and letter spacing
+   
+   3. REPLACE ALL SPACING with ${designSystemName} spacing tokens
+      - Convert old padding/margins to ${designSystemName} scale
+      - Follow ${designSystemName} grid system
+   
+   4. CONVERT ALL COMPONENTS to ${designSystemName} patterns
+      - Rebuild components using ${designSystemName} structure
+      - Apply ${designSystemName} component variants
+      - Use ${designSystemName} states and interactions
+   
+   🎯 YOUR TASK:
+   - Apply the user's requested changes
+   - SIMULTANEOUSLY migrate EVERYTHING to ${designSystemName}
+   - The final design MUST be 100% ${designSystemName} compliant
+   - Remove ALL traces of the previous design system
+   
+   ⚠️ This is a COMPLETE REDESIGN using ${designSystemName} - not just a color swap!`;
+            } else {
+                // Normal edit - same design system
+                designSystemReminder = `
+   
+   🎨 DESIGN SYSTEM CONSTRAINTS - ${designSystemName}:
+   You MUST follow ${designSystemName} design system for ALL modifications:
+   
+   1. COLORS: Use ONLY approved color tokens from ${designSystemName}
+      - Do NOT introduce new colors or hex codes outside the system
+      - Maintain color semantic meaning (primary, secondary, etc.)
+   
+   2. TYPOGRAPHY: Follow ${designSystemName} type scale exactly
+      - Use specified font families and weights
+      - Apply correct font sizes from the scale
+      - Maintain proper line heights and letter spacing
+   
+   3. SPACING: Use ONLY the spacing tokens from ${designSystemName}
+      - Follow the spacing scale (4px, 8px, 16px, etc.)
+      - Maintain consistent padding and margins
+   
+   4. COMPONENTS: Use standard ${designSystemName} component patterns
+      - Follow component structure and variants
+      - Apply proper states (hover, active, disabled)
+   
+   ⚠️ Any modification that violates ${designSystemName} rules will be REJECTED.`;
+            }
+        }
+
         const editRequest = `CURRENT DESIGN:
    \`\`\`json
    ${designStr}
    \`\`\`
+   ${designSystemReminder}
    
    USER REQUEST: ${currentMessage}
    
    INSTRUCTIONS:
-   1. Understand the current design structure
-   2. Apply the user's requested changes
-   3. Keep everything else unchanged
-   4. Return the complete modified design as valid JSON array
-   5. Start your response with a brief description, then the JSON`;
+   1. ${isDesignSystemChanged ? '🔄 MIGRATE the entire design to the new design system first' : 'Analyze the current design structure'}
+   2. Apply the user's requested changes ${isDesignSystemChanged ? 'within the NEW design system' : ''}
+   3. ${isDesignSystemChanged ? 'Ensure EVERY element follows the new design system' : 'Keep everything else UNCHANGED'}
+   4. ${designSystemId ? `STRICTLY maintain ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)} design system compliance` : 'Maintain consistent styling'}
+   5. Validate all colors, fonts, spacing against ${designSystemId ? this.promptBuilder.getDesignSystemDisplayName(designSystemId) : 'the design system'}
+   6. Return the complete modified design as valid JSON array
+   7. Start your response with a brief description of what you changed, then provide the JSON`;
 
         messages.push({
             role: 'user',
             content: editRequest
         });
 
+        console.log(`✏️ Edit Request:
+   - Design System: ${designSystemId ? this.promptBuilder.getDesignSystemDisplayName(designSystemId) : 'None'}
+   - Design System Changed: ${isDesignSystemChanged ? 'YES - Migration Required!' : 'No'}
+   - Current Design: ${designStr.length} characters
+   - History: ${recentHistory.length} messages
+   - Migration Mode: ${isDesignSystemChanged ? 'ENABLED ⚠️' : 'disabled'}`);
+
         return messages;
     }
 
-
+    // Helper method to detect design system from conversation history
+    private detectDesignSystemInHistory(history: ConversationMessage[]): string | null {
+        // Look through history for design system mentions
+        for (const msg of history.reverse()) {
+            if (msg.role === 'user') {
+                const content = msg.content.toLowerCase();
+                // Common design system names
+                if (content.includes('material design') || content.includes('material-ui')) return 'material-design';
+                if (content.includes('ant design') || content.includes('antd')) return 'ant-design';
+                if (content.includes('bootstrap')) return 'bootstrap';
+                if (content.includes('tailwind')) return 'tailwind';
+                if (content.includes('chakra')) return 'chakra-ui';
+                // Add more design systems as needed
+            }
+        }
+        return null;
+    }
 
     private extractDesignFromResponse(response: string): any {
         try {
