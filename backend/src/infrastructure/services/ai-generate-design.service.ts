@@ -39,8 +39,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
-                timeout: 120000, // Increase to 30 seconds
-                // maxRetries: 3,  // Add retry logic
             });
 
             const completion = await openai.chat.completions.create({
@@ -100,8 +98,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
-                timeout: 120000, // Increase to 30 seconds
-                // maxRetries: 3,  // Add retry logic
             });
 
             console.log("--- 1. Sending Conversation to GPT for JSON ---");
@@ -190,8 +186,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
-                timeout: 120000, // Increase to 30 seconds
-                // maxRetries: 3,  // Add retry logic
             });
 
             const completion = await openai.chat.completions.create({

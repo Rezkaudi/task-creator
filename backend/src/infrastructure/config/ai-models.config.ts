@@ -112,17 +112,6 @@ export const AI_MODELS: AIModelConfig[] = [
 
   // openrouter
   {
-    id: 'allenai/olmo-3.1-32b-think:free',
-    name: 'Olmo-3.1-32b-Think',
-    description: 'Fast & efficient',
-    icon: 'OL',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
     id: 'xiaomi/mimo-v2-flash:free',
     name: 'Mimo-V2-Flash',
     description: 'Fast & efficient',
@@ -149,28 +138,6 @@ export const AI_MODELS: AIModelConfig[] = [
     name: 'Devstral-2512',
     description: 'Fast & efficient',
     icon: 'DS',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'nex-agi/deepseek-v3.1-nex-n1:free',
-    name: 'DeepSeek-V3.1-Nex-N1',
-    description: 'Fast & efficient',
-    icon: 'DS',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'arcee-ai/trinity-mini:free',
-    name: 'Trinity-Mini',
-    description: 'Fast & efficient',
-    icon: 'TR',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
