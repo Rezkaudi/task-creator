@@ -72,21 +72,38 @@ Created a login page with email and password fields${designSystemNote}.
     }
 
     buildEditSystemPrompt(designSystemId: string): string {
-        const basePrompt = this.buildSystemPrompt(designSystemId);
+    const basePrompt = this.buildSystemPrompt(designSystemId);
 
-        const designSystemName = this.getDesignSystemDisplayName(designSystemId);
+    const designSystemName = this.getDesignSystemDisplayName(designSystemId);
 
-        const designSystemMaintainNote = designSystemName
-            ? `- MAINTAIN ${designSystemName} design patterns and standards`
-            : '';
+    const designSystemMaintainNote = designSystemName && designSystemName !== 'None'
+        ? `- **CONVERT ALL ELEMENTS TO ${designSystemName.toUpperCase()} DESIGN SYSTEM** (colors, spacing, components, borders, shadows)`
+        : '';
 
-        const designSystemNewElementsNote = designSystemName
-            ? `- All new/modified elements MUST follow ${designSystemName} specifications`
-            : '';
+    const designSystemNewElementsNote = designSystemName && designSystemName !== 'None'
+        ? `- **EVERY ELEMENT must be redesigned using ${designSystemName.toUpperCase()} specifications**`
+        : '';
 
-        const designSystemNote = this.getDesignSystemNote(designSystemId);
+    const designSystemNote = this.getDesignSystemNote(designSystemId);
 
-        return `${basePrompt}
+    const designSystemWarning = designSystemName && designSystemName !== 'None'
+        ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 MANDATORY DESIGN SYSTEM: ${designSystemName.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ YOU MUST CONVERT THE ENTIRE DESIGN TO ${designSystemName.toUpperCase()}
+⚠️ DO NOT KEEP OLD DESIGN SYSTEM STYLES
+⚠️ REDESIGN EVERYTHING TO MATCH ${designSystemName.toUpperCase()} PATTERNS
+⚠️ Change colors, spacing, borders, shadows, typography to ${designSystemName.toUpperCase()} standards
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`
+        : '';
+
+    return `${basePrompt}
+
+${designSystemWarning}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✏️ EDITING MODE
@@ -101,9 +118,10 @@ You will receive:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1. Understand the current design structure
-2. Apply ONLY the requested changes
-3. Keep everything else exactly as is
-4. Return the COMPLETE design (not just changes)
+2. Apply the user's requested changes
+3. ${designSystemName && designSystemName !== 'None' ? `**CONVERT THE ENTIRE DESIGN TO ${designSystemName.toUpperCase()} DESIGN SYSTEM**` : 'Keep the current style'}
+4. Keep the layout structure unchanged (unless requested)
+5. Return the COMPLETE design (not just changes)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️ CRITICAL RULES
@@ -112,10 +130,10 @@ You will receive:
 - Maintain exact structure and hierarchy
 - Use same node types unless explicitly asked to change
 - Colors MUST be in 0-1 range (NOT 0-255)
-- Keep all properties not mentioned in edit request
 - For TEXT nodes: include all required properties (characters, fontSize, fontName, textAlignHorizontal, textAlignVertical, lineHeight)
 ${designSystemMaintainNote}
 ${designSystemNewElementsNote}
+${designSystemName && designSystemName !== 'None' ? `- **REDESIGN all visual properties (colors, borders, shadows, spacing) to match ${designSystemName.toUpperCase()}**` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 OUTPUT FORMAT
@@ -137,9 +155,12 @@ Changed background to blue${designSystemNote}.
 ]
 \`\`\`
 
+${designSystemName && designSystemName !== 'None' ? `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-`;
-    }
+🔴 FINAL REMINDER: CONVERT EVERYTHING TO ${designSystemName.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+` : ''}`;
+}
 
     enrichUserMessage(message: string, designSystemId: string): string {
         if (!designSystemId) {
