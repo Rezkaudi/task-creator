@@ -66,7 +66,8 @@ export const setupDependencies = () => {
     const designController = new DesignController(
         generateDesignFromTextUseCase,
         generateDesignFromConversationUseCase,
-        editDesignWithAIUseCase
+        editDesignWithAIUseCase,
+        defaultAiDesignService 
     );
 
     const designVersionController = new DesignVersionController(
@@ -89,5 +90,6 @@ export const setupDependencies = () => {
         designVersionController,
         aiModelsController,
         designSystemsController,
+        aiGenerateDesignService: defaultAiDesignService,
     };
 };

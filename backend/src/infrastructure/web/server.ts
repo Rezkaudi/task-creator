@@ -17,6 +17,9 @@ import designSystemsRoutes from './routes/design-systems.routes';
 import { setupDependencies } from './dependencies';
 import { logger } from './middleware/logger.middleware';
 
+import costRoutes from './routes/cost.routes';
+
+
 
 export class Server {
   private app: Application;
@@ -52,7 +55,9 @@ export class Server {
     this.app.use('/api/design-versions', designVersionRoutes(this.container.designVersionController));
     this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController)); // ← NEW
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
+    this.app.use('/api/cost', costRoutes(this.container.aiGenerateDesignService));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
     // API documentation redirect
     this.app.get('/api', (_, res) => {

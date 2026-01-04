@@ -14,11 +14,16 @@ interface AiMessage {
 export class AiGenerateDesignService implements IAiDesignService {
     private promptBuilder: PromptBuilderService;
     private costCalculator: IAiCostCalculator;
+    private lastCost: CostBreakdown | null = null;
 
     constructor(promptBuilderService: PromptBuilderService, costCalculator: IAiCostCalculator) {
         this.promptBuilder = promptBuilderService;
         this.costCalculator = costCalculator;
     }
+     getLastCost(): CostBreakdown | null {
+        return this.lastCost;
+    }
+
 
     async generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any> {
         try {
@@ -66,8 +71,12 @@ export class AiGenerateDesignService implements IAiDesignService {
                     usage.prompt_tokens || this.costCalculator.estimateTokens(systemPrompt + enrichedPrompt),
                     usage.completion_tokens || this.costCalculator.estimateTokens(responseText)
                 );
-                console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
+                console.log(`💰 Cost breakdown: Input: ${costBreakdown.inputCost}, Output: ${costBreakdown.outputCost}, Total: ${costBreakdown.totalCost}`);
+                
             }
+            this.lastCost = costBreakdown;
+        console.log(`📊 Last cost saved for generateDesign: ${costBreakdown?.totalCost || 'N/A'}`);
+
 
             return {
                 design: jsonDesign,
@@ -139,12 +148,14 @@ export class AiGenerateDesignService implements IAiDesignService {
                     usage.prompt_tokens + inputTokensForPreview,
                     usage.completion_tokens + outputTokensForPreview
                 );
-                console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
+                console.log(`💰 Cost breakdown: Input: ${costBreakdown.inputCost}, Output: ${costBreakdown.outputCost}, Total: ${costBreakdown.totalCost}`);
             } else {
                 const inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages) + inputTokensForPreview);
                 const outputTokens = this.costCalculator.estimateTokens(responseText + outputTokensForPreview);
                 costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
             }
+            this.lastCost = costBreakdown;
+        console.log(`📊 Last cost saved for conversation: ${costBreakdown?.totalCost || 'N/A'}`);
 
             return {
                 message: aiMessage,
@@ -230,12 +241,15 @@ export class AiGenerateDesignService implements IAiDesignService {
                     usage.prompt_tokens + inputTokensForPreview,
                     usage.completion_tokens + outputTokensForPreview
                 );
-                console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
+                console.log(`💰 Cost breakdown: Input: ${costBreakdown.inputCost}, Output: ${costBreakdown.outputCost}, Total: ${costBreakdown.totalCost}`);
             } else {
                 const inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages) + inputTokensForPreview);
                 const outputTokens = this.costCalculator.estimateTokens(responseText + outputTokensForPreview);
                 costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
             }
+            this.lastCost = costBreakdown;
+        console.log(`📊 Last cost saved for edit: ${costBreakdown?.totalCost || 'N/A'}`);
+
 
             return {
                 message: aiMessage,
@@ -333,7 +347,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         ];
 
         const previousDesignSystem = this.detectDesignSystemFromHistory(history);
-        // ← حل مشكلة TypeScript: تأكد من أنها boolean
         const isDesignSystemChanged = Boolean(previousDesignSystem && previousDesignSystem !== designSystemId);
 
         if (designSystemId && designSystemName !== 'None') {

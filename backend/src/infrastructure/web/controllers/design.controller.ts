@@ -3,14 +3,56 @@ import { GenerateDesignFromTextUseCase } from '../../../application/use-cases/ge
 import { GenerateDesignFromConversationUseCase } from '../../../application/use-cases/generate-design-from-conversation.use-case';
 import { EditDesignWithAIUseCase } from '../../../application/use-cases/edit-design-with-ai.use-case';
 import { DesignGenerationResult } from '../../../domain/services/IAiDesignService';
+import { AiGenerateDesignService } from '../../services/ai-generate-design.service';
 export class DesignController {
     constructor(
         private readonly generateDesignUseCase: GenerateDesignFromTextUseCase,
         private readonly generateDesignFromConversationUseCase: GenerateDesignFromConversationUseCase,
-        private readonly editDesignWithAIUseCase: EditDesignWithAIUseCase
+        private readonly editDesignWithAIUseCase: EditDesignWithAIUseCase,
+        private readonly aiGenerateDesignService: AiGenerateDesignService
     ) { }
 
     // Generate design from simple text prompt
+     async getLastCost(req: Request, res: Response): Promise<void> {
+        try {
+            const lastCost = this.aiGenerateDesignService.getLastCost();
+            
+            if (!lastCost) {
+                res.status(200).json({
+                    success: true,
+                    message: 'No cost recorded yet',
+                    cost: null
+                });
+                return;
+            }
+
+            res.status(200).json({
+                success: true,
+                message: 'Last cost retrieved successfully',
+                cost: lastCost,
+                formatted: {
+                    input: lastCost.inputCost,
+                    output: lastCost.outputCost,
+                    total: lastCost.totalCost,
+                    tokens: {
+                        input: lastCost.inputTokens,
+                        output: lastCost.outputTokens,
+                        total: lastCost.inputTokens + lastCost.outputTokens
+                    },
+                    model: lastCost.modelId,
+                    timestamp: lastCost.timestamp
+                }
+            });
+
+        } catch (error) {
+            console.error("Error getting last cost:", error);
+            const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+            res.status(500).json({
+                success: false,
+                message
+            });
+        }
+    }
     async generateFromText(req: Request, res: Response): Promise<void> {
         const { prompt, modelId, designSystemId } = req.body;
 
