@@ -13,6 +13,14 @@ export interface DesignVersionInfo {
   updatedAt: string;
 }
 
+export interface CostInfo {
+  inputCost: string;
+  outputCost: string;
+  totalCost: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
 /**
  * Full design version with JSON
  */
@@ -38,11 +46,11 @@ export type UIMessage =
   | { type: 'version-delete-error'; error: string }
   | { type: 'version-loaded'; version: DesignVersionFull }
   | { type: 'version-load-error'; error: string }
-  | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null }
+  | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo  }
   | { type: 'ai-chat-error'; error: string }
   | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any }
   | { type: 'no-layer-selected' }
-  | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null }
+  | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo  }
   | { type: 'ai-edit-error'; error: string }
   | { type: 'design-updated'; layerJson: any };
 
