@@ -3,7 +3,7 @@ import { FigmaDesign } from '../../domain/entities/figma-design.entity';
 import { AIModelConfig, getModelById } from '../config/ai-models.config';
 import { PromptBuilderService } from './prompt-builder.service';
 import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../domain/services/IAiDesignService';
-import { htmlPreviewPrompt } from '../config/prompt.config';
+import { htmlPreviewPrompt, designSystemChangeWarningPrompt } from '../config/prompt.config';
 import { CostBreakdown, IAiCostCalculator } from '../../domain/services/IAiCostCanculator';
 
 interface AiMessage {
@@ -35,7 +35,6 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             console.log(`🎨 Generating design with GPT-4${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
 
-
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
@@ -47,7 +46,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: enrichedPrompt }
                 ],
-                // max_completion_tokens: aiModel.maxTokens,
                 response_format: { type: 'json_object' },
             });
 
@@ -61,7 +59,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             console.log("responseText", responseText);
             const jsonDesign = JSON.parse(responseText);
 
-            // Calculate cost
             let costBreakdown: CostBreakdown | null = null;
             if (usage) {
                 costBreakdown = this.costCalculator.calculateCost(
@@ -105,7 +102,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                // max_completion_tokens: aiModel.maxTokens,
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -134,7 +130,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                 }
             }
 
-            // Calculate cost
             let costBreakdown: CostBreakdown | null = null;
             const usage = completion.usage;
 
@@ -146,7 +141,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                 );
                 console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
             } else {
-                // Estimate tokens if usage not available
                 const inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages) + inputTokensForPreview);
                 const outputTokens = this.costCalculator.estimateTokens(responseText + outputTokensForPreview);
                 costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
@@ -191,7 +185,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                // max_completion_tokens: aiModel.maxTokens,
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -228,7 +221,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                 }
             }
 
-            // Calculate cost
             let costBreakdown: CostBreakdown | null = null;
             const usage = completion.usage;
 
@@ -240,7 +232,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                 );
                 console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
             } else {
-                // Estimate tokens if usage not available
                 const inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages) + inputTokensForPreview);
                 const outputTokens = this.costCalculator.estimateTokens(responseText + outputTokensForPreview);
                 costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
@@ -260,7 +251,6 @@ export class AiGenerateDesignService implements IAiDesignService {
     }
 
     private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<{ design: string, inputTokens: number, outputTokens: number }> {
-
         const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
         const messages: AiMessage[] = [
             {
@@ -273,7 +263,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         const completion = await openai.chat.completions.create({
             model: aiModel.id,
             messages: messages,
-            // max_completion_tokens: aiModel.maxTokens,
         });
 
         const htmlContent = completion.choices[0]?.message?.content;
@@ -288,8 +277,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             cleaned = cleaned.substring(3, cleaned.length - 3).trim();
         }
 
-        // Calculate cost
-
         let inputTokens: number = 0
         let outputTokens: number = 0
 
@@ -299,7 +286,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             inputTokens = usage.prompt_tokens;
             outputTokens = usage.completion_tokens;
         } else {
-            // Estimate tokens if usage not available
             inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages));
             outputTokens = this.costCalculator.estimateTokens(htmlContent);
         }
@@ -340,13 +326,30 @@ export class AiGenerateDesignService implements IAiDesignService {
         designSystemId: string
     ): AiMessage[] {
         const systemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId);
+        const designSystemName = this.promptBuilder.getDesignSystemDisplayName(designSystemId);
 
         const messages: AiMessage[] = [
             { role: 'system', content: systemPrompt }
         ];
 
-        const recentHistory = history.slice(-5);
-        for (const msg of recentHistory) {
+        const previousDesignSystem = this.detectDesignSystemFromHistory(history);
+        // ← حل مشكلة TypeScript: تأكد من أنها boolean
+        const isDesignSystemChanged = Boolean(previousDesignSystem && previousDesignSystem !== designSystemId);
+
+        if (designSystemId && designSystemName !== 'None') {
+            const warningContent = isDesignSystemChanged
+                ? `🚨 ACTIVE DESIGN SYSTEM: ${designSystemName.toUpperCase()}\n\n${designSystemChangeWarningPrompt.replace('NEW design system', designSystemName.toUpperCase())}\n\nDO NOT use styles from any other design system.`
+                : `🚨 ACTIVE DESIGN SYSTEM: ${designSystemName.toUpperCase()}\n\nYou MUST maintain ${designSystemName.toUpperCase()} in all modifications.\nDO NOT use styles from any other design system.`;
+
+            messages.push({
+                role: 'system',
+                content: warningContent
+            });
+        }
+
+        const historyToInclude = isDesignSystemChanged ? [] : history.slice(-5);
+
+        for (const msg of historyToInclude) {
             messages.push({
                 role: msg.role as 'user' | 'assistant',
                 content: msg.content
@@ -354,20 +357,17 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
 
         const designStr = JSON.stringify(currentDesign, null, 2);
+        const designSystemReminder = this.buildDesignSystemReminder(designSystemName, isDesignSystemChanged);
+        const editInstructions = this.buildEditInstructions(designSystemName, isDesignSystemChanged);
 
         const editRequest = `CURRENT DESIGN:
-   \`\`\`json
-   ${designStr}
-   \`\`\`
-   
-   USER REQUEST: ${currentMessage}
-   
-   INSTRUCTIONS:
-   1. Understand the current design structure
-   2. Apply the user's requested changes
-   3. Keep everything else unchanged
-   4. Return the complete modified design as valid JSON array
-   5. Start your response with a brief description, then the JSON`;
+\`\`\`json
+${designStr}
+\`\`\`
+${designSystemReminder}
+USER REQUEST: ${currentMessage}
+
+${editInstructions}`;
 
         messages.push({
             role: 'user',
@@ -375,6 +375,55 @@ export class AiGenerateDesignService implements IAiDesignService {
         });
 
         return messages;
+    }
+
+    private buildDesignSystemReminder(designSystemName: string, isChanged: boolean): string {
+        if (!designSystemName || designSystemName === 'None') {
+            return '';
+        }
+
+        return `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 DESIGN SYSTEM: ${designSystemName.toUpperCase()}
+${isChanged ? '🔄🔄🔄 DESIGN SYSTEM CHANGED - COMPLETE REDESIGN REQUIRED 🔄🔄🔄\n' : ''}
+⚠️ CRITICAL: ${isChanged ? 'COMPLETELY REDESIGN' : 'Maintain'} ALL elements using ${designSystemName.toUpperCase()}!
+⚠️ ALL colors, borders, shadows, spacing MUST match ${designSystemName.toUpperCase()}!
+${isChanged ? `⚠️ The current design uses a different system - CONVERT EVERYTHING to ${designSystemName.toUpperCase()}!` : ''}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+    }
+
+    private buildEditInstructions(designSystemName: string, isChanged: boolean): string {
+        const action = isChanged ? 'COMPLETELY REDESIGN THE ENTIRE DESIGN' : 'MAINTAIN';
+        const additionalInstruction = isChanged
+            ? `Convert ALL visual elements (colors, borders, shadows, spacing, components) to ${designSystemName.toUpperCase()}`
+            : 'Keep the layout structure unchanged (unless requested)';
+
+        return `INSTRUCTIONS:
+1. Understand the current design structure  
+2. Apply the user's requested changes
+3. **${action} using ${designSystemName.toUpperCase()} design system**
+4. ${additionalInstruction}
+5. Return the complete modified design as valid JSON array
+6. Start your response with a brief description, then the JSON`;
+    }
+
+    private detectDesignSystemFromHistory(history: ConversationMessage[]): string | null {
+        const recentHistory = history.slice(-3);
+
+        for (const msg of recentHistory) {
+            const content = msg.content.toLowerCase();
+
+            if (content.includes('shadcn') || content.includes('shadcn/ui')) {
+                return 'shadcn-ui';
+            } else if (content.includes('material design') || content.includes('material-3') || content.includes('material')) {
+                return 'material-3';
+            } else if (content.includes('ant design') || content.includes('ant-design')) {
+                return 'ant-design';
+            }
+        }
+
+        return null;
     }
 
     private extractDesignFromResponse(response: string): any {

@@ -13,6 +13,11 @@ interface BackendChatResponse {
   message: string;
   design: any;
   previewHtml?: string | null;
+  cost?: { 
+    inputCost: number;
+    outputCost: number;
+    totalCost: number;
+  };
 }
 
 /**
@@ -143,113 +148,126 @@ export class PluginMessageHandler {
 
   // ==================== AI EDIT DESIGN ====================
   private async handleAIEditDesign(
-    userMessage: string,
-    history: Array<{ role: string; content: string }> | undefined,
-    layerJson: any,
-    model?: string,
-    designSystemId?: string
-  ): Promise<void> {
-    try {
-      if (history && history.length > 0) {
-        this.conversationHistory = history;
-      }
-
-      const selectedModel = model || 'gpt-4.1'; // Default to GPT-4.1
-
-      const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMessage,
-          history: this.conversationHistory,
-          currentDesign: layerJson,
-          modelId: selectedModel,
-          designSystemId: designSystemId // Pass the selected model to backend
-        })
-      });
-
-      if (!response.ok) {
-        let errorMessage = `Server error: ${response.status}`;
-        try {
-          const errorResult = await response.json();
-          errorMessage = errorResult.message || errorResult.error || errorMessage;
-        } catch (e) {
-          // Use default error message
-        }
-        throw new Error(errorMessage);
-      }
-
-      const result: BackendChatResponse = await response.json();
-
-      this.uiPort.postMessage({
-        type: 'ai-edit-response',
-        message: result.message,
-        designData: result.design,
-        previewHtml: result.previewHtml
-      });
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
-      this.uiPort.postMessage({
-        type: 'ai-edit-error',
-        error: errorMessage
-      });
+  userMessage: string,
+  history: Array<{ role: string; content: string }> | undefined,
+  layerJson: any,
+  model?: string,
+  designSystemId?: string
+): Promise<void> {
+  try {
+    if (history && history.length > 0) {
+      this.conversationHistory = history;
     }
+
+    const selectedModel = model || 'gpt-4.1';
+
+    const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: userMessage,
+        history: this.conversationHistory,
+        currentDesign: layerJson,
+        modelId: selectedModel,
+        designSystemId: designSystemId
+      })
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Server error: ${response.status}`;
+      try {
+        const errorResult = await response.json();
+        errorMessage = errorResult.message || errorResult.error || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+
+    this.uiPort.postMessage({
+      type: 'ai-edit-response',
+      message: result.message,
+      designData: result.design,
+      previewHtml: result.previewHtml,
+      cost: result.cost ? { 
+        inputCost: result.cost.inputCost,
+        outputCost: result.cost.outputCost,
+        totalCost: result.cost.totalCost,
+        inputTokens: result.cost.inputTokens,
+        outputTokens: result.cost.outputTokens
+      } : undefined
+    });
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    this.uiPort.postMessage({
+      type: 'ai-edit-error',
+      error: errorMessage
+    });
   }
+}
 
   // ==================== AI CHAT FUNCTIONS ====================
-  private async handleAIChatMessage(
-    userMessage: string,
-    history?: Array<{ role: string; content: string }>,
-    model?: string,
-    designSystemId?: string
-  ): Promise<void> {
-    try {
-      if (history && history.length > 0) {
-        this.conversationHistory = history;
-      }
 
-      const selectedModel = model || 'gpt-4.1'; // Default to GPT-4.1
-
-      const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMessage,
-          history: this.conversationHistory,
-          modelId: selectedModel,
-          designSystemId: designSystemId
-        })
-      });
-
-      if (!response.ok) {
-        let errorMessage = `Server error: ${response.status}`;
-        try {
-          const errorResult = await response.json();
-          errorMessage = errorResult.message || errorResult.error || errorMessage;
-        } catch (e) {
-          // Use default error message
-        }
-        throw new Error(errorMessage);
-      }
-
-      const result: BackendChatResponse = await response.json();
-
-      this.uiPort.postMessage({
-        type: 'ai-chat-response',
-        message: result.message,
-        designData: result.design,
-        previewHtml: result.previewHtml
-      });
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
-      this.uiPort.postMessage({
-        type: 'ai-chat-error',
-        error: errorMessage
-      });
+private async handleAIChatMessage(
+  userMessage: string,
+  history?: Array<{ role: string; content: string }>,
+  model?: string,
+  designSystemId?: string
+): Promise<void> {
+  try {
+    if (history && history.length > 0) {
+      this.conversationHistory = history;
     }
+
+    const selectedModel = model || 'gpt-4.1';
+
+    const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: userMessage,
+        history: this.conversationHistory,
+        modelId: selectedModel,
+        designSystemId: designSystemId
+      })
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Server error: ${response.status}`;
+      try {
+        const errorResult = await response.json();
+        errorMessage = errorResult.message || errorResult.error || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+
+    this.uiPort.postMessage({
+      type: 'ai-chat-response',
+      message: result.message,
+      designData: result.design,
+      previewHtml: result.previewHtml,
+      cost: result.cost ? { 
+        inputCost: result.cost.inputCost,
+        outputCost: result.cost.outputCost,
+        totalCost: result.cost.totalCost,
+        inputTokens: result.cost.inputTokens,
+        outputTokens: result.cost.outputTokens
+      } : undefined
+    });
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    this.uiPort.postMessage({
+      type: 'ai-chat-error',
+      error: errorMessage
+    });
   }
+}
+
+
 
   private async handleImportDesignFromChat(designData: unknown): Promise<void> {
     const result = await this.importAIDesignUseCase.execute(designData);

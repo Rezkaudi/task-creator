@@ -805,6 +805,44 @@ function getElementIcon(type) {
     };
     return icons[type] || '🔲';
 }
+function displayCostInfo(cost) {
+    const lastAssistantMessage = Array.from(chatMessagesEl.querySelectorAll('.message.assistant')).pop();
+    
+    if (!lastAssistantMessage) {
+        console.warn('No assistant message found to attach cost');
+        return;
+    }
+    
+    const messageContent = lastAssistantMessage.querySelector('.message-content');
+    if (!messageContent) return;
+    
+    const existingCost = messageContent.querySelector('.cost-breakdown');
+    if (existingCost) {
+        existingCost.remove(); 
+    }
+    
+    const costEl = document.createElement('div');
+    costEl.className = 'cost-breakdown';
+    costEl.innerHTML = `
+        <div class="cost-header">💰 Cost Breakdown</div>
+        <div class="cost-row">
+            <span class="cost-label">Input:</span>
+            <span class="cost-value">${cost.inputCost} <small>(${cost.inputTokens.toLocaleString()} tokens)</small></span>
+        </div>
+        <div class="cost-row">
+            <span class="cost-label">Output:</span>
+            <span class="cost-value">${cost.outputCost} <small>(${cost.outputTokens.toLocaleString()} tokens)</small></span>
+        </div>
+        <div class="cost-row cost-total">
+            <span class="cost-label">Total:</span>
+            <span class="cost-value">${cost.totalCost}</span>
+        </div>
+    `;
+    
+    messageContent.appendChild(costEl);
+    
+    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+}
 
 // ==================== VERSION MANAGEMENT ====================
 async function fetchAIModels() {
@@ -1311,6 +1349,7 @@ cancelBtn.addEventListener('click', () => {
     parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
 });
 
+
 // ==================== PLUGIN MESSAGES ====================
 window.onmessage = async (event) => {
     const msg = event.data.pluginMessage;
@@ -1349,9 +1388,12 @@ window.onmessage = async (event) => {
             addMessage('assistant', msg.message);
             conversationHistory.push({ role: 'assistant', content: msg.message });
 
+            if (msg.cost) {
+                displayCostInfo(msg.cost);
+            }
+
             if (msg.designData || msg.previewHtml) {
                 currentDesignData = msg.designData;
-                // وضع الإنشاء
                 addDesignPreview(msg.designData, msg.previewHtml, false, null);
             }
             break;
@@ -1363,6 +1405,10 @@ window.onmessage = async (event) => {
 
             addMessage('assistant', msg.message);
             conversationHistory.push({ role: 'assistant', content: msg.message });
+
+            if (msg.cost) {
+                displayCostInfo(msg.cost);
+            }
 
             if (msg.designData || msg.previewHtml) {
                 currentDesignData = msg.designData;
@@ -1447,18 +1493,21 @@ async function callBackendForClaude(userPrompt) {
                 prompt: userPrompt,
                 modelId: currentModel,
                 designSystemId: currentDesignSystem
-            }),
-            signal: controller.signal
+            })
         });
+        
         if (!response.ok) {
             let errorMessage = `Server error: ${response.status}`;
-            try { const err = await response.json(); errorMessage = err.message || err.error || errorMessage; } catch (e) { }
+            try { 
+                const err = await response.json(); 
+                errorMessage = err.message || err.error || errorMessage; 
+            } catch (e) { }
             throw new Error(errorMessage);
         }
+        
         const result = await response.json();
         return result.design || result.data || result;
     } catch (error) {
-        if (error.name === 'AbortError') throw new Error('Request timed out.');
         throw error;
     }
 }
