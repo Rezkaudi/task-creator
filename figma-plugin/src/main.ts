@@ -126,6 +126,19 @@ class PluginApplication {
 
     // Log startup
     console.log('Task Creator Plugin initialized with Clean Architecture');
+
+    // Log user data when plugin loads
+    console.log('=== FIGMA USER DATA ===');
+
+    // Basic user info
+    const user = figma.currentUser;
+    if (user) {
+      console.log('🏢 User:', JSON.stringify(user, null, 2));
+      console.log('🏢 figma:', figma);
+
+    } else {
+      console.log('⚠️ No user logged in');
+    }
   }
 }
 

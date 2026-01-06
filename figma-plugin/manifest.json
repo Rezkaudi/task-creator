@@ -14,5 +14,6 @@
       "https://api.anthropic.com"
     ],
     "reasoning": "Allows the plugin to communicate with the backend API for task creation, design generation, and version management."
-  }
+  },
+  "permissions": ["currentuser", "activeusers"]
 }
