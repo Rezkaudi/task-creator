@@ -150,6 +150,10 @@ export interface OverrideInfo {
  * Represents ALL Figma node properties for lossless export/import
  */
 export interface DesignNode {
+  _isIcon: any;
+  _iconCategory: any;
+  _iconSource: any;
+  _iconKeyword: any;
   // Identity
   name: string;
   type: NodeType | string;

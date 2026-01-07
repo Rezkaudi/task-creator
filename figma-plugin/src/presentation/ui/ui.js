@@ -1,5 +1,5 @@
-const API_BASE_URL = 'https://task-creator-api.onrender.com';
-//const API_BASE_URL = "http://localhost:5000"
+//const API_BASE_URL = 'https://task-creator-api.onrender.com';
+const API_BASE_URL = "http://localhost:5000"
 
 // ==================== STATE ====================
 let chatMessages = [];
@@ -1295,6 +1295,27 @@ function updateSelectionInfo(selection) {
         exportSelectedBtn.disabled = false;
     }
 }
+function displayIconReplacementInfo(iconsReplaced) {
+  if (iconsReplaced > 0) {  
+    const iconBadge = document.createElement('div');
+    iconBadge.className = 'icon-replacement-badge';
+    iconBadge.innerHTML = `
+      <div class="badge-content">
+        <span class="badge-icon">🎨</span>
+        <span class="badge-text">
+          ${iconsReplaced} icon${iconsReplaced > 1 ? 's' : ''} replaced
+        </span>
+      </div>
+    `;
+    
+    document.querySelector('.chat-messages')?.appendChild(iconBadge);
+    
+    setTimeout(() => {
+      iconBadge.style.opacity = '0';  
+      setTimeout(() => iconBadge.remove(), 300);  
+    }, 5000);
+  }
+}
 
 // ==================== MAIN IMPORT HANDLERS ====================
 jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
@@ -1396,6 +1417,9 @@ window.onmessage = async (event) => {
                 currentDesignData = msg.designData;
                 addDesignPreview(msg.designData, msg.previewHtml, false, null);
             }
+            if (msg.iconsReplaced !== undefined && msg.iconsReplaced > 0) {
+        displayIconReplacementInfo(msg.iconsReplaced); 
+    }
             break;
 
         case 'ai-edit-response':
@@ -1419,6 +1443,9 @@ window.onmessage = async (event) => {
                 };
                 addDesignPreview(msg.designData, msg.previewHtml, true, layerInfo);
             }
+            if (msg.iconsReplaced !== undefined && msg.iconsReplaced > 0) {
+        displayIconReplacementInfo(msg.iconsReplaced);  
+    }
             break;
 
         case 'ai-chat-error':

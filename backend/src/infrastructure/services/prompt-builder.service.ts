@@ -1,5 +1,5 @@
 import { getDesignSystemById } from '../config/design-systems.config';
-import { textToDesignSystemPrompt } from '../config/prompt.config';
+import { iconPlaceholderPrompt, textToDesignSystemPrompt } from '../config/prompt.config';
 
 
 export class PromptBuilderService {
@@ -201,3 +201,7 @@ ${designSystemName && designSystemName !== 'None' ? `
         return ` following ${displayName} guidelines`;
     }
 }
+export function buildSystemPromptWithIcons(basePrompt: string): string {
+  return `${basePrompt}
+
+${iconPlaceholderPrompt}`;}

@@ -12,6 +12,7 @@ export interface DesignGenerationResult {
     design: any;
     previewHtml?: string | null;
     cost: CostBreakdown;
+    iconsReplaced: number;
 }
 
 /**

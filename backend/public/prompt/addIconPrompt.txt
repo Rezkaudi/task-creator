@@ -1,0 +1,31 @@
+`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 ICON GUIDELINES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When creating UI elements that need icons, create RECTANGLE nodes with this format:
+- Name: "ICON:[keyword]" (e.g., "ICON:user", "ICON:search", "ICON:menu")
+- Size: 24x24 (or 16x16 for small, 32x32 for large)
+- Fill: Light gray #E0E0E0
+- Add metadata: "_iconKeyword": "keyword"
+
+Common icon keywords:
+- User: "user", "profile", "account"
+- Navigation: "menu", "home", "back", "close", "search"  
+- Actions: "edit", "delete", "add", "save", "upload", "download"
+- Communication: "email", "message", "phone", "notification"
+- Commerce: "cart", "payment", "shopping"
+
+The system will automatically replace these placeholders with actual vector icons.
+
+Example:
+{
+  "name": "ICON:user",
+  "type": "RECTANGLE",
+  "width": 24,
+  "height": 24,
+  "fills": [{"type": "SOLID", "color": {"r": 0.88, "g": 0.88, "b": 0.88}}],
+  "_iconKeyword": "user"
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`
