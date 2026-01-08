@@ -10,12 +10,9 @@ import {
   ComponentRegistry,
   BaseNodeCreator,
 } from './creators';
+import { IconNodeCreator } from './creators/icon-node.creator';
 import { NodeExporter } from './exporters/node.exporter';
 
-/**
- * Figma implementation of the Node Repository
- * Handles comprehensive import/export of all Figma node types
- */
 export class FigmaNodeRepository extends BaseNodeCreator implements INodeRepository {
   private readonly frameCreator = new FrameNodeCreator();
   private readonly rectangleCreator = new RectangleNodeCreator();
@@ -23,25 +20,19 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
   private readonly shapeCreator = new ShapeNodeCreator();
   private readonly componentRegistry = new ComponentRegistry();
   private readonly componentCreator = new ComponentNodeCreator(this.componentRegistry);
+  private readonly iconCreator = new IconNodeCreator();
   private readonly nodeExporter = new NodeExporter();
 
-  /**
-  * Create a node on the canvas
-  */
   async createNode(nodeData: DesignNode, parentNode?: SceneNode): Promise<SceneNode | null> {
     try {
       const node = await this.createNodeByType(nodeData, parentNode);
-
       if (!node) return null;
 
-      // Apply position
       if (typeof nodeData.x === 'number') node.x = nodeData.x;
       if (typeof nodeData.y === 'number') node.y = nodeData.y;
 
-      // Apply common properties
       this.applyCommonProperties(node, nodeData);
 
-      // Append to parent or page
       if (parentNode && 'appendChild' in parentNode) {
         (parentNode as FrameNode).appendChild(node);
       } else {
@@ -55,51 +46,34 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     }
   }
 
-  /**
-   * Export selected nodes from canvas
-   */
   async exportSelected(): Promise<DesignNode[]> {
     const selection = figma.currentPage.selection;
     const exportedNodes: DesignNode[] = [];
-
-    // Clear image cache for fresh export
     this.nodeExporter.clearImageCache();
 
     for (let i = 0; i < selection.length; i++) {
       const node = selection[i];
       const exported = await this.nodeExporter.export(node, i);
-      if (exported) {
-        exportedNodes.push(exported);
-      }
+      if (exported) exportedNodes.push(exported);
     }
 
     return exportedNodes;
   }
 
-  /**
-   * Export all nodes from current page
-   */
   async exportAll(): Promise<DesignNode[]> {
     const children = figma.currentPage.children;
     const exportedNodes: DesignNode[] = [];
-
-    // Clear image cache for fresh export
     this.nodeExporter.clearImageCache();
 
     for (let i = 0; i < children.length; i++) {
       const node = children[i];
       const exported = await this.nodeExporter.export(node, i);
-      if (exported) {
-        exportedNodes.push(exported);
-      }
+      if (exported) exportedNodes.push(exported);
     }
 
     return exportedNodes;
   }
 
-  /**
-   * Get current selection info
-   */
   getSelectionInfo(): SelectionInfo {
     const selection = figma.currentPage.selection;
     return {
@@ -108,32 +82,18 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     };
   }
 
-  /**
-   * Set current selection
-   */
   setSelection(nodes: SceneNode[]): void {
     figma.currentPage.selection = nodes;
   }
 
-  /**
-   * Scroll and zoom to view nodes
-   */
   focusOnNodes(nodes: SceneNode[]): void {
-    if (nodes.length > 0) {
-      figma.viewport.scrollAndZoomIntoView(nodes);
-    }
+    if (nodes.length > 0) figma.viewport.scrollAndZoomIntoView(nodes);
   }
 
-  /**
-   * Append node to current page
-   */
   appendToPage(node: SceneNode): void {
     figma.currentPage.appendChild(node);
   }
 
-  /**
-   * Get component registry for tracking during import
-   */
   getComponentRegistry(): IComponentRegistry {
     return {
       components: this.componentRegistry.getAllComponents(),
@@ -141,19 +101,44 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     };
   }
 
-  /**
-   * Clear component registry after import
-   */
   clearComponentRegistry(): void {
     this.componentRegistry.clear();
   }
 
-  /**
-   * Create a node by its type
-   */
+  private isIconNode(nodeData: DesignNode): boolean {
+    if (nodeData.vectorPaths && nodeData.vectorPaths.length > 0) return true;
+    if (nodeData._iconSource || nodeData._iconCategory || nodeData._iconKeyword) return true;
+    if (nodeData.vectorNetwork) return true;
+    if (nodeData._isIcon) return true; 
+    return false;
+  }
+
+  private isIconPlaceholder(nodeData: DesignNode): boolean {
+    if (nodeData.type !== 'RECTANGLE') return false;
+    if (nodeData.name && nodeData.name.startsWith('ICON:')) return true;
+    if (nodeData._iconKeyword) return true;
+    return false;
+  }
+
   private async createNodeByType(nodeData: DesignNode, parentNode?: SceneNode): Promise<SceneNode | null> {
     const nodeType = NodeTypeMapper.normalize(nodeData.type);
+    
     const createChildBound = this.createChild.bind(this);
+    
+    if (nodeType === 'VECTOR' || this.isIconNode(nodeData)) {
+        console.log(`🎨 Creating icon/vector node: ${nodeData.name} (type: ${nodeType})`);
+        console.log(`   Has vectorPaths: ${!!nodeData.vectorPaths}`);
+        console.log(`   Has icon metadata: ${!!nodeData._iconSource || !!nodeData._iconKeyword}`);
+        
+        try {
+            const iconNode = await this.iconCreator.create(nodeData);
+            console.log(`✅ Icon node created: ${iconNode.name}`);
+            return iconNode;
+        } catch (error) {
+            console.error(`❌ Failed to create icon: ${nodeData.name}`, error);
+            return this.shapeCreator.createVector(nodeData);
+        }
+    }
 
     switch (nodeType) {
       case 'FRAME':
@@ -166,7 +151,15 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
         return this.frameCreator.createSection(nodeData, createChildBound as any);
 
       case 'RECTANGLE':
-        // If rectangle has children, create as frame
+        if (this.isIconPlaceholder(nodeData)) {
+          console.log(`🔄 Converting rectangle to icon: ${nodeData.name}`);
+          try {
+            return await this.iconCreator.create(nodeData);
+          } catch (error) {
+            console.error(`Failed to convert placeholder to icon:`, error);
+          }
+        }
+        
         if (hasChildren(nodeData)) {
           return this.rectangleCreator.createAsFrame(nodeData, createChildBound);
         }
@@ -187,13 +180,6 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       case 'LINE':
         return this.shapeCreator.createLine(nodeData);
 
-      case 'VECTOR':
-        // Check if we have vector path data
-        if (nodeData.vectorPaths || nodeData.vectorNetwork) {
-          return this.shapeCreator.createVector(nodeData);
-        }
-        return this.shapeCreator.createVectorPlaceholder(nodeData);
-
       case 'COMPONENT':
         return this.componentCreator.create(nodeData, createChildBound as any);
 
@@ -207,7 +193,6 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
         return this.createBooleanOperation(nodeData);
 
       default:
-        // Fallback to frame for unknown types
         if (hasChildren(nodeData)) {
           return this.frameCreator.create(nodeData, createChildBound);
         }
@@ -215,36 +200,23 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     }
   }
 
-  /**
-  * Create a child node within a parent
-  */
   private async createChild(childData: DesignNode, parentNode: FrameNode | ComponentNode): Promise<void> {
     const childNode = await this.createNodeByType(childData, parentNode);
-
     if (childNode) {
-      // Apply position relative to parent
       if (typeof childData.x === 'number') childNode.x = childData.x;
       if (typeof childData.y === 'number') childNode.y = childData.y;
-
-      // Apply common properties
       this.applyCommonProperties(childNode, childData);
-
       parentNode.appendChild(childNode);
     }
   }
 
-  /**
-   * Create a boolean operation node
-   */
   private async createBooleanOperation(nodeData: DesignNode): Promise<SceneNode | null> {
-    // Boolean operations require at least 2 children
     if (!nodeData.children || nodeData.children.length < 2) {
       console.warn('Boolean operation requires at least 2 children');
       return this.frameCreator.create(nodeData, this.createChild.bind(this));
     }
 
     try {
-      // Create children first
       const childNodes: SceneNode[] = [];
       for (const childData of nodeData.children) {
         const childNode = await this.createNodeByType(childData);
@@ -259,45 +231,24 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
 
       if (childNodes.length < 2) {
         console.warn('Not enough valid children for boolean operation');
-        // Clean up and return frame fallback
-        for (const node of childNodes) {
-          node.remove();
-        }
+        childNodes.forEach(node => node.remove());
         return this.frameCreator.create(nodeData, this.createChild.bind(this));
       }
 
-      // Determine boolean operation type
       const booleanOp = nodeData.booleanOperation || 'UNION';
-
-      // Create the boolean operation
       let booleanNode: BooleanOperationNode;
+
       switch (booleanOp) {
-        case 'UNION':
-          booleanNode = figma.union(childNodes, figma.currentPage);
-          break;
-        case 'INTERSECT':
-          booleanNode = figma.intersect(childNodes, figma.currentPage);
-          break;
-        case 'SUBTRACT':
-          booleanNode = figma.subtract(childNodes, figma.currentPage);
-          break;
-        case 'EXCLUDE':
-          booleanNode = figma.exclude(childNodes, figma.currentPage);
-          break;
-        default:
-          booleanNode = figma.union(childNodes, figma.currentPage);
+        case 'UNION': booleanNode = figma.union(childNodes, figma.currentPage); break;
+        case 'INTERSECT': booleanNode = figma.intersect(childNodes, figma.currentPage); break;
+        case 'SUBTRACT': booleanNode = figma.subtract(childNodes, figma.currentPage); break;
+        case 'EXCLUDE': booleanNode = figma.exclude(childNodes, figma.currentPage); break;
+        default: booleanNode = figma.union(childNodes, figma.currentPage);
       }
 
       booleanNode.name = nodeData.name || 'Boolean';
-
-      // Apply fills and strokes
       await this.applyFillsAsync(booleanNode, nodeData.fills);
-      await this.applyStrokesAsync(
-        booleanNode,
-        nodeData.strokes,
-        nodeData.strokeWeight,
-        nodeData.strokeAlign
-      );
+      await this.applyStrokesAsync(booleanNode, nodeData.strokes, nodeData.strokeWeight, nodeData.strokeAlign);
 
       return booleanNode;
     } catch (error) {
@@ -306,16 +257,11 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     }
   }
 
-  /**
-   * Create a group node with proper parent context
-   */
   private async createGroupNode(nodeData: DesignNode, parentNode?: SceneNode): Promise<SceneNode | null> {
     if (!nodeData.children || nodeData.children.length === 0) {
-      // Empty group - create as frame fallback
       return this.frameCreator.createGroup(nodeData, this.createChild.bind(this));
     }
 
-    // First create all children
     const childNodes: SceneNode[] = [];
     const sortedChildren = [...(nodeData.children || [])].sort((a, b) => {
       const indexA = a._layerIndex ?? 0;
@@ -323,7 +269,6 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       return indexA - indexB;
     });
 
-    // Determine target parent for grouping
     const targetParent = (parentNode && 'appendChild' in parentNode)
       ? parentNode as FrameNode | GroupNode
       : figma.currentPage;
@@ -340,7 +285,6 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     }
 
     if (childNodes.length === 0) {
-      // Fallback to frame if no children created
       const fallbackFrame = figma.createFrame();
       fallbackFrame.name = nodeData.name || 'Group';
       fallbackFrame.fills = [];
@@ -348,23 +292,13 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       return fallbackFrame;
     }
 
-    // Create the actual group from children
     const group = figma.group(childNodes, targetParent);
     group.name = nodeData.name || 'Group';
 
-    // Apply group-supported properties
-    if (typeof nodeData.opacity === 'number') {
-      group.opacity = Math.max(0, Math.min(1, nodeData.opacity));
-    }
-    if (nodeData.blendMode) {
-      (group as any).blendMode = nodeData.blendMode;
-    }
-    if (typeof nodeData.visible === 'boolean') {
-      group.visible = nodeData.visible;
-    }
-    if (typeof nodeData.locked === 'boolean') {
-      group.locked = nodeData.locked;
-    }
+    if (typeof nodeData.opacity === 'number') group.opacity = Math.max(0, Math.min(1, nodeData.opacity));
+    if (nodeData.blendMode) (group as any).blendMode = nodeData.blendMode;
+    if (typeof nodeData.visible === 'boolean') group.visible = nodeData.visible;
+    if (typeof nodeData.locked === 'boolean') group.locked = nodeData.locked;
 
     return group;
   }

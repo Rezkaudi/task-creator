@@ -40,6 +40,16 @@ export const designSystemChangeWarningPrompt = fs.readFileSync(
     'utf-8'
 ).trim();
 
+export const iconPlaceholderPrompt =fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/iconPlaceholderPrompt.txt'),
+    'utf-8'
+).trim();
+
+export const addIconPrompt =fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/addIconPrompt.txt'),
+    'utf-8'
+).trim();
+
 
 
 

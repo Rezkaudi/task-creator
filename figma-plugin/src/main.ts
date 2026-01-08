@@ -27,6 +27,7 @@ import {
   ExportAllUseCase,
   DesignDataParser,
   NodeCounter,
+  AccessControlService, 
 } from './application';
 
 // Presentation
@@ -113,7 +114,20 @@ class PluginApplication {
    * Start the plugin
    */
   run(): void {
-    // Show UI
+    console.log('==================');
+    console.log('🔐 Checking Access...');
+    console.log('Your User ID:', figma.currentUser?.id);
+    console.log('Your Name:', figma.currentUser?.name);
+    console.log('==================');
+
+    if (!AccessControlService.checkAccess()) {
+      console.log('❌ Access Denied - Plugin closing');
+      figma.closePlugin();
+      return; 
+    }
+
+    console.log('✅ Access Granted - Loading plugin');
+
     this.uiPort.show({
       width: PluginConfig.UI_WIDTH,
       height: PluginConfig.UI_HEIGHT,
@@ -126,19 +140,6 @@ class PluginApplication {
 
     // Log startup
     console.log('Task Creator Plugin initialized with Clean Architecture');
-
-    // Log user data when plugin loads
-    console.log('=== FIGMA USER DATA ===');
-
-    // Basic user info
-    const user = figma.currentUser;
-    if (user) {
-      console.log('🏢 User:', JSON.stringify(user, null, 2));
-      console.log('🏢 figma:', figma);
-
-    } else {
-      console.log('⚠️ No user logged in');
-    }
   }
 }
 

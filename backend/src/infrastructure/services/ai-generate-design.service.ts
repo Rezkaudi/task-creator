@@ -3,8 +3,10 @@ import { FigmaDesign } from '../../domain/entities/figma-design.entity';
 import { AIModelConfig, getModelById } from '../config/ai-models.config';
 import { PromptBuilderService } from './prompt-builder.service';
 import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../domain/services/IAiDesignService';
-import { htmlPreviewPrompt, designSystemChangeWarningPrompt } from '../config/prompt.config';
+import { htmlPreviewPrompt, designSystemChangeWarningPrompt,addIconPrompt } from '../config/prompt.config';
 import { CostBreakdown, IAiCostCalculator } from '../../domain/services/IAiCostCanculator';
+import { IconIntegrationService } from './icon-integration.service';
+import { IconLibraryService } from './icon-library.service';
 
 interface AiMessage {
     role: 'system' | 'user' | 'assistant';
@@ -14,10 +16,17 @@ interface AiMessage {
 export class AiGenerateDesignService implements IAiDesignService {
     private promptBuilder: PromptBuilderService;
     private costCalculator: IAiCostCalculator;
+    private iconIntegration: IconIntegrationService;
 
-    constructor(promptBuilderService: PromptBuilderService, costCalculator: IAiCostCalculator) {
+    constructor(
+        promptBuilderService: PromptBuilderService, 
+        costCalculator: IAiCostCalculator,
+        iconLibrary?: IconLibraryService
+    ) {
         this.promptBuilder = promptBuilderService;
         this.costCalculator = costCalculator;
+        const library = iconLibrary || new IconLibraryService();
+        this.iconIntegration = new IconIntegrationService(library);
     }
 
     async generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any> {
@@ -25,15 +34,17 @@ export class AiGenerateDesignService implements IAiDesignService {
             console.log("modelId", modelId);
             console.log("designSystemId", designSystemId);
 
-            const aiModel: AIModelConfig = getModelById(modelId)
-
-            const systemPrompt = this.promptBuilder.buildSystemPrompt(designSystemId);
+            const aiModel: AIModelConfig = getModelById(modelId);
+            
+            const baseSystemPrompt = this.promptBuilder.buildSystemPrompt(designSystemId);
+            const systemPrompt = this.addIconPrompt(baseSystemPrompt);
+            
             const enrichedPrompt = this.promptBuilder.enrichUserMessage(
                 `Generate a Figma design JSON for: "${prompt}"`,
                 designSystemId
             );
 
-            console.log(`🎨 Generating design with GPT-4${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
+            console.log(`🎨 Generating design with ${aiModel.name}${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
 
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
@@ -57,7 +68,12 @@ export class AiGenerateDesignService implements IAiDesignService {
             }
 
             console.log("responseText", responseText);
-            const jsonDesign = JSON.parse(responseText);
+            let jsonDesign = JSON.parse(responseText);
+            
+            console.log("🎨 Processing icon placeholders...");
+            const iconResult = await this.iconIntegration.processDesignWithIcons(jsonDesign);
+            jsonDesign = iconResult.design;
+            console.log(`✅ Replaced ${iconResult.iconsReplaced} icon placeholders`);
 
             let costBreakdown: CostBreakdown | null = null;
             if (usage) {
@@ -71,7 +87,8 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 design: jsonDesign,
-                cost: costBreakdown
+                cost: costBreakdown,
+                iconsReplaced: iconResult.iconsReplaced
             };
 
         } catch (error) {
@@ -91,7 +108,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             console.log("designSystemId", designSystemId);
 
             const messages = this.buildConversationMessages(userMessage, history, designSystemId);
-            const aiModel: AIModelConfig = getModelById(modelId)
+            const aiModel: AIModelConfig = getModelById(modelId);
             const openai: OpenAI = new OpenAI({
                 baseURL: aiModel.baseURL,
                 apiKey: aiModel.apiKey,
@@ -109,8 +126,17 @@ export class AiGenerateDesignService implements IAiDesignService {
                 throw new Error("GPT API returned empty response.");
             }
 
-            const designData = this.extractDesignFromResponse(responseText);
+            let designData = this.extractDesignFromResponse(responseText);
             const aiMessage = this.extractMessageFromResponse(responseText);
+            
+            let iconsReplaced = 0;
+            if (designData) {
+                console.log("🎨 Processing icon placeholders in conversation design...");
+                const iconResult = await this.iconIntegration.processDesignWithIcons(designData);
+                designData = iconResult.design;  
+                iconsReplaced = iconResult.iconsReplaced;
+                console.log(`✅ Replaced ${iconsReplaced} icon placeholders`);
+            }
 
             let previewHtml: string | null = null;
             let inputTokensForPreview = 0;
@@ -120,7 +146,7 @@ export class AiGenerateDesignService implements IAiDesignService {
                 try {
                     console.log("--- 3. Requesting HTML preview ---");
                     const { design, inputTokens, outputTokens } = await this.generateHtmlPreview(designData, openai, aiModel);
-                    previewHtml = design
+                    previewHtml = design;
                     inputTokensForPreview = inputTokens;
                     outputTokensForPreview = outputTokens;
                     console.log("--- 4. HTML Preview Generated ---");
@@ -150,7 +176,8 @@ export class AiGenerateDesignService implements IAiDesignService {
                 message: aiMessage,
                 design: designData,
                 previewHtml: previewHtml,
-                cost: costBreakdown
+                cost: costBreakdown,
+                iconsReplaced: iconsReplaced  
             };
 
         } catch (error) {
@@ -200,6 +227,11 @@ export class AiGenerateDesignService implements IAiDesignService {
                 console.error("Failed to extract JSON. Raw response:", responseText);
                 throw new Error("Failed to extract valid design JSON from AI response.");
             }
+            
+            console.log("🎨 Processing icon placeholders in edited design...");
+            const iconResult = await this.iconIntegration.processDesignWithIcons(designData);
+            designData = iconResult.design;
+            console.log(`✅ Replaced ${iconResult.iconsReplaced} icon placeholders`);
 
             const aiMessage = this.extractMessageFromResponse(responseText);
 
@@ -211,7 +243,7 @@ export class AiGenerateDesignService implements IAiDesignService {
                 try {
                     console.log("--- 3. Requesting HTML preview for edited design ---");
                     const { design, inputTokens, outputTokens } = await this.generateHtmlPreview(designData, openai, aiModel);
-                    previewHtml = design
+                    previewHtml = design;
                     inputTokensForPreview = inputTokens;
                     outputTokensForPreview = outputTokens;
                     console.log("--- 4. HTML Preview Generated ---");
@@ -241,7 +273,8 @@ export class AiGenerateDesignService implements IAiDesignService {
                 message: aiMessage,
                 design: designData,
                 previewHtml: previewHtml,
-                cost: costBreakdown
+                cost: costBreakdown,
+                iconsReplaced: iconResult.iconsReplaced 
             };
 
         } catch (error) {
@@ -250,6 +283,12 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
     }
 
+    private addIconPrompt(systemPrompt: string): string {
+        const iconPrompt = `${addIconPrompt}`;
+        return `${systemPrompt}\n${iconPrompt}`;
+    }
+
+    // ... rest of private methods remain the same ...
     private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<{ design: string, inputTokens: number, outputTokens: number }> {
         const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
         const messages: AiMessage[] = [
@@ -258,7 +297,7 @@ export class AiGenerateDesignService implements IAiDesignService {
                 content: "You are an expert at converting design JSON into a single, clean HTML block with inline CSS for preview purposes. You only output raw HTML code."
             },
             { role: 'user', content: prompt }
-        ]
+        ];
 
         const completion = await openai.chat.completions.create({
             model: aiModel.id,
@@ -277,10 +316,10 @@ export class AiGenerateDesignService implements IAiDesignService {
             cleaned = cleaned.substring(3, cleaned.length - 3).trim();
         }
 
-        let inputTokens: number = 0
-        let outputTokens: number = 0
+        let inputTokens: number = 0;
+        let outputTokens: number = 0;
 
-        const usage = completion.usage
+        const usage = completion.usage;
 
         if (usage) {
             inputTokens = usage.prompt_tokens;
@@ -298,7 +337,8 @@ export class AiGenerateDesignService implements IAiDesignService {
         history: ConversationMessage[],
         designSystemId: string
     ): AiMessage[] {
-        const systemPrompt = this.promptBuilder.buildConversationSystemPrompt(designSystemId);
+        const baseSystemPrompt = this.promptBuilder.buildConversationSystemPrompt(designSystemId);
+        const systemPrompt = this.addIconPrompt(baseSystemPrompt);
 
         const messages: AiMessage[] = [
             { role: 'system', content: systemPrompt }
@@ -325,7 +365,9 @@ export class AiGenerateDesignService implements IAiDesignService {
         currentDesign: any,
         designSystemId: string
     ): AiMessage[] {
-        const systemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId);
+        const baseSystemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId);
+        const systemPrompt = this.addIconPrompt(baseSystemPrompt);
+        
         const designSystemName = this.promptBuilder.getDesignSystemDisplayName(designSystemId);
 
         const messages: AiMessage[] = [
@@ -333,7 +375,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         ];
 
         const previousDesignSystem = this.detectDesignSystemFromHistory(history);
-        // ← حل مشكلة TypeScript: تأكد من أنها boolean
         const isDesignSystemChanged = Boolean(previousDesignSystem && previousDesignSystem !== designSystemId);
 
         if (designSystemId && designSystemName !== 'None') {

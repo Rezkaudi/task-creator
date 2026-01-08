@@ -1,0 +1,3 @@
+export const ALLOWED_USER_IDS = [
+  '1494619265346650570', 
+];

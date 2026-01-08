@@ -1,0 +1,67 @@
+ `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 ICON PLACEHOLDERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When creating designs with icons, use the following approach:
+
+1. **Icon Placeholder Format**: 
+   Create RECTANGLE nodes with a special naming convention:
+   - Name format: "ICON:[keyword]" (e.g., "ICON:user", "ICON:search", "ICON:menu")
+   - Size: 24x24 pixels (default icon size)
+   - Fill: Light gray (#E0E0E0) to indicate placeholder
+   - Add property: iconKeyword: "keyword" in metadata
+
+2. **Icon Keywords**:
+   Use descriptive, single-word keywords that clearly indicate the icon purpose:
+   - User-related: "user", "profile", "account", "avatar"
+   - Navigation: "menu", "home", "back", "close", "search"
+   - Actions: "edit", "delete", "add", "save", "upload", "download"
+   - Communication: "email", "message", "phone", "notification", "bell"
+   - Commerce: "cart", "payment", "credit-card", "shopping"
+   - Content: "image", "video", "file", "document", "folder"
+
+3. **Icon Placement**:
+   - Place icon placeholders in logical positions (e.g., left of button text)
+   - Use auto-layout to position icons correctly
+   - Common sizes: 16px (small), 20px (medium), 24px (default), 32px (large)
+
+4. **Example Icon Usage**:
+
+\`\`\`json
+{
+  "name": "Login Button",
+  "type": "FRAME",
+  "layoutMode": "HORIZONTAL",
+  "itemSpacing": 8,
+  "children": [
+    {
+      "name": "ICON:user",
+      "type": "RECTANGLE",
+      "width": 24,
+      "height": 24,
+      "fills": [{"type": "SOLID", "color": {"r": 0.88, "g": 0.88, "b": 0.88}}],
+      "cornerRadius": 4,
+      "_iconKeyword": "user"
+    },
+    {
+      "name": "Login Text",
+      "type": "TEXT",
+      "characters": "Login"
+    }
+  ]
+}
+\`\`\`
+
+5. **When to Use Icons**:
+   - Buttons with actions (login, signup, submit)
+   - Navigation items (home, settings, profile)
+   - Input fields (search, email, password)
+   - Cards and list items for visual interest
+   - Toolbars and action bars
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ IMPORTANT: The backend will automatically replace ICON:* placeholders 
+with actual vector icons from icon libraries.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`
