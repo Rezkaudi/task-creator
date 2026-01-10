@@ -13,6 +13,9 @@ export class TextNodeCreator extends BaseNodeCreator {
    * Create a text node from design data
    */
   async create(nodeData: DesignNode): Promise<TextNode> {
+    const font = await figma.listAvailableFontsAsync();
+    console.log("Fonts:", font);
+
     const textNode = figma.createText();
     textNode.name = nodeData.name || 'Text';
 
@@ -166,7 +169,7 @@ export class TextNodeCreator extends BaseNodeCreator {
     // If explicit textAutoResize is set, use it
     if (nodeData.textAutoResize) {
       textNode.textAutoResize = nodeData.textAutoResize;
-      
+
       // Apply dimensions based on resize mode
       if (nodeData.textAutoResize === 'NONE' && nodeData.width && nodeData.height) {
         textNode.resize(nodeData.width, nodeData.height);
@@ -211,7 +214,7 @@ export class TextNodeCreator extends BaseNodeCreator {
     for (const segment of segments) {
       const start = Math.max(0, segment.start);
       const end = Math.min(length, segment.end);
-      
+
       if (start >= end) continue;
 
       try {
