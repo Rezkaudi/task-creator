@@ -177,6 +177,20 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
 
 Icons MUST be created using VECTOR nodes with `vectorPaths`. This is the proper way to create scalable icons in Figma.
 
+### ⚠️ CRITICAL: SVG Path Syntax Rules
+
+**IMPORTANT: Path data MUST have spaces between commands and numbers!**
+
+✅ CORRECT: `"M 5 12 L 19 12"` (spaces after M, L and between numbers)
+❌ WRONG: `"M5 12 L19 12"` (missing space after M and L)
+❌ WRONG: `"M5,12 L19,12"` (avoid commas, use spaces)
+
+**Path Command Format:**
+- Every command letter (M, L, Q, C, Z Only) MUST be followed by a space
+- Numbers MUST be separated by spaces
+- Use spaces, NOT commas, between coordinates
+- Dont use this letter (V, H, A)
+
 ### Vector Path Structure:
 ```json
 {
@@ -208,14 +222,11 @@ Icons MUST be created using VECTOR nodes with `vectorPaths`. This is the proper 
 }
 ```
 
-### SVG Path Commands for vectorPaths.data:
-- **M x y** - Move to point (start new path)
-- **L x y** - Line to point
-- **H x** - Horizontal line to x
-- **V y** - Vertical line to y
-- **C x1 y1 x2 y2 x y** - Cubic bezier curve
-- **Q x1 y1 x y** - Quadratic bezier curve
-- **A rx ry rotation large-arc sweep x y** - Arc
+### SVG Path Commands Reference (use only this):
+- **M x y** - Move to point (start new path) - Example: `M 5 12`
+- **L x y** - Line to point - Example: `L 19 12`
+- **C x1 y1 x2 y2 x y** - Cubic bezier curve - Example: `C 10 5 15 5 20 12`
+- **Q x1 y1 x y** - Quadratic bezier curve - Example: `Q 12 5 19 12`
 - **Z** - Close path (connect back to start)
 
 ### Common Icon Examples (24x24 size):
@@ -650,6 +661,7 @@ Before outputting, verify:
 - [ ] All TEXT nodes have `characters` property with actual text content
 - [ ] All TEXT nodes have `fontSize`, `fontName`, `textAlignHorizontal`, `textAlignVertical`, `lineHeight`
 - [ ] All VECTOR nodes for icons have `vectorPaths` with valid SVG path data
+- [ ] All VECTOR path data has SPACES between commands and numbers (e.g., "M 5 12" NOT "M5 12")
 - [ ] All VECTOR nodes have `strokes` or `fills` defined
 - [ ] All VECTOR nodes have `strokeWeight`, `strokeCap`, `strokeJoin` when using strokes
 - [ ] All fills are arrays with proper structure
