@@ -81,4 +81,6 @@ export interface INodeRepository {
    * Clear component registry after import
    */
   clearComponentRegistry(): void;
+
+  getHeaders(): Promise<HeadersInit>;
 }

@@ -46,11 +46,11 @@ export type UIMessage =
   | { type: 'version-delete-error'; error: string }
   | { type: 'version-loaded'; version: DesignVersionFull }
   | { type: 'version-load-error'; error: string }
-  | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo  }
+  | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo }
   | { type: 'ai-chat-error'; error: string }
   | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any }
   | { type: 'no-layer-selected' }
-  | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo  }
+  | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo }
   | { type: 'ai-edit-error'; error: string }
   | { type: 'design-updated'; layerJson: any };
 
@@ -65,30 +65,31 @@ export type PluginMessage =
   | { type: 'export-all' }
   | { type: 'get-selection-info' }
   | { type: 'cancel' }
-  | { 
-      type: 'ai-chat-message'; 
-      message: string; 
-      history?: Array<{ role: string; content: string }>; 
-      model?: string;
-      designSystemId?: string; 
-    }
+  | {
+    type: 'ai-chat-message';
+    message: string;
+    history?: Array<{ role: string; content: string }>;
+    model?: string;
+    designSystemId?: string;
+  }
   | { type: 'import-design-from-chat'; designData: unknown }
   | { type: 'request-layer-selection-for-edit' }
-  | { 
-      type: 'ai-edit-design'; 
-      message: string; 
-      history?: Array<{ role: string; content: string }>; 
-      layerJson: any; 
-      model?: string;
-      designSystemId?: string; 
-    }
+  | {
+    type: 'ai-edit-design';
+    message: string;
+    history?: Array<{ role: string; content: string }>;
+    layerJson: any;
+    model?: string;
+    designSystemId?: string;
+  }
   | { type: 'import-edited-design'; designData: unknown }
   // Version management messages
   | { type: 'load-versions' }
   | { type: 'save-version'; description: string; designJson: any }
   | { type: 'load-version'; id: number }
   | { type: 'delete-version'; id: number }
-  | { type: 'import-version'; designJson: any };
+  | { type: 'import-version'; designJson: any }
+  | { type: 'GET_HEADERS' };
 
 /**
  * UI Port interface

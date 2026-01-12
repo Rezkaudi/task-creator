@@ -83,6 +83,34 @@ const saveDescription = document.getElementById('save-description');
 const confirmSaveBtn = document.getElementById('confirm-save-btn');
 const cancelSaveBtn = document.getElementById('cancel-save-btn');
 
+
+const getHeaders = async () => {
+    return new Promise((resolve, reject) => {
+        // Send request to main plugin
+        parent.postMessage({
+            pluginMessage: {
+                type: 'GET_HEADERS'
+            }
+        }, '*');
+
+        // Listen for response
+        const messageHandler = (event) => {
+            if (event.data.pluginMessage?.type === 'HEADERS_RESPONSE') {
+                window.removeEventListener('message', messageHandler);
+                resolve(event.data.pluginMessage.headers);
+            }
+        };
+
+        window.addEventListener('message', messageHandler);
+
+        // Timeout fallback
+        setTimeout(() => {
+            window.removeEventListener('message', messageHandler);
+            reject(new Error('Timeout waiting for headers'));
+        }, 5000);
+    });
+};
+
 // ==================== MODEL SELECTION ====================
 function initModelSelection() {
     // Floating button click handler
@@ -287,7 +315,9 @@ async function fetchDesignSystems() {
     try {
         showDesignSystemStatus('🔄 Loading design systems...', 'info');
 
-        const response = await fetch(`${API_BASE_URL}/api/design-systems`);
+        const response = await fetch(`${API_BASE_URL}/api/design-systems`, {
+            headers: await getHeaders()
+        });
         const data = await response.json();
 
         if (!data.success) {
@@ -807,20 +837,20 @@ function getElementIcon(type) {
 }
 function displayCostInfo(cost) {
     const lastAssistantMessage = Array.from(chatMessagesEl.querySelectorAll('.message.assistant')).pop();
-    
+
     if (!lastAssistantMessage) {
         console.warn('No assistant message found to attach cost');
         return;
     }
-    
+
     const messageContent = lastAssistantMessage.querySelector('.message-content');
     if (!messageContent) return;
-    
+
     const existingCost = messageContent.querySelector('.cost-breakdown');
     if (existingCost) {
-        existingCost.remove(); 
+        existingCost.remove();
     }
-    
+
     const costEl = document.createElement('div');
     costEl.className = 'cost-breakdown';
     costEl.innerHTML = `
@@ -838,9 +868,9 @@ function displayCostInfo(cost) {
             <span class="cost-value">${cost.totalCost}</span>
         </div>
     `;
-    
+
     messageContent.appendChild(costEl);
-    
+
     chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
 
@@ -849,7 +879,9 @@ async function fetchAIModels() {
     try {
         showModelStatus('🔄 Loading AI models...', 'info');
 
-        const response = await fetch(`${API_BASE_URL}/api/ai-models`);
+        const response = await fetch(`${API_BASE_URL}/api/ai-models`, {
+            headers: await getHeaders()
+        });
         const data = await response.json();
 
         if (!data.success) {
@@ -944,7 +976,9 @@ async function loadVersions() {
         refreshVersionsBtn.disabled = true;
         refreshVersionsBtn.innerHTML = '<span class="loading"></span>';
 
-        const response = await fetch(`${API_BASE_URL}/api/design-versions`);
+        const response = await fetch(`${API_BASE_URL}/api/design-versions`, {
+            headers: await getHeaders()
+        });
         const data = await response.json();
 
         if (!data.success) {
@@ -992,14 +1026,14 @@ function renderVersionsList(versions) {
   `).join('');
 
     document.querySelectorAll('.version-item').forEach(item => {
-        item.addEventListener('click', () => selectVersion(parseInt(item.dataset.id)));
+        item.addEventListener('click', () => selectVersion(item.dataset.id));
     });
 }
 
 function selectVersion(id) {
     selectedVersionId = id;
     document.querySelectorAll('.version-item').forEach(item => {
-        item.classList.toggle('selected', parseInt(item.dataset.id) === id);
+        item.classList.toggle('selected', item.dataset.id === id);
     });
     selectedVersionActions.style.display = 'flex';
 }
@@ -1012,7 +1046,7 @@ async function saveVersionToDb(description, designJson) {
 
         const response = await fetch(`${API_BASE_URL}/api/design-versions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await getHeaders(),
             body: JSON.stringify({ description, designJson })
         });
 
@@ -1043,7 +1077,9 @@ async function importVersionFromDb(id) {
         importVersionBtn.disabled = true;
         importVersionBtn.innerHTML = '<span class="loading"></span> Loading...';
 
-        const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`, {
+            headers: await getHeaders()
+        });
         const data = await response.json();
 
         if (!data.success) {
@@ -1075,6 +1111,7 @@ async function deleteVersion(id) {
         deleteVersionBtn.innerHTML = '<span class="loading"></span>';
 
         const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`, {
+            headers: await getHeaders(),
             method: 'DELETE'
         });
 
@@ -1326,7 +1363,9 @@ async function handleApiFetch() {
     try { new URL(apiUrl); } catch (e) { throw new Error('Please enter a valid URL'); }
     setLoading('Fetching design...');
     showStatus('📡 Fetching from API...', 'info');
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, {
+        headers: await getHeaders()
+    });
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     let result = await response.json();
     let designData = result.data || result.design || result.result || result;
@@ -1488,23 +1527,23 @@ async function callBackendForClaude(userPrompt) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/designs/generate-from-text`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await getHeaders(),
             body: JSON.stringify({
                 prompt: userPrompt,
                 modelId: currentModel,
                 designSystemId: currentDesignSystem
             })
         });
-        
+
         if (!response.ok) {
             let errorMessage = `Server error: ${response.status}`;
-            try { 
-                const err = await response.json(); 
-                errorMessage = err.message || err.error || errorMessage; 
+            try {
+                const err = await response.json();
+                errorMessage = err.message || err.error || errorMessage;
             } catch (e) { }
             throw new Error(errorMessage);
         }
-        
+
         const result = await response.json();
         return result.design || result.data || result;
     } catch (error) {
