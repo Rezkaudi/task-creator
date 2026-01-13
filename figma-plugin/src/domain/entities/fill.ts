@@ -45,6 +45,7 @@ export interface Fill {
   scaleMode?: 'FILL' | 'FIT' | 'CROP' | 'TILE';
   imageHash?: string;
   imageData?: string; // Base64 encoded image data for export/import
+  imageUrl?: string; // URL to fetch image from (for import)
   imageTransform?: [[number, number, number], [number, number, number]];
   scalingFactor?: number;
   rotation?: number;
@@ -105,6 +106,23 @@ export function createImageFill(
 }
 
 /**
+ * Create an image fill from URL
+ */
+export function createImageFillFromUrl(
+  imageUrl: string,
+  scaleMode: 'FILL' | 'FIT' | 'CROP' | 'TILE' = 'FILL'
+): Fill {
+  return {
+    type: 'IMAGE',
+    visible: true,
+    opacity: 1,
+    blendMode: 'NORMAL',
+    scaleMode,
+    imageUrl,
+  };
+}
+
+/**
  * Type guard for solid fills
  */
 export function isSolidFill(fill: Fill): boolean {
@@ -116,9 +134,9 @@ export function isSolidFill(fill: Fill): boolean {
  */
 export function isGradientFill(fill: Fill): boolean {
   return fill.type === 'GRADIENT_LINEAR' ||
-         fill.type === 'GRADIENT_RADIAL' ||
-         fill.type === 'GRADIENT_ANGULAR' ||
-         fill.type === 'GRADIENT_DIAMOND';
+    fill.type === 'GRADIENT_RADIAL' ||
+    fill.type === 'GRADIENT_ANGULAR' ||
+    fill.type === 'GRADIENT_DIAMOND';
 }
 
 /**

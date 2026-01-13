@@ -1,0 +1,45 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 ICONS - USE ICONIFY API (NOT VECTOR PATHS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When you need an icon in the design:
+
+1. **FIRST**: Call the \`searchIcons\` tool with a keyword (e.g., "home", "arrow", "user")
+2. **THEN**: Call the \`getIconUrl\` tool with the best matching icon from results
+3. **FINALLY**: Use RECTANGLE with IMAGE fill:
+
+\`\`\`json
+{
+  "name": "Home Icon",
+  "type": "RECTANGLE",
+  "x": 0,
+  "y": 0,
+  "width": 24,
+  "height": 24,
+  "fills": [
+    {
+      "type": "IMAGE",
+      "scaleMode": "FILL",
+      "imageUrl": "https://api.iconify.design/solar/home-bold.svg"
+    }
+  ]
+}
+\`\`\`
+
+**DO NOT use VECTOR nodes with vectorPaths for icons!**
+**ALWAYS use RECTANGLE with IMAGE fill from Iconify URL!**
+
+### Common Icon Prefixes:
+- \`solar:\` - Modern, clean icons (solar:home-bold, solar:user-linear)
+- \`mdi:\` - Material Design Icons (mdi:arrow-right, mdi:check)
+- \`lucide:\` - Lucide icons (lucide:settings, lucide:menu)
+- \`heroicons:\` - Heroicons (heroicons:home, heroicons:user)
+- \`tabler:\` - Tabler icons (tabler:home, tabler:search)
+
+### Icon Sizes:
+- Small: 16x16
+- Default: 24x24
+- Medium: 32x32
+- Large: 48x48
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

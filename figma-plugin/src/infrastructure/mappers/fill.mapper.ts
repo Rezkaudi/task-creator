@@ -7,6 +7,11 @@ import { ColorFactory } from '../../domain/value-objects/color';
 const imageImportCache = new Map<string, Image>();
 
 /**
+ * URL to Image cache to avoid re-fetching
+ */
+const imageUrlCache = new Map<string, Image>();
+
+/**
  * Mapper for converting between Fill entities and Figma Paint objects
  */
 export class FillMapper {
@@ -186,12 +191,17 @@ export class FillMapper {
       try {
         let image: Image | null = null;
 
-        // If we have base64 image data, create the image
-        if (fill.imageData) {
+        // Priority 1: If we have an imageUrl, fetch it
+        if (fill.imageUrl) {
+          image = await FillMapper.fetchImageFromUrl(fill.imageUrl);
+        }
+        // Priority 2: If we have base64 image data, create the image
+        else if (fill.imageData) {
           const bytes = FillMapper.base64ToBytes(fill.imageData);
           image = await figma.createImage(bytes);
-        } else if (fill.imageHash) {
-          // Try to get existing image by hash
+        }
+        // Priority 3: Try to get existing image by hash
+        else if (fill.imageHash) {
           image = figma.getImageByHash(fill.imageHash);
         }
 
@@ -226,6 +236,102 @@ export class FillMapper {
     return null;
   }
 
+  /**
+   * Fetch an image from a URL and create a Figma Image
+   * Note: Figma only supports PNG, JPEG, GIF, and WebP. SVG is converted via proxy.
+   */
+  private static async fetchImageFromUrl(url: string): Promise<Image | null> {
+    // Check cache first
+    if (imageUrlCache.has(url)) {
+      console.log('Using cached image for URL:', url);
+      return imageUrlCache.get(url)!;
+    }
+
+    try {
+      console.log('Fetching image from URL:', url);
+
+      // Convert SVG URLs to PNG via proxy service
+      let fetchUrl = url;
+      const isSvg = url.endsWith('.svg') || url.includes('/svg/') || url.includes('api.iconify.design');
+
+      if (isSvg) {
+        console.log('🔄 SVG detected - converting to PNG via proxy...');
+        fetchUrl = FillMapper.convertSvgUrlToPng(url);
+        console.log('   Converted URL:', fetchUrl);
+      }
+
+      const response = await fetch(fetchUrl);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText || ''}`);
+      }
+
+      // Safely get content type - headers may be undefined in Figma sandbox
+      let contentType = '';
+      try {
+        if (response.headers && typeof response.headers.get === 'function') {
+          contentType = response.headers.get('content-type') || '';
+        }
+      } catch (e) {
+        console.log('Could not read content-type header');
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+
+      if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+        throw new Error('Received empty image data');
+      }
+
+      console.log(`Image fetched: ${arrayBuffer.byteLength} bytes, type: ${contentType || 'unknown'}`);
+
+      // Create the Figma image using our helper
+      const image = await FillMapper.createFigmaImage(arrayBuffer);
+
+      if (image) {
+        // Cache using original URL as key
+        imageUrlCache.set(url, image);
+        console.log('✅ Successfully created image from URL:', url);
+      }
+
+      return image;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('❌ Error fetching image from URL:', url);
+      console.error('   Error:', errorMessage);
+      return null;
+    }
+  }
+
+  /**
+   * Convert SVG URL to PNG via image proxy service
+   * Uses wsrv.nl (weserv) - a free image proxy that converts SVG to PNG
+   */
+  private static convertSvgUrlToPng(svgUrl: string): string {
+    // Use wsrv.nl to convert SVG to PNG
+    // Documentation: https://wsrv.nl/docs/
+    const encodedUrl = encodeURIComponent(svgUrl);
+
+    // wsrv.nl parameters:
+    // - output=png: convert to PNG format
+    // - w=512: width (optional, for better quality)
+    // - h=512: height (optional, for better quality)
+    return `https://wsrv.nl/?url=${encodedUrl}&output=png&w=512&h=512`;
+  }
+
+  /**
+   * Helper to create Figma image with proper typing
+   */
+  private static async createFigmaImage(arrayBuffer: ArrayBuffer): Promise<Image | null> {
+    try {
+      // @ts-ignore - Workaround for TypeScript Uint8Array<ArrayBuffer> vs Uint8Array<ArrayBufferLike> issue
+      const bytes: Uint8Array<ArrayBuffer> = new Uint8Array(arrayBuffer);
+      return await figma.createImage(bytes);
+    } catch (error) {
+      console.error('Error creating Figma image:', error);
+      return null;
+    }
+  }
+
   private static mapGradientStops(stops: readonly ColorStop[]): GradientStop[] {
     return stops.map((stop) => ({
       position: stop.position,
@@ -243,13 +349,22 @@ export class FillMapper {
     return Math.max(0, Math.min(1, opacity));
   }
 
-  private static base64ToBytes(base64: string): Uint8Array {
+  private static base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
     const binaryString = atob(base64);
     const len = binaryString.length;
-    const bytes = new Uint8Array(len);
+    const buffer = new ArrayBuffer(len);
+    const bytes = new Uint8Array(buffer);
     for (let i = 0; i < len; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
+    // @ts-ignore - Workaround for TypeScript Uint8Array<ArrayBuffer> vs Uint8Array<ArrayBufferLike> issue
     return bytes;
+  }
+
+  /**
+   * Clear the URL cache
+   */
+  static clearUrlCache(): void {
+    imageUrlCache.clear();
   }
 }

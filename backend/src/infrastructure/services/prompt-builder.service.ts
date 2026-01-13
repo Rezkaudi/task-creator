@@ -1,5 +1,5 @@
 import { getDesignSystemById } from '../config/design-systems.config';
-import { textToDesignSystemPrompt } from '../config/prompt.config';
+import { iconInstructionsPrompt, textToDesignSystemPrompt } from '../config/prompt.config';
 
 
 export class PromptBuilderService {
@@ -39,6 +39,9 @@ Do NOT deviate from these specifications unless explicitly requested.
 
         return `${basePrompt}
 
+ ${iconInstructionsPrompt}  // <-- Add this
+
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 RESPONSE FORMAT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -72,22 +75,22 @@ Created a login page with email and password fields${designSystemNote}.
     }
 
     buildEditSystemPrompt(designSystemId: string): string {
-    const basePrompt = this.buildSystemPrompt(designSystemId);
+        const basePrompt = this.buildSystemPrompt(designSystemId);
 
-    const designSystemName = this.getDesignSystemDisplayName(designSystemId);
+        const designSystemName = this.getDesignSystemDisplayName(designSystemId);
 
-    const designSystemMaintainNote = designSystemName && designSystemName !== 'None'
-        ? `- **CONVERT ALL ELEMENTS TO ${designSystemName.toUpperCase()} DESIGN SYSTEM** (colors, spacing, components, borders, shadows)`
-        : '';
+        const designSystemMaintainNote = designSystemName && designSystemName !== 'None'
+            ? `- **CONVERT ALL ELEMENTS TO ${designSystemName.toUpperCase()} DESIGN SYSTEM** (colors, spacing, components, borders, shadows)`
+            : '';
 
-    const designSystemNewElementsNote = designSystemName && designSystemName !== 'None'
-        ? `- **EVERY ELEMENT must be redesigned using ${designSystemName.toUpperCase()} specifications**`
-        : '';
+        const designSystemNewElementsNote = designSystemName && designSystemName !== 'None'
+            ? `- **EVERY ELEMENT must be redesigned using ${designSystemName.toUpperCase()} specifications**`
+            : '';
 
-    const designSystemNote = this.getDesignSystemNote(designSystemId);
+        const designSystemNote = this.getDesignSystemNote(designSystemId);
 
-    const designSystemWarning = designSystemName && designSystemName !== 'None'
-        ? `
+        const designSystemWarning = designSystemName && designSystemName !== 'None'
+            ? `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 MANDATORY DESIGN SYSTEM: ${designSystemName.toUpperCase()}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -99,9 +102,9 @@ Created a login page with email and password fields${designSystemNote}.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `
-        : '';
+            : '';
 
-    return `${basePrompt}
+        return `${basePrompt}
 
 ${designSystemWarning}
 
@@ -160,7 +163,7 @@ ${designSystemName && designSystemName !== 'None' ? `
 🔴 FINAL REMINDER: CONVERT EVERYTHING TO ${designSystemName.toUpperCase()}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ` : ''}`;
-}
+    }
 
     enrichUserMessage(message: string, designSystemId: string): string {
         if (!designSystemId) {
