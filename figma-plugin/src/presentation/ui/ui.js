@@ -524,12 +524,23 @@ tabs.forEach(tab => {
 });
 
 // ==================== AI CHAT FUNCTIONS ====================
+let isComposing = false;
+
 chatSendBtn.addEventListener('click', sendChatMessage);
+
 chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
         e.preventDefault();
         sendChatMessage();
     }
+});
+
+chatInput.addEventListener('compositionstart', () => {
+    isComposing = true;
+});
+
+chatInput.addEventListener('compositionend', () => {
+    isComposing = false;
 });
 
 function sendChatMessage() {
@@ -807,20 +818,20 @@ function getElementIcon(type) {
 }
 function displayCostInfo(cost) {
     const lastAssistantMessage = Array.from(chatMessagesEl.querySelectorAll('.message.assistant')).pop();
-    
+
     if (!lastAssistantMessage) {
         console.warn('No assistant message found to attach cost');
         return;
     }
-    
+
     const messageContent = lastAssistantMessage.querySelector('.message-content');
     if (!messageContent) return;
-    
+
     const existingCost = messageContent.querySelector('.cost-breakdown');
     if (existingCost) {
-        existingCost.remove(); 
+        existingCost.remove();
     }
-    
+
     const costEl = document.createElement('div');
     costEl.className = 'cost-breakdown';
     costEl.innerHTML = `
@@ -838,9 +849,9 @@ function displayCostInfo(cost) {
             <span class="cost-value">${cost.totalCost}</span>
         </div>
     `;
-    
+
     messageContent.appendChild(costEl);
-    
+
     chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
 
@@ -1495,16 +1506,16 @@ async function callBackendForClaude(userPrompt) {
                 designSystemId: currentDesignSystem
             })
         });
-        
+
         if (!response.ok) {
             let errorMessage = `Server error: ${response.status}`;
-            try { 
-                const err = await response.json(); 
-                errorMessage = err.message || err.error || errorMessage; 
+            try {
+                const err = await response.json();
+                errorMessage = err.message || err.error || errorMessage;
             } catch (e) { }
             throw new Error(errorMessage);
         }
-        
+
         const result = await response.json();
         return result.design || result.data || result;
     } catch (error) {
