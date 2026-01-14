@@ -35,6 +35,7 @@ import { PluginMessageHandler } from './presentation/handlers';
 
 // Shared
 import { PluginConfig } from './shared/constants';
+import { GetUserInfoUseCase } from '@application/use-cases/getUserInfoUseCase';
 
 /**
  * Plugin Application - Composition Root
@@ -54,6 +55,7 @@ class PluginApplication {
   private readonly importAIDesignUseCase: ImportAIDesignUseCase;
   private readonly exportSelectedUseCase: ExportSelectedUseCase;
   private readonly exportAllUseCase: ExportAllUseCase;
+  private readonly getUserInfoUseCase: GetUserInfoUseCase;
 
   // Handlers
   private readonly messageHandler: PluginMessageHandler;
@@ -94,6 +96,10 @@ class PluginApplication {
       this.nodeCounter
     );
 
+    this.getUserInfoUseCase = new GetUserInfoUseCase(
+      this.nodeRepository
+    );
+
     // Initialize Handlers
     this.messageHandler = new PluginMessageHandler(
       this.uiPort,
@@ -101,7 +107,8 @@ class PluginApplication {
       this.importDesignUseCase,
       this.importAIDesignUseCase,
       this.exportSelectedUseCase,
-      this.exportAllUseCase
+      this.exportAllUseCase,
+      this.getUserInfoUseCase
     );
 
     this.selectionChangeHandler = new SelectionChangeHandler(

@@ -1,3 +1,5 @@
+// File: /backend/src/infrastructure/web/controllers/design-version.controller.ts
+
 import { NextFunction, Request, Response } from "express";
 import { SaveDesignVersionUseCase } from "../../../application/use-cases/save-design-version.use-case";
 import { GetAllDesignVersionsUseCase } from "../../../application/use-cases/get-all-design-versions.use-case";
@@ -15,10 +17,11 @@ export class DesignVersionController {
     async saveVersion(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { description, designJson } = req.body;
+            const userId = (req as any).user.id;
 
-            const version = await this.saveDesignVersionUseCase.execute(description, designJson);
+            const version = await this.saveDesignVersionUseCase.execute(description, designJson, userId);
 
-            console.log(`✅ Saved design version ${version.version}: ${description}`);
+            console.log(`✅ Saved design version ${version.version} for user ${userId}: ${description}`);
 
             res.status(201).json({
                 success: true,
@@ -33,7 +36,8 @@ export class DesignVersionController {
 
     async getAllVersions(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const versions = await this.getAllDesignVersionsUseCase.execute();
+            const userId = (req as any).user.id;
+            const versions = await this.getAllDesignVersionsUseCase.execute(userId);
 
             res.json({
                 success: true,
@@ -48,14 +52,15 @@ export class DesignVersionController {
 
     async getVersionById(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const id = parseInt(req.params.id);
+            const id = req.params.id;
+            const userId = (req as any).user.id;
 
-            const version = await this.getDesignVersionByIdUseCase.execute(id);
+            const version = await this.getDesignVersionByIdUseCase.execute(id, userId);
 
             if (!version) {
                 res.status(404).json({
                     success: false,
-                    message: `Design version with id ${id} not found`,
+                    message: `Design version with id ${id} not found or you don't have permission to access it`,
                 });
                 return;
             }
@@ -72,9 +77,10 @@ export class DesignVersionController {
 
     async deleteVersion(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const id = parseInt(req.params.id);
+            const id = req.params.id;
+            const userId = (req as any).user.id;
 
-            await this.deleteDesignVersionUseCase.execute(id);
+            await this.deleteDesignVersionUseCase.execute(id, userId);
 
             res.json({
                 success: true,

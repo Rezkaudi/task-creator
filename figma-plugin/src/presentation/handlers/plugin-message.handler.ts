@@ -7,6 +7,7 @@ import {
   ExportAllUseCase,
 } from '../../application/use-cases';
 import { ApiConfig } from '../../shared/constants';
+import { GetUserInfoUseCase } from '@application/use-cases/getUserInfoUseCase';
 
 interface BackendChatResponse {
   success: boolean;
@@ -32,7 +33,8 @@ export class PluginMessageHandler {
     private readonly importDesignUseCase: ImportDesignUseCase,
     private readonly importAIDesignUseCase: ImportAIDesignUseCase,
     private readonly exportSelectedUseCase: ExportSelectedUseCase,
-    private readonly exportAllUseCase: ExportAllUseCase
+    private readonly exportAllUseCase: ExportAllUseCase,
+    private readonly getUserInfoUseCase: GetUserInfoUseCase
   ) { }
 
   /**
@@ -63,7 +65,6 @@ export class PluginMessageHandler {
         break;
 
       case 'import-design-from-chat':
-        console.log("designData", message.designData);
         await this.handleImportDesignFromChat(message.designData);
         break;
 
@@ -72,7 +73,6 @@ export class PluginMessageHandler {
         break;
 
       case 'design-generated-from-ai':
-        console.log("designData", message.designData);
         await this.handleAIDesignImport(message.designData);
         break;
 
@@ -98,6 +98,16 @@ export class PluginMessageHandler {
       case 'import-version':
         await this.handleImportVersion(message.designJson);
         break;
+
+      case 'GET_HEADERS':
+        const headers = await this.getUserInfoUseCase.execute();
+        // Send back to UI
+        figma.ui.postMessage({
+          type: 'HEADERS_RESPONSE',
+          headers: headers
+        });
+        break;
+
 
       default:
         console.warn('Unknown message type:', message.type);
@@ -165,7 +175,7 @@ export class PluginMessageHandler {
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await this.getUserInfoUseCase.execute(),
         body: JSON.stringify({
           message: userMessage,
           history: this.conversationHistory,
@@ -226,7 +236,7 @@ export class PluginMessageHandler {
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await this.getUserInfoUseCase.execute(),
         body: JSON.stringify({
           message: userMessage,
           history: this.conversationHistory,

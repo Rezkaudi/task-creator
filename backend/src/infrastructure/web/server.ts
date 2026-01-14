@@ -37,6 +37,12 @@ export class Server {
     this.app.use(cors(corsOptions));
     this.app.use(express.json({ limit: '50mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+    // Apply User Middleware globally
+    // It will handle skipping for public paths internally
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      this.container.userMiddleware.handle(req, res, next);
+    });
   }
 
   private configureRoutes(): void {

@@ -368,4 +368,25 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
 
     return group;
   }
+
+  async getHeaders(): Promise<Record<string, string>> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    const user = figma.currentUser;
+
+    if (user) {
+      headers['x-figma-user-id'] = user.id!;
+      headers['x-figma-user-name'] = user.name;
+
+      const storageUser = await figma.clientStorage.getAsync(`figment:traits:${user.id!}`);
+      console.log(storageUser);
+      if (storageUser) {
+        if (storageUser.name) headers['x-figma-user-name'] = storageUser.name;
+        if (storageUser.email) headers['x-figma-user-email'] = storageUser.email;
+      }
+    }
+    return headers;
+  }
 }

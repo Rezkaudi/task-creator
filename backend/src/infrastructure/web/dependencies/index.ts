@@ -9,6 +9,7 @@ import { AiCostCalculatorService } from "../../services/ai-cost.calculator.servi
 
 // Repositories
 import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-version.repository";
+import { TypeORMUserRepository } from "../../repository/typeorm-user.repository";
 
 // Use Cases - Tasks
 import { GetBoardListsUseCase } from "../../../application/use-cases/get-board-lists-in-trello.use-case";
@@ -35,12 +36,19 @@ import { DesignVersionController } from "../controllers/design-version.controlle
 import { AIModelsController } from "../controllers/ai-models.controller"; // ← NEW
 import { DesignSystemsController } from "../controllers/design-systems.controller";
 
+import { UserMiddleware } from "../middleware/user.middleware";
+
+
 export const setupDependencies = () => {
+
+    // Repositories
+    const userRepository = new TypeORMUserRepository();
+    const designVersionRepository = new TypeORMDesignVersionRepository();
+
     // Services
     const trelloService = new TrelloService();
     const promptBuilderService = new PromptBuilderService();
     const aiCostCalculatorService = new AiCostCalculatorService()
-    const designVersionRepository = new TypeORMDesignVersionRepository();
     const aiExtractTasksService = new AiExtractTasksService(aiCostCalculatorService);
     const defaultAiDesignService = new AiGenerateDesignService(promptBuilderService, aiCostCalculatorService);
 
@@ -62,6 +70,8 @@ export const setupDependencies = () => {
     // Controllers
     const trelloController = new TrelloController(getBoardListsUseCase);
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
+
+    const userMiddleware = new UserMiddleware(userRepository);
 
     const designController = new DesignController(
         generateDesignFromTextUseCase,
@@ -89,5 +99,6 @@ export const setupDependencies = () => {
         designVersionController,
         aiModelsController,
         designSystemsController,
+        userMiddleware
     };
 };

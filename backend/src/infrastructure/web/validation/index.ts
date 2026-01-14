@@ -101,6 +101,5 @@ export const saveDesignVersionValidation = [
 
 export const designVersionIdParamValidation = [
     param('id')
-        .isInt({ min: 1 }).withMessage('ID must be a positive integer')
-        .toInt(),
+        .isString().withMessage('ID must be a string'),
 ];
