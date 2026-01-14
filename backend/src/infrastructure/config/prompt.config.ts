@@ -35,8 +35,14 @@ export const htmlPreviewPrompt = fs.readFileSync(
     path.join(__dirname, '../../../public/prompt/html-preview.txt'),
     'utf-8'
 ).trim();
+
 export const designSystemChangeWarningPrompt = fs.readFileSync(
     path.join(__dirname, '../../../public/prompt/design-system-change-warning.txt'),
+    'utf-8'
+).trim();
+
+export const iconInstructionsPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/icon-instructions.txt'),
     'utf-8'
 ).trim();
 

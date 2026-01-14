@@ -554,12 +554,23 @@ tabs.forEach(tab => {
 });
 
 // ==================== AI CHAT FUNCTIONS ====================
+let isComposing = false;
+
 chatSendBtn.addEventListener('click', sendChatMessage);
+
 chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
         e.preventDefault();
         sendChatMessage();
     }
+});
+
+chatInput.addEventListener('compositionstart', () => {
+    isComposing = true;
+});
+
+chatInput.addEventListener('compositionend', () => {
+    isComposing = false;
 });
 
 function sendChatMessage() {
