@@ -1,5 +1,5 @@
-const API_BASE_URL = 'https://task-creator-api.onrender.com';
-//const API_BASE_URL = "http://localhost:5000"
+//const API_BASE_URL = 'https://task-creator-api.onrender.com';
+const API_BASE_URL = "http://localhost:5000"
 
 // ==================== STATE ====================
 let chatMessages = [];
@@ -612,6 +612,10 @@ function sendChatMessage() {
 function addMessage(role, content, isLoading = false) {
     const messageEl = document.createElement('div');
     messageEl.className = `message ${role}`;
+    const isError = content.startsWith('Error:');
+    if (isError && role === 'assistant') {
+        messageEl.classList.add('error-message');
+    }
     const contentEl = document.createElement('div');
     contentEl.className = 'message-content';
 
@@ -1477,8 +1481,6 @@ window.onmessage = async (event) => {
             chatSendBtn.disabled = false;
             removeLoadingMessages();
             addMessage('assistant', `Error: ${msg.error}`);
-            showStatus(`❌ ${msg.error}`, 'error');
-            setTimeout(hideStatus, 2000);
             break;
 
         case 'import-success':
@@ -1510,6 +1512,8 @@ window.onmessage = async (event) => {
             }
             importVersionBtn.disabled = false;
             importVersionBtn.innerHTML = '📥 Import to Figma';
+            setTimeout(hideStatus, 3000);
+
             break;
 
         case 'selection-changed':
@@ -1525,6 +1529,7 @@ window.onmessage = async (event) => {
         case 'export-error':
             showStatus(`❌ Export failed: ${msg.error}`, 'error');
             resetExportButtons();
+            setTimeout(hideStatus, 3000);
             break;
     }
 };
