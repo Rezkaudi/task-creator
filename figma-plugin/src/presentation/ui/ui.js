@@ -168,7 +168,7 @@ function selectModel(modelId, showNotification = true) {
     currentModel = modelId;
 
     // Update UI
-    updateModelUI(model, showNotification);
+    updateModelUI(model, false);
 
     // Update all model items in the list
     document.querySelectorAll('.model-item').forEach(item => {
@@ -199,12 +199,6 @@ function updateModelUI(model, showNotification = true) {
     // Update current model name
     if (currentModelNameEl) {
         currentModelNameEl.textContent = model.name;
-    }
-
-    // Show notification
-    if (showNotification) {
-        showStatus(`✅ Switched to ${model.name}`, 'success');
-        setTimeout(hideStatus, 2000);
     }
 }
 
@@ -275,7 +269,7 @@ function selectDesignSystem(systemId, showNotification = true) {
     currentDesignSystem = systemId;
 
     // Update UI
-    updateDesignSystemUI(system, showNotification);
+    updateDesignSystemUI(system, false);
 
     // Update all system items in the list
     document.querySelectorAll('#design-system-list .model-item').forEach(item => {
@@ -305,10 +299,7 @@ function updateDesignSystemUI(system, showNotification = true) {
         currentDesignSystemNameEl.textContent = system.name;
     }
 
-    if (showNotification) {
-        showStatus(`✅ Switched to ${system.name}`, 'success');
-        setTimeout(hideStatus, 2000);
-    }
+    
 }
 
 async function fetchDesignSystems() {
