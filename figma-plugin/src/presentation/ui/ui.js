@@ -1,5 +1,5 @@
-// const API_BASE_URL = 'https://task-creator-api.onrender.com';
-const API_BASE_URL = "http://localhost:5000"
+const API_BASE_URL = 'https://task-creator-api.onrender.com';
+//const API_BASE_URL = "http://localhost:5000"
 
 // ==================== STATE ====================
 let chatMessages = [];
@@ -718,22 +718,23 @@ function addDesignPreview(designData, previewHtml = null, isEditMode = false, la
 
     // Import button
     const importButton = previewEl.querySelector('.import-to-figma-btn');
-    if (importButton && designData) {
-        importButton.addEventListener('click', () => {
-            importButton.disabled = true;
-            importButton.textContent = isEditMode ? 'Updating...' : 'Importing...';
+if (importButton && designData) {
+    importButton.addEventListener('click', () => {
+        importButton.disabled = true;
+        importButton.textContent = isEditMode ? 'Updating...' : 'Importing...';
 
-            const messageType = isEditMode ? 'import-edited-design' : 'import-design-from-chat';
-            parent.postMessage({
-                pluginMessage: {
-                    type: messageType,
-                    designData: designData,
-                    isEditMode: isEditMode,
-                    ...(isEditMode && { layerId: selectedLayerForEdit })
-                }
-            }, '*');
-        });
-    }
+        const messageType = isEditMode ? 'import-edited-design' : 'import-design-from-chat';
+        parent.postMessage({
+            pluginMessage: {
+                type: messageType,
+                designData: designData,
+                isEditMode: isEditMode,
+                buttonId: uniqueId, 
+                ...(isEditMode && { layerId: selectedLayerForEdit })
+            }
+        }, '*');
+    });
+}
 }
 
 function generateDefaultPreview(designData, isEditMode = false) {
@@ -1343,6 +1344,14 @@ function updateSelectionInfo(selection) {
         exportSelectedBtn.disabled = false;
     }
 }
+function resetImportButton(buttonId) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+    
+    button.disabled = false;
+    const isEditMode = currentMode === 'edit';
+    button.textContent = isEditMode ? 'Update in Figma' : 'Import to Figma';
+}
 
 // ==================== MAIN IMPORT HANDLERS ====================
 jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
@@ -1484,6 +1493,9 @@ window.onmessage = async (event) => {
         case 'import-success':
             showStatus('✅ Design imported successfully!', 'success');
             resetButton();
+            if (msg.buttonId) {
+                resetImportButton(msg.buttonId);
+            }
             importVersionBtn.disabled = false;
             importVersionBtn.innerHTML = '📥 Import to Figma';
             setTimeout(hideStatus, 3000);
@@ -1492,6 +1504,9 @@ window.onmessage = async (event) => {
         case 'design-updated':
             console.log('🔄 Design updated, refreshing layer JSON for next edit');
             selectedLayerJson = msg.layerJson;
+            if (msg.buttonId) {
+                resetImportButton(msg.buttonId);
+            }
             showStatus('✅ Design updated! You can continue editing.', 'success');
             setTimeout(hideStatus, 2000);
             break;
@@ -1499,6 +1514,9 @@ window.onmessage = async (event) => {
         case 'import-error':
             showStatus(`❌ Import failed: ${msg.error}`, 'error');
             resetButton();
+            if (msg.buttonId) {
+                resetImportButton(msg.buttonId);
+            }
             importVersionBtn.disabled = false;
             importVersionBtn.innerHTML = '📥 Import to Figma';
             break;
