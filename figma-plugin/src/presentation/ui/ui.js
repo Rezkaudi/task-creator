@@ -550,8 +550,12 @@ let isComposing = false;
 chatSendBtn.addEventListener('click', sendChatMessage);
 
 chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.shiftKey) {
+        return;
+    }
+    
     if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
-        e.preventDefault();
+        e.preventDefault(); 
         sendChatMessage();
     }
 });
@@ -627,7 +631,8 @@ function addMessage(role, content, isLoading = false) {
       </div>
     `;
     } else {
-        contentEl.innerHTML = `<div>${content}</div>`;
+       const formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
+        contentEl.innerHTML = `<div class="message-text">${formattedContent}</div>`;
     }
 
     messageEl.appendChild(contentEl);
