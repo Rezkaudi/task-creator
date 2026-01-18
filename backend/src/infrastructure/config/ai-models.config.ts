@@ -192,17 +192,6 @@ export const AI_MODELS: AIModelConfig[] = [
     outputPricePerMillion: 0.00
   },
   {
-    id: 'tngtech/tng-r1t-chimera:free',
-    name: 'TNG-R1T-Chimera',
-    description: 'Fast & efficient',
-    icon: 'TR',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
     id: 'allenai/olmo-3-32b-think:free',
     name: 'Olmo-3-32b-Think',
     description: 'Fast & efficient',
@@ -295,17 +284,6 @@ export const AI_MODELS: AIModelConfig[] = [
     name: 'Qwen3-Coder',
     description: 'Fast & efficient',
     icon: 'QW',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'moonshotai/kimi-k2:free',
-    name: 'Kimi-K2',
-    description: 'Fast & efficient',
-    icon: 'KM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
@@ -471,17 +449,6 @@ export const AI_MODELS: AIModelConfig[] = [
     name: 'Qwen-2.5-VL-7B-Instruct',
     description: 'Fast & efficient',
     icon: 'QW',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'nousresearch/hermes-3-llama-3.1-405b:free',
-    name: 'Hermes-3-Llama-3.1-405B',
-    description: 'Fast & efficient',
-    icon: 'HR',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",

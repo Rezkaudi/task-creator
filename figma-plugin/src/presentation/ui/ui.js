@@ -13,7 +13,7 @@ let versionsCache = [];
 // Model & Design System state
 let currentModel = 'gpt-4.1';
 let availableModels = [];
-let currentDesignSystem = 'none';
+let currentDesignSystem = 'Default design system';
 let availableDesignSystems = [];
 
 // Mode state
@@ -434,8 +434,8 @@ function showChatInterface() {
     // Welcome message
     const model = availableModels.find(m => m.id === currentModel);
     const system = availableDesignSystems.find(s => s.id === currentDesignSystem);
-    const modelName = model ? model.name : 'GPT-4.1';
-    const systemName = system ? system.name : 'None';
+    const modelName = model?.name || 'GPT-4.1';
+    const systemName = system?.name || 'Default design system';
 
     let welcomeMessage;
     if (currentMode === 'edit') {
@@ -582,12 +582,12 @@ function sendChatMessage() {
 
     const model = availableModels.find(m => m.id === currentModel);
     const system = availableDesignSystems.find(s => s.id === currentDesignSystem);
-    const modelName = model.name;
-    const systemName = system.name;
+    const modelName = model?.name || 'GPT-4.1'; 
+    const systemName = system?.name || 'Default design system';
 
     addMessage('assistant', currentMode === 'edit'
-        ? `Editing with ${modelName} and ${systemName}...`
-        : `Creating with ${modelName} and ${systemName}...`, true);
+        ? `Editing in progress, please wait`
+        : `Creating in progress, please wait for me`, true);
 
     if (currentMode === 'edit') {
         parent.postMessage({
@@ -596,8 +596,8 @@ function sendChatMessage() {
                 message: message,
                 history: conversationHistory,
                 layerJson: selectedLayerJson,
-                model: currentModel,
-                designSystemId: currentDesignSystem
+                model: currentModel, 
+                designSystemId: currentDesignSystem 
             }
         }, '*');
     } else {
