@@ -64,8 +64,8 @@ export const AI_MODELS: AIModelConfig[] = [
   /////claude
   {
     id: 'claude-sonnet-4-20250514',
-    name: 'Claude',
-    description: 'Detailed & contextual',
+    name: 'Claude-sonnet-4',
+    description: 'Detailed & contextual-Average cost',
     icon: 'Cl',
     maxTokens: 12800,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -76,7 +76,7 @@ export const AI_MODELS: AIModelConfig[] = [
   {
     id: 'claude-opus-4-20250514',
     name: 'Claude Opus 4',
-    description: 'Most powerful Claude - Best for complex tasks',
+    description: 'Most powerful Claude - Best for complex tasks-The most expensive',
     icon: 'C4',
     maxTokens: 200000,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -88,7 +88,7 @@ export const AI_MODELS: AIModelConfig[] = [
   {
     id: 'claude-3-5-sonnet-20241022',
     name: 'Claude Sonnet 3.5',
-    description: 'Previous generation - Very capable',
+    description: 'Previous generation - Very capable-Average cost',
     icon: 'C3',
     maxTokens: 200000,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -99,7 +99,7 @@ export const AI_MODELS: AIModelConfig[] = [
   {
     id: 'claude-3-opus-20240229',
     name: 'Claude Opus 3',
-    description: 'Previous flagship - Still very powerful',
+    description: 'Previous flagship - Still very powerful-Slightly less expensive',
     icon: 'C3',
     maxTokens: 200000,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -110,7 +110,7 @@ export const AI_MODELS: AIModelConfig[] = [
   {
     id: 'claude-3-5-haiku-20241022',
     name: 'Claude Haiku 3.5',
-    description: 'Fast & affordable - Latest Haiku',
+    description: 'Fast & affordable - Latest Haiku-Cheapest',
     icon: 'C3',
     maxTokens: 200000,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -185,17 +185,6 @@ export const AI_MODELS: AIModelConfig[] = [
     name: 'Devstral-2512',
     description: 'Fast & efficient',
     icon: 'DS',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'tngtech/tng-r1t-chimera:free',
-    name: 'TNG-R1T-Chimera',
-    description: 'Fast & efficient',
-    icon: 'TR',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
@@ -295,17 +284,6 @@ export const AI_MODELS: AIModelConfig[] = [
     name: 'Qwen3-Coder',
     description: 'Fast & efficient',
     icon: 'QW',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'moonshotai/kimi-k2:free',
-    name: 'Kimi-K2',
-    description: 'Fast & efficient',
-    icon: 'KM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
@@ -471,17 +449,6 @@ export const AI_MODELS: AIModelConfig[] = [
     name: 'Qwen-2.5-VL-7B-Instruct',
     description: 'Fast & efficient',
     icon: 'QW',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'nousresearch/hermes-3-llama-3.1-405b:free',
-    name: 'Hermes-3-Llama-3.1-405B',
-    description: 'Fast & efficient',
-    icon: 'HR',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",

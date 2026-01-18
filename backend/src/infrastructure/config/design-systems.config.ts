@@ -10,9 +10,16 @@ export interface DesignSystemConfig {
   promptTemplate: string;
 }
 
-export const DEFAULT_DESIGN_SYSTEM_ID = 'none'; // default design system
+export const DEFAULT_DESIGN_SYSTEM_ID = 'Default design system'; // default design system
 
 export const DESIGN_SYSTEMS: DesignSystemConfig[] = [
+  {
+    id: 'Default design system',
+    name: 'Default design system',
+    description: 'Use default styling',
+    icon: '⚡',
+    promptTemplate: ''
+  },
   {
     id: 'material-3',
     name: 'Material Design 3',
@@ -33,14 +40,8 @@ export const DESIGN_SYSTEMS: DesignSystemConfig[] = [
     description: 'Enterprise-class UI design language',
     icon: 'A',
     promptTemplate: antDesignPrompt
-  },
-  {
-    id: 'none',
-    name: 'None',
-    description: 'Use default styling',
-    icon: '⚡',
-    promptTemplate: ''
   }
+  
 ];
 
 export function getDesignSystems() {

@@ -23,7 +23,7 @@ export interface IAiDesignService {
      * Generate design from simple text prompt
      * 
      * @param prompt - Text description of the design
-     * @param designSystemId - Optional Design System ID (material-3, shadcn-ui, ant-design, none)
+     * @param designSystemId - Optional Design System ID (material-3, shadcn-ui, ant-design, Default design system)
      * @returns Promise with generated design JSON
      */
     generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any>;

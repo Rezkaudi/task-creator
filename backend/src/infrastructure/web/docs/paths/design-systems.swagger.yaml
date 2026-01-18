@@ -13,7 +13,7 @@
       - **Material Design 3**: Google's latest design system with dynamic colors and elevation
       - **shadcn/ui**: Minimal, accessible components with composable patterns
       - **Ant Design**: Enterprise-grade design system for data-heavy applications
-      - **None**: No specific design system (default styling)
+      - **Default design system**: No specific design system (default styling)
 
       ## Design System Properties:
       - **id**: Unique identifier for the design system
@@ -22,7 +22,7 @@
       - **icon**: Visual icon for UI display
 
       ## Default Design System:
-      The default is `none` if no design system is specified.
+      The default is `Default design system` if no design system is specified.
     operationId: getDesignSystems
     security:
       - ApiKeyAuth: []

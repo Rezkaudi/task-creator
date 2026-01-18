@@ -79,17 +79,17 @@ Created a login page with email and password fields${designSystemNote}.
 
         const designSystemName = this.getDesignSystemDisplayName(designSystemId);
 
-        const designSystemMaintainNote = designSystemName && designSystemName !== 'None'
+        const designSystemMaintainNote = designSystemName && designSystemName !== 'Default design system'
             ? `- **CONVERT ALL ELEMENTS TO ${designSystemName.toUpperCase()} DESIGN SYSTEM** (colors, spacing, components, borders, shadows)`
             : '';
 
-        const designSystemNewElementsNote = designSystemName && designSystemName !== 'None'
+        const designSystemNewElementsNote = designSystemName && designSystemName !== 'Default design system'
             ? `- **EVERY ELEMENT must be redesigned using ${designSystemName.toUpperCase()} specifications**`
             : '';
 
         const designSystemNote = this.getDesignSystemNote(designSystemId);
 
-        const designSystemWarning = designSystemName && designSystemName !== 'None'
+        const designSystemWarning = designSystemName && designSystemName !== 'Default design system'
             ? `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚨 MANDATORY DESIGN SYSTEM: ${designSystemName.toUpperCase()}
@@ -122,7 +122,7 @@ You will receive:
 
 1. Understand the current design structure
 2. Apply the user's requested changes
-3. ${designSystemName && designSystemName !== 'None' ? `**CONVERT THE ENTIRE DESIGN TO ${designSystemName.toUpperCase()} DESIGN SYSTEM**` : 'Keep the current style'}
+3. ${designSystemName && designSystemName !== 'Default design system' ? `**CONVERT THE ENTIRE DESIGN TO ${designSystemName.toUpperCase()} DESIGN SYSTEM**` : 'Keep the current style'}
 4. Keep the layout structure unchanged (unless requested)
 5. Return the COMPLETE design (not just changes)
 
@@ -136,7 +136,7 @@ You will receive:
 - For TEXT nodes: include all required properties (characters, fontSize, fontName, textAlignHorizontal, textAlignVertical, lineHeight)
 ${designSystemMaintainNote}
 ${designSystemNewElementsNote}
-${designSystemName && designSystemName !== 'None' ? `- **REDESIGN all visual properties (colors, borders, shadows, spacing) to match ${designSystemName.toUpperCase()}**` : ''}
+${designSystemName && designSystemName !== 'Default design system' ? `- **REDESIGN all visual properties (colors, borders, shadows, spacing) to match ${designSystemName.toUpperCase()}**` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 OUTPUT FORMAT
@@ -158,7 +158,7 @@ Changed background to blue${designSystemNote}.
 ]
 \`\`\`
 
-${designSystemName && designSystemName !== 'None' ? `
+${designSystemName && designSystemName !== 'Default design system' ? `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔴 FINAL REMINDER: CONVERT EVERYTHING TO ${designSystemName.toUpperCase()}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -183,11 +183,11 @@ ${designSystemName && designSystemName !== 'None' ? `
 
     getDesignSystemDisplayName(designSystemId: string): string {
         if (!designSystemId) {
-            return 'None';
+            return 'Default design system';
         }
 
         const designSystem = getDesignSystemById(designSystemId);
-        return designSystem?.name ?? 'None';
+        return designSystem?.name ?? 'Default design system';
     }
 
 
@@ -197,7 +197,7 @@ ${designSystemName && designSystemName !== 'None' ? `
         }
 
         const displayName = this.getDesignSystemDisplayName(designSystemId);
-        if (displayName === 'None') {
+        if (displayName === 'Default design system') {
             return '';
         }
 

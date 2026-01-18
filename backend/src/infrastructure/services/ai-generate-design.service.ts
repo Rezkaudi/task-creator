@@ -208,7 +208,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             const aiModel: AIModelConfig = getModelById(modelId);
 
             console.log("--- 1. Sending Edit Request to GPT ---");
-            console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'None'}`);
+            console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'default design system'}`);
             console.log("Design size:", JSON.stringify(currentDesign).length, "characters");
 
             const openai: OpenAI = new OpenAI({
@@ -393,10 +393,9 @@ export class AiGenerateDesignService implements IAiDesignService {
         ];
 
         const previousDesignSystem = this.detectDesignSystemFromHistory(history);
-        // ← حل مشكلة TypeScript: تأكد من أنها boolean
         const isDesignSystemChanged = Boolean(previousDesignSystem && previousDesignSystem !== designSystemId);
 
-        if (designSystemId && designSystemName !== 'None') {
+        if (designSystemId && designSystemName !== 'Default design system') {
             const warningContent = isDesignSystemChanged
                 ? `🚨 ACTIVE DESIGN SYSTEM: ${designSystemName.toUpperCase()}\n\n${designSystemChangeWarningPrompt.replace('NEW design system', designSystemName.toUpperCase())}\n\nDO NOT use styles from any other design system.`
                 : `🚨 ACTIVE DESIGN SYSTEM: ${designSystemName.toUpperCase()}\n\nYou MUST maintain ${designSystemName.toUpperCase()} in all modifications.\nDO NOT use styles from any other design system.`;
@@ -438,7 +437,7 @@ ${editInstructions}`;
     }
 
     private buildDesignSystemReminder(designSystemName: string, isChanged: boolean): string {
-        if (!designSystemName || designSystemName === 'None') {
+        if (!designSystemName || designSystemName === 'Default design system') {
             return '';
         }
 
