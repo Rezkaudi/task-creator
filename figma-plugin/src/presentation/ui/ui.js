@@ -1538,7 +1538,71 @@ window.onmessage = async (event) => {
             break;
     }
 };
+// ==================== RESIZE TEXTAREA FROM TOP ====================
+function setupTextareaResize() {
+    const textarea = document.getElementById('chat-input');
+    if (!textarea) {
+        console.warn('⚠️ chatInput not found');
+        return;
+    }
 
+    console.log('✅ Resize initialized');
+
+    let isResizing = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    textarea.addEventListener('mousedown', function(e) {
+        const rect = textarea.getBoundingClientRect();
+        const isTopEdge = e.clientY - rect.top < 10;
+
+        if (isTopEdge) {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = parseInt(getComputedStyle(textarea).height);
+            e.preventDefault();
+
+            document.body.style.cursor = 'ns-resize';
+            document.body.style.userSelect = 'none';
+            
+            console.log('🎯 Started resize from:', startHeight);
+        }
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        // Change cursor on hover
+        if (!isResizing) {
+            const rect = textarea.getBoundingClientRect();
+            const isTopEdge = e.clientY - rect.top < 10 && 
+                             e.clientX >= rect.left && 
+                             e.clientX <= rect.right &&
+                             e.clientY >= rect.top;
+            
+            textarea.style.cursor = isTopEdge ? 'ns-resize' : 'text';
+            return;
+        }
+
+        // Resize
+        const deltaY = startY - e.clientY;
+        const newHeight = Math.max(44, Math.min(140, startHeight + deltaY));
+        
+        textarea.style.setProperty('height', newHeight + 'px', 'important');
+        
+        console.log('📏 Resizing to:', newHeight);
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            
+            console.log('✋ Resize stopped at:', textarea.style.height);
+        }
+    });
+}
+
+// ==================== INITIALIZATION ====================
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function () {
     initModelSelection();
@@ -1546,6 +1610,8 @@ document.addEventListener('DOMContentLoaded', function () {
     resetToModeSelection();
     fetchDesignSystems();
     fetchAIModels();
+    setupTextareaResize();
+
 
     setTimeout(() => {
         parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');

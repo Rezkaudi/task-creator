@@ -788,12 +788,14 @@ button:disabled:not(.design-preview button) {
     border-radius: 8px;
     font-size: 13px;
     font-family: inherit;
-    resize: none;
+    resize: none !important;
+    height: 44px !important; 
     min-height: 44px;
-    max-height: 120px;
+    max-height: 300px;
     transition: border-color 0.3s;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
-
 #chat-input:focus {
     outline: none;
     border-color: #6366f1;
@@ -812,8 +814,8 @@ button:disabled:not(.design-preview button) {
     transition: all 0.2s;
     white-space: nowrap;
     height: 44px;
+    flex-shrink: 0;
 }
-
 #chat-send-btn:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
