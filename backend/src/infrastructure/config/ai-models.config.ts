@@ -64,8 +64,8 @@ export const AI_MODELS: AIModelConfig[] = [
   /////claude
   {
     id: 'claude-sonnet-4-20250514',
-    name: 'Claude',
-    description: 'Detailed & contextual',
+    name: 'Claude-sonnet-4',
+    description: 'Detailed & contextual-Average cost',
     icon: 'Cl',
     maxTokens: 12800,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -76,7 +76,7 @@ export const AI_MODELS: AIModelConfig[] = [
   {
     id: 'claude-opus-4-20250514',
     name: 'Claude Opus 4',
-    description: 'Most powerful Claude - Best for complex tasks',
+    description: 'Most powerful Claude - Best for complex tasks-The most expensive',
     icon: 'C4',
     maxTokens: 200000,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -88,7 +88,7 @@ export const AI_MODELS: AIModelConfig[] = [
   {
     id: 'claude-3-5-sonnet-20241022',
     name: 'Claude Sonnet 3.5',
-    description: 'Previous generation - Very capable',
+    description: 'Previous generation - Very capable-Average cost',
     icon: 'C3',
     maxTokens: 200000,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -99,7 +99,7 @@ export const AI_MODELS: AIModelConfig[] = [
   {
     id: 'claude-3-opus-20240229',
     name: 'Claude Opus 3',
-    description: 'Previous flagship - Still very powerful',
+    description: 'Previous flagship - Still very powerful-Slightly less expensive',
     icon: 'C3',
     maxTokens: 200000,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
@@ -110,7 +110,7 @@ export const AI_MODELS: AIModelConfig[] = [
   {
     id: 'claude-3-5-haiku-20241022',
     name: 'Claude Haiku 3.5',
-    description: 'Fast & affordable - Latest Haiku',
+    description: 'Fast & affordable - Latest Haiku-Cheapest',
     icon: 'C3',
     maxTokens: 200000,
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
