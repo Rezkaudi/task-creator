@@ -65,11 +65,11 @@ export class PluginMessageHandler {
         break;
 
       case 'import-design-from-chat':
-        await this.handleImportDesignFromChat(message.designData);
+        await this.handleImportDesignFromChat(message.designData, message.buttonId);
         break;
 
       case 'import-edited-design':
-        await this.handleImportEditedDesign(message.designData);
+        await this.handleImportEditedDesign(message.designData, message.buttonId);
         break;
 
       case 'design-generated-from-ai':
@@ -281,11 +281,11 @@ export class PluginMessageHandler {
 
 
 
-  private async handleImportDesignFromChat(designData: unknown): Promise<void> {
+  private async handleImportDesignFromChat(designData: unknown, buttonId: any): Promise<void> {
     const result = await this.importAIDesignUseCase.execute(designData);
 
     if (result.success) {
-      this.uiPort.postMessage({ type: 'import-success' });
+      this.uiPort.postMessage({ type: 'import-success',buttonId: buttonId });
       this.notificationPort.notify('✅ Design imported successfully!');
       // Don't close UI to allow further edits
     } else {
@@ -293,11 +293,12 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({
         type: 'import-error',
         error: result.error || 'Import failed',
+        buttonId: buttonId 
       });
     }
   }
 
-  private async handleImportEditedDesign(designData: unknown): Promise<void> {
+  private async handleImportEditedDesign(designData: unknown, buttonId: any): Promise<void> {
     // Store reference to selected node before import
     const selection = figma.currentPage.selection;
     const oldNode = selection.length === 1 ? selection[0] : null;
@@ -317,7 +318,7 @@ export class PluginMessageHandler {
         this.notificationPort.notify('✅ Edited design imported successfully!');
       }
 
-      this.uiPort.postMessage({ type: 'import-success' });
+      this.uiPort.postMessage({ type: 'import-success' ,buttonId: buttonId});
 
       // Export the new design using ExportSelectedUseCase (same format!)
       try {
@@ -326,7 +327,8 @@ export class PluginMessageHandler {
         if (exportResult.success && exportResult.nodes.length > 0) {
           this.uiPort.postMessage({
             type: 'design-updated',
-            layerJson: exportResult.nodes[0]
+            layerJson: exportResult.nodes[0],
+            buttonId: buttonId
           });
         }
       } catch (error) {
@@ -337,6 +339,7 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({
         type: 'import-error',
         error: result.error || 'Import failed',
+        buttonId: buttonId
       });
     }
   }
