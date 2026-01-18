@@ -1,4 +1,3 @@
-
 import { SelectionInfo } from './node-repository.interface';
 import { DesignNode } from '../entities/design-node';
 
@@ -33,8 +32,8 @@ export interface DesignVersionFull extends DesignVersionInfo {
  */
 export type UIMessage =
   | { type: 'selection-changed'; selection: SelectionInfo }
-  | { type: 'import-success' }
-  | { type: 'import-error'; error: string }
+  | { type: 'import-success'; buttonId?: string } // 👈 أضفنا buttonId
+  | { type: 'import-error'; error: string; buttonId?: string } // 👈 أضفنا buttonId
   | { type: 'export-success'; data: DesignNode[]; nodeCount: number }
   | { type: 'export-error'; error: string }
   | { type: 'call-backend-for-claude'; prompt: string }
@@ -52,7 +51,7 @@ export type UIMessage =
   | { type: 'no-layer-selected' }
   | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo }
   | { type: 'ai-edit-error'; error: string }
-  | { type: 'design-updated'; layerJson: any };
+  | { type: 'design-updated'; layerJson: any; buttonId?: string };
 
 /**
  * Messages received from the UI (PluginMessage)
@@ -66,23 +65,34 @@ export type PluginMessage =
   | { type: 'get-selection-info' }
   | { type: 'cancel' }
   | {
-    type: 'ai-chat-message';
-    message: string;
-    history?: Array<{ role: string; content: string }>;
-    model?: string;
-    designSystemId?: string;
-  }
-  | { type: 'import-design-from-chat'; designData: unknown }
+      type: 'ai-chat-message';
+      message: string;
+      history?: Array<{ role: string; content: string }>;
+      model?: string;
+      designSystemId?: string;
+    }
+  | { 
+      type: 'import-design-from-chat'; 
+      designData: unknown;
+      buttonId?: string; 
+      isEditMode?: boolean; 
+    }
   | { type: 'request-layer-selection-for-edit' }
   | {
-    type: 'ai-edit-design';
-    message: string;
-    history?: Array<{ role: string; content: string }>;
-    layerJson: any;
-    model?: string;
-    designSystemId?: string;
-  }
-  | { type: 'import-edited-design'; designData: unknown }
+      type: 'ai-edit-design';
+      message: string;
+      history?: Array<{ role: string; content: string }>;
+      layerJson: any;
+      model?: string;
+      designSystemId?: string;
+    }
+  | { 
+      type: 'import-edited-design'; 
+      designData: unknown;
+      buttonId?: string; 
+      isEditMode?: boolean; 
+      layerId?: string; 
+    }
   // Version management messages
   | { type: 'load-versions' }
   | { type: 'save-version'; description: string; designJson: any }

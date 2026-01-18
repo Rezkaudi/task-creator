@@ -1,5 +1,6 @@
 const API_BASE_URL = 'https://task-creator-api.onrender.com';
-// const API_BASE_URL = "http://localhost:5000"
+
+//const API_BASE_URL = "http://localhost:5000"
 
 // ==================== STATE ====================
 let chatMessages = [];
@@ -168,7 +169,7 @@ function selectModel(modelId, showNotification = true) {
     currentModel = modelId;
 
     // Update UI
-    updateModelUI(model, showNotification);
+    updateModelUI(model, false);
 
     // Update all model items in the list
     document.querySelectorAll('.model-item').forEach(item => {
@@ -199,12 +200,6 @@ function updateModelUI(model, showNotification = true) {
     // Update current model name
     if (currentModelNameEl) {
         currentModelNameEl.textContent = model.name;
-    }
-
-    // Show notification
-    if (showNotification) {
-        showStatus(`✅ Switched to ${model.name}`, 'success');
-        setTimeout(hideStatus, 2000);
     }
 }
 
@@ -275,7 +270,7 @@ function selectDesignSystem(systemId, showNotification = true) {
     currentDesignSystem = systemId;
 
     // Update UI
-    updateDesignSystemUI(system, showNotification);
+    updateDesignSystemUI(system, false);
 
     // Update all system items in the list
     document.querySelectorAll('#design-system-list .model-item').forEach(item => {
@@ -305,10 +300,7 @@ function updateDesignSystemUI(system, showNotification = true) {
         currentDesignSystemNameEl.textContent = system.name;
     }
 
-    if (showNotification) {
-        showStatus(`✅ Switched to ${system.name}`, 'success');
-        setTimeout(hideStatus, 2000);
-    }
+    
 }
 
 async function fetchDesignSystems() {
@@ -559,8 +551,12 @@ let isComposing = false;
 chatSendBtn.addEventListener('click', sendChatMessage);
 
 chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.shiftKey) {
+        return;
+    }
+    
     if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
-        e.preventDefault();
+        e.preventDefault(); 
         sendChatMessage();
     }
 });
@@ -621,6 +617,10 @@ function sendChatMessage() {
 function addMessage(role, content, isLoading = false) {
     const messageEl = document.createElement('div');
     messageEl.className = `message ${role}`;
+    const isError = content.startsWith('Error:');
+    if (isError && role === 'assistant') {
+        messageEl.classList.add('error-message');
+    }
     const contentEl = document.createElement('div');
     contentEl.className = 'message-content';
 
@@ -632,7 +632,8 @@ function addMessage(role, content, isLoading = false) {
       </div>
     `;
     } else {
-        contentEl.innerHTML = `<div>${content}</div>`;
+       const formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
+        contentEl.innerHTML = `<div class="message-text">${formattedContent}</div>`;
     }
 
     messageEl.appendChild(contentEl);
@@ -718,22 +719,23 @@ function addDesignPreview(designData, previewHtml = null, isEditMode = false, la
 
     // Import button
     const importButton = previewEl.querySelector('.import-to-figma-btn');
-    if (importButton && designData) {
-        importButton.addEventListener('click', () => {
-            importButton.disabled = true;
-            importButton.textContent = isEditMode ? 'Updating...' : 'Importing...';
+if (importButton && designData) {
+    importButton.addEventListener('click', () => {
+        importButton.disabled = true;
+        importButton.textContent = isEditMode ? 'Updating...' : 'Importing...';
 
-            const messageType = isEditMode ? 'import-edited-design' : 'import-design-from-chat';
-            parent.postMessage({
-                pluginMessage: {
-                    type: messageType,
-                    designData: designData,
-                    isEditMode: isEditMode,
-                    ...(isEditMode && { layerId: selectedLayerForEdit })
-                }
-            }, '*');
-        });
-    }
+        const messageType = isEditMode ? 'import-edited-design' : 'import-design-from-chat';
+        parent.postMessage({
+            pluginMessage: {
+                type: messageType,
+                designData: designData,
+                isEditMode: isEditMode,
+                buttonId: uniqueId, 
+                ...(isEditMode && { layerId: selectedLayerForEdit })
+            }
+        }, '*');
+    });
+}
 }
 
 function generateDefaultPreview(designData, isEditMode = false) {
@@ -1343,6 +1345,14 @@ function updateSelectionInfo(selection) {
         exportSelectedBtn.disabled = false;
     }
 }
+function resetImportButton(buttonId) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+    
+    button.disabled = false;
+    const isEditMode = currentMode === 'edit';
+    button.textContent = isEditMode ? 'Update in Figma' : 'Import to Figma';
+}
 
 // ==================== MAIN IMPORT HANDLERS ====================
 jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
@@ -1477,13 +1487,14 @@ window.onmessage = async (event) => {
             chatSendBtn.disabled = false;
             removeLoadingMessages();
             addMessage('assistant', `Error: ${msg.error}`);
-            showStatus(`❌ ${msg.error}`, 'error');
-            setTimeout(hideStatus, 2000);
             break;
 
         case 'import-success':
             showStatus('✅ Design imported successfully!', 'success');
             resetButton();
+            if (msg.buttonId) {
+                resetImportButton(msg.buttonId);
+            }
             importVersionBtn.disabled = false;
             importVersionBtn.innerHTML = '📥 Import to Figma';
             setTimeout(hideStatus, 3000);
@@ -1492,6 +1503,9 @@ window.onmessage = async (event) => {
         case 'design-updated':
             console.log('🔄 Design updated, refreshing layer JSON for next edit');
             selectedLayerJson = msg.layerJson;
+            if (msg.buttonId) {
+                resetImportButton(msg.buttonId);
+            }
             showStatus('✅ Design updated! You can continue editing.', 'success');
             setTimeout(hideStatus, 2000);
             break;
@@ -1499,8 +1513,13 @@ window.onmessage = async (event) => {
         case 'import-error':
             showStatus(`❌ Import failed: ${msg.error}`, 'error');
             resetButton();
+            if (msg.buttonId) {
+                resetImportButton(msg.buttonId);
+            }
             importVersionBtn.disabled = false;
             importVersionBtn.innerHTML = '📥 Import to Figma';
+            setTimeout(hideStatus, 3000);
+
             break;
 
         case 'selection-changed':
@@ -1516,6 +1535,7 @@ window.onmessage = async (event) => {
         case 'export-error':
             showStatus(`❌ Export failed: ${msg.error}`, 'error');
             resetExportButtons();
+            setTimeout(hideStatus, 3000);
             break;
     }
 };
