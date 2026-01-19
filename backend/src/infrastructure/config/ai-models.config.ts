@@ -159,17 +159,6 @@ export const AI_MODELS: AIModelConfig[] = [
 
   // openrouter
   {
-    id: 'xiaomi/mimo-v2-flash:free',
-    name: 'Mimo-V2-Flash',
-    description: 'Fast & efficient',
-    icon: 'MI',
-    maxTokens: 262144,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
     id: 'nvidia/nemotron-3-nano-30b-a3b:free',
     name: 'Nemotron-3-Nano-30B-A3B',
     description: 'Fast & efficient',
@@ -203,17 +192,6 @@ export const AI_MODELS: AIModelConfig[] = [
     outputPricePerMillion: 0.00
   },
   {
-    id: 'kwaipilot/kat-coder-pro:free',
-    name: 'Kat-Coder-Pro',
-    description: 'Fast & efficient',
-    icon: 'KC',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
     id: 'nvidia/nemotron-nano-12b-v2-vl:free',
     name: 'Nemotron-Nano-12B-V2-VL',
     description: 'Fast & efficient',
@@ -229,17 +207,6 @@ export const AI_MODELS: AIModelConfig[] = [
     name: 'Tongyi-DeepResearch-30B-A3B',
     description: 'Fast & efficient',
     icon: 'TY',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'nvidia/nemotron-nano-9b-v2:free',
-    name: 'Nemotron-Nano-9B-V2',
-    description: 'Fast & efficient',
-    icon: 'NM',
     maxTokens: 65536,
     apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
@@ -291,17 +258,6 @@ export const AI_MODELS: AIModelConfig[] = [
     outputPricePerMillion: 0.00
   },
   {
-    id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
-    name: 'Dolphin-Mistral-24B-Venice-Edition',
-    description: 'Fast & efficient',
-    icon: 'DM',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
     id: 'google/gemma-3n-e2b-it:free',
     name: 'Gemma-3N-E2B-IT',
     description: 'Fast & efficient',
@@ -335,28 +291,6 @@ export const AI_MODELS: AIModelConfig[] = [
     outputPricePerMillion: 0.00
   },
   {
-    id: 'google/gemma-3n-e4b-it:free',
-    name: 'Gemma-3N-E4B-IT',
-    description: 'Fast & efficient',
-    icon: 'GM',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'qwen/qwen3-4b:free',
-    name: 'Qwen3-4B',
-    description: 'Fast & efficient',
-    icon: 'QW',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
     id: 'tngtech/deepseek-r1t-chimera:free',
     name: 'Deepseek-R1T-Chimera',
     description: 'Fast & efficient',
@@ -379,41 +313,8 @@ export const AI_MODELS: AIModelConfig[] = [
     outputPricePerMillion: 0.00
   },
   {
-    id: 'google/gemma-3-4b-it:free',
-    name: 'Gemma-3-4B-IT',
-    description: 'Fast & efficient',
-    icon: 'GM',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
     id: 'google/gemma-3-12b-it:free',
     name: 'Gemma-3-12B-IT',
-    description: 'Fast & efficient',
-    icon: 'GM',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'google/gemma-3-27b-it:free',
-    name: 'Gemma-3-27B-IT',
-    description: 'Fast & efficient',
-    icon: 'GM',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-  {
-    id: 'google/gemini-2.0-flash-exp:free',
-    name: 'Gemini-2.0-Flash-Exp',
     description: 'Fast & efficient',
     icon: 'GM',
     maxTokens: 65536,
