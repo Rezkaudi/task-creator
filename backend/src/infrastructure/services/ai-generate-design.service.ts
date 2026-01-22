@@ -310,6 +310,152 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
     }
 
+async generateDesignBasedOnExisting(
+    userMessage: string,
+    history: ConversationMessage[],
+    referenceDesign: any,
+    modelId: string
+): Promise<DesignGenerationResult> {
+    try {
+        console.log("🎨 Generating design based on existing design system");
+        console.log("Reference design size:", JSON.stringify(referenceDesign).length, "characters");
+
+        const messages = this.buildBasedOnExistingMessages(
+            userMessage,
+            history,
+            referenceDesign
+        );
+
+        const aiModel: AIModelConfig = getModelById(modelId);
+        const openai: OpenAI = new OpenAI({
+            baseURL: aiModel.baseURL,
+            apiKey: aiModel.apiKey,
+        });
+
+        console.log("--- 1. Sending request to analyze design system and create new design ---");
+
+        let completion = await openai.chat.completions.create({
+            model: aiModel.id,
+            messages: messages,
+            tools: iconTools,
+        });
+
+        // Handle tool calls loop (for icons if needed)
+        while (completion.choices[0]?.message?.tool_calls) {
+            const toolCalls = completion.choices[0].message.tool_calls as FunctionToolCall[];
+            console.log(`--- Processing ${toolCalls.length} tool calls ---`);
+
+            const toolResults = await this.handleToolCalls(toolCalls);
+
+            messages.push({
+                role: 'assistant',
+                content: completion.choices[0].message.content || '',
+                tool_calls: toolCalls,
+            } as any);
+
+            messages.push(...toolResults as any);
+
+            completion = await openai.chat.completions.create({
+                model: aiModel.id,
+                messages: messages,
+                tools: iconTools,
+            });
+        }
+
+        const responseText = completion.choices[0]?.message?.content;
+        if (!responseText) {
+            throw new Error("GPT API returned empty response.");
+        }
+
+        console.log("--- 2. Received new design from GPT ---");
+
+        const designData = this.extractDesignFromResponse(responseText);
+        if (!designData) {
+            console.error("Failed to extract JSON. Raw response:", responseText);
+            throw new Error("Failed to extract valid design JSON from AI response.");
+        }
+
+        const aiMessage = this.extractMessageFromResponse(responseText);
+
+        // Calculate cost
+        let costBreakdown: CostBreakdown | null = null;
+        const usage = completion.usage;
+
+        if (usage) {
+            costBreakdown = this.costCalculator.calculateCost(
+                aiModel,
+                usage.prompt_tokens,
+                usage.completion_tokens
+            );
+            console.log(`💰 Cost breakdown: Input: $${costBreakdown.inputCost}, Output: $${costBreakdown.outputCost}, Total: $${costBreakdown.totalCost}`);
+        } else {
+            const inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages));
+            const outputTokens = this.costCalculator.estimateTokens(responseText);
+            costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
+        }
+
+        return {
+            message: aiMessage,
+            design: designData,
+            previewHtml: null,
+            cost: costBreakdown
+        };
+
+    } catch (error) {
+        console.error("An error occurred in generateDesignBasedOnExisting:", error);
+        throw new Error(`Failed to generate design based on existing. Original error: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+
+private buildBasedOnExistingMessages(
+    currentMessage: string,
+    history: ConversationMessage[],
+    referenceDesign: any
+): AiMessage[] {
+    const systemPrompt = this.promptBuilder.buildBasedOnExistingSystemPrompt();
+
+    const messages: AiMessage[] = [
+        { role: 'system', content: systemPrompt }
+    ];
+
+    // Include limited history (only last 3 messages to keep context manageable)
+    const recentHistory = history.slice(-3);
+    for (const msg of recentHistory) {
+        messages.push({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content
+        });
+    }
+
+    // Build the main request with reference design
+    const designStr = JSON.stringify(referenceDesign, null, 2);
+    const request = `REFERENCE DESIGN (extract design system from this):
+\`\`\`json
+${designStr}
+\`\`\`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+USER REQUEST FOR NEW DESIGN: ${currentMessage}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INSTRUCTIONS:
+1. Analyze the REFERENCE DESIGN to understand its design system (colors, spacing, typography, borders, shadows, component patterns)
+2. Create a NEW design based on the user's request
+3. Apply the SAME design system extracted from the reference design
+4. The new design should feel like it belongs to the same project
+5. Return the complete new design as a valid JSON array
+6. Start your response with a brief description, then the JSON`;
+
+    messages.push({
+        role: 'user',
+        content: request
+    });
+
+    return messages;
+}
+
     // private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<{ design: string, inputTokens: number, outputTokens: number }> {
     //     const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
     //     const messages: AiMessage[] = [

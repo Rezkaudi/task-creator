@@ -3,7 +3,7 @@
 import { Router, Request, Response } from 'express';
 import { DesignController } from '../controllers/design.controller';
 import { validateRequest } from '../middleware/validation.middleware';
-import { generateFromTextValidation, generateFromConversationValidation, editWithAIValidation } from '../validation';
+import { generateFromTextValidation, generateFromConversationValidation, editWithAIValidation ,generateBasedOnExistingValidation} from '../validation';
 
 
 const designRoutes = (designController: DesignController): Router => {
@@ -28,6 +28,11 @@ const designRoutes = (designController: DesignController): Router => {
         editWithAIValidation,
         validateRequest,
         (req: Request, res: Response) => designController.editWithAI(req, res)
+    );
+    router.post('/generate-based-on-existing',
+        generateBasedOnExistingValidation,
+        validateRequest, 
+        (req: Request, res: Response) => designController.generateBasedOnExisting(req, res)
     );
 
     return router;

@@ -22,23 +22,29 @@
     <div id="ai-tab" class="tab-content active">
       <!-- Mode Selection Screen -->
       <div id="mode-selection-screen">
-        <div class="mode-selection-header">
-          <h2>Choose Your Action</h2>
-          <p class="mode-subtitle">Create a new design or edit an existing one</p>
-        </div>
-        <div class="mode-options">
-          <div class="mode-card" id="create-mode-btn">
-            <div class="mode-icon">✨</div>
-            <h3>Create New</h3>
-            <p>Start from scratch with AI assistance</p>
-          </div>
-          <div class="mode-card" id="edit-mode-btn">
-            <div class="mode-icon">✏️</div>
-            <h3>Edit Existing</h3>
-            <p>Modify a selected layer with AI</p>
-          </div>
-        </div>
-      </div>
+  <div class="mode-selection-header">
+    <h2>Choose Your Action</h2>
+    <p class="mode-subtitle">Create new, edit existing, or design based on reference</p>
+  </div>
+  <div class="mode-options">
+    <div class="mode-card" id="create-mode-btn">
+      <div class="mode-icon">✨</div>
+      <h3>Create New</h3>
+      <p>Start from scratch with AI assistance</p>
+    </div>
+    <div class="mode-card" id="edit-mode-btn">
+      <div class="mode-icon">✏️</div>
+      <h3>Edit Existing</h3>
+      <p>Modify a selected layer with AI</p>
+    </div>
+    <div class="mode-card" id="based-on-existing-mode-btn">
+      <div class="mode-icon">🎨</div>
+      <h3>Based on Existing</h3>
+      <p>Create new design using existing style</p>
+    </div>
+  </div>
+</div>
+
 
       <!-- Chat Container (hidden initially) -->
       <div id="ai-chat-container" style="display: none;">
@@ -50,6 +56,13 @@
             <span id="selected-layer-name" class="selected-layer-name"></span>
           </div>
         </div>
+        <div id="based-on-existing-mode-header" style="display: none;">
+  <button id="back-to-mode-selection-from-based" class="back-btn">← Back to Mode Selection</button>
+  <div class="edit-mode-info">
+    <span class="edit-mode-label">🎨 Based on Existing Mode</span>
+    <span id="reference-layer-name" class="selected-layer-name"></span>
+  </div>
+</div>
 
         <div id="chat-messages" style="display: flex;">
           <div class="message assistant">
