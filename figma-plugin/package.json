@@ -4,13 +4,9 @@
   "description": "Figma plugin to import AI-generated designs from Task Creator - Clean Architecture",
   "main": "dist/code.js",
   "scripts": {
-    "build": "node build-code.js && npm run build-ui",
-    "build-ui": "node build-ui.js",
-    
-    "watch": "concurrently -k \"npm run watch:code\" \"npm run watch:ui\"",
-    "watch:code": "node build-code.js --watch",
-    "watch:ui": "chokidar \"src/**/*\" \"ui.html\" \"build-ui.js\" -c \"npm run build-ui\"",
-    
+    "dev": "node build.js --watch",
+    "build": "node build.js --prod",
+    "build:local": "node build.js",
     "clean": "rm -rf dist",
     "rebuild": "npm run clean && npm run build"
   },

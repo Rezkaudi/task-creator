@@ -18,9 +18,7 @@
       <button class="tab" data-tab="versions">💾 Versions</button>
     </div>
 
-    <!-- AI Chat Tab -->
     <div id="ai-tab" class="tab-content active">
-      <!-- Mode Selection Screen -->
       <div id="mode-selection-screen">
         <div class="mode-selection-header">
           <h2>Choose Your Action</h2>
@@ -40,9 +38,7 @@
         </div>
       </div>
 
-      <!-- Chat Container (hidden initially) -->
       <div id="ai-chat-container" style="display: none;">
-        <!-- Back button for edit mode -->
         <div id="edit-mode-header" style="display: none;">
           <button id="back-to-mode-selection" class="back-btn">← Back to Mode Selection</button>
           <div class="edit-mode-info">
@@ -59,15 +55,14 @@
           </div>
         </div>
         <div id="chat-input-container">
-  <textarea id="chat-input" 
-    placeholder="e.g. Create a login page with email and password fields..."></textarea>
-  <button id="chat-send-btn">Send</button>
-</div>
+          <textarea id="chat-input"
+            placeholder="e.g. Create a login page with email and password fields..."></textarea>
+          <button id="chat-send-btn">Send</button>
+        </div>
         <div class="chat-hint">Press Enter to send • Shift + Enter for new line</div>
       </div>
     </div>
 
-    <!-- Auto Fetch Tab -->
     <div id="auto-tab" class="tab-content">
       <div class="input-group">
         <label for="api-url">API Endpoint URL</label>
@@ -77,7 +72,6 @@
       </div>
     </div>
 
-    <!-- Manual JSON Tab -->
     <div id="manual-tab" class="tab-content">
       <div class="input-group">
         <label for="json-input">Design JSON</label>
@@ -97,7 +91,6 @@ Example format:
       </div>
     </div>
 
-    <!-- Export Tab -->
     <div id="export-tab" class="tab-content">
       <div id="selection-info" class="selection-info">
         <strong>No selection.</strong> Select layers to export specific elements, or export the entire page.
@@ -118,7 +111,6 @@ Example format:
       </div>
     </div>
 
-    <!-- Versions Tab -->
     <div id="versions-tab" class="tab-content">
       <div class="versions-container">
         <div class="versions-header">
@@ -139,14 +131,8 @@ Example format:
       </div>
     </div>
 
-    <!-- Main button group -->
-    <!-- <div class="button-group" id="main-button-group">
-      <button id="import-btn" class="btn-primary">🚀 Generate & Import</button>
-      <button id="cancel-btn" class="btn-secondary">Cancel</button>
-    </div> -->
-  </div>
+    </div>
 
-  <!-- Save to DB Modal -->
   <div id="save-modal"
     style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
     <div
@@ -164,7 +150,6 @@ Example format:
     </div>
   </div>
 
-  <!-- Model Selection Floating Button -->
   <div id="model-floating-btn" class="model-floating-btn">
     <div class="model-btn-icon"></div>
     <span class="model-btn-text">GPT-4.1</span>
@@ -193,7 +178,6 @@ Example format:
     </div>
   </div>
 
-  <!-- Model Selection Panel (hidden initially) -->
   <div id="model-panel" class="model-panel">
     <div class="model-panel-header">
       <h3>Select AI Model</h3>
@@ -213,12 +197,10 @@ Example format:
     </div>
   </div>
 
-  <!-- Backdrop for model panel -->
   <div id="model-panel-backdrop" class="model-panel-backdrop"></div>
   <div id="design-system-panel-backdrop" class="model-panel-backdrop"></div>
 
   <script src="./ui.js"></script>
-  <!-- Backdrop for design system panel -->
-</body>
+  </body>
 
 </html>

@@ -18,6 +18,8 @@ export const ApiConfig = {
   //BASE_URL: 'http://localhost:5000',
 } as const;
 
+console.log('🔌 Current Backend URL:', ApiConfig.BASE_URL);
+
 /**
  * Default values
  */
