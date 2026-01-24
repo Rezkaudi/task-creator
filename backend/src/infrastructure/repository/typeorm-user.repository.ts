@@ -42,12 +42,31 @@ export class TypeORMUserRepository implements IUserRepository {
         return this.findById(id);
     }
 
-    async findOrCreate(user: Partial<User>): Promise<User> {
-        const existing = await this.findByFigmaUserId(user.figmaUserId!);
-        if (existing) {
-            return existing;
-        }
-        return this.create(user);
+    // In typeorm-user.repository.ts
+    async findOrCreate(userData: Partial<User>): Promise<User> {
+        return await AppDataSource.transaction(async (manager) => {
+            const entityManager = manager.getRepository(UserEntity);
+
+            // Use UserEntity, not User
+            let userEntity = await entityManager.findOne({
+                where: { figmaUserId: userData.figmaUserId },
+                lock: { mode: 'pessimistic_write' }
+            });
+
+            if (!userEntity) {
+                userEntity = entityManager.create({
+                    id: `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+                    figmaUserId: userData.figmaUserId,
+                    userName: userData.userName,
+                    email: userData.email,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                });
+                await entityManager.save(userEntity);
+            }
+
+            return this.toUser(userEntity);
+        });
     }
 
     private toUser(entity: UserEntity): User {

@@ -378,15 +378,41 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
 
     if (user) {
       headers['x-figma-user-id'] = user.id!;
-      headers['x-figma-user-name'] = user.name;
+      // Encode username to handle non-ASCII characters (Japanese, Arabic, emoji, etc.)
+      headers['x-figma-user-name'] = this.encodeHeaderValue(user.name);
 
       const storageUser = await figma.clientStorage.getAsync(`figment:traits:${user.id!}`);
-      console.log(storageUser);
+
+      console.log("storageUser", storageUser);
       if (storageUser) {
-        if (storageUser.name) headers['x-figma-user-name'] = storageUser.name;
-        if (storageUser.email) headers['x-figma-user-email'] = storageUser.email;
+        if (storageUser.name) headers['x-figma-user-name'] = this.encodeHeaderValue(storageUser.name);
+        if (storageUser.email) headers['x-figma-user-email'] = this.encodeHeaderValue(storageUser.email);
       }
     }
     return headers;
+  }
+
+  /**
+   * Encode a string to be safe for HTTP headers (ISO-8859-1 compatible)
+   * Uses URL encoding for non-ASCII characters
+   */
+  private encodeHeaderValue(value: string): string {
+    if (!value) return '';
+
+    try {
+      // Check if the string contains non-ASCII characters
+      const hasNonAscii = /[^\x00-\x7F]/.test(value);
+
+      if (hasNonAscii) {
+        // URL-encode the value to make it ASCII-safe
+        return encodeURIComponent(value);
+      }
+
+      return value;
+    } catch (error) {
+      console.warn('Error encoding header value:', error);
+      // Fallback: remove non-ASCII characters
+      return value.replace(/[^\x00-\x7F]/g, '');
+    }
   }
 }
