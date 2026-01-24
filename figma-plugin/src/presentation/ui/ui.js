@@ -1,5 +1,4 @@
-const API_BASE_URL = 'https://task-creator-api.onrender.com';
-//const API_BASE_URL = "http://localhost:5000"
+const API_BASE_URL = process.env.BACKEND_URL;
 
 // ==================== STATE ====================
 let chatMessages = [];
@@ -521,19 +520,19 @@ function resetToModeSelection() {
     currentMode = null;
     selectedLayerForEdit = null;
     selectedLayerJson = null;
-    
+
     if (modeSelectionScreen) modeSelectionScreen.style.display = 'flex';
-    
+
     if (aiChatContainer) {
         aiChatContainer.style.display = 'none';
         aiChatContainer.classList.remove('show-chat');
     }
-    
+
     if (editModeHeader) {
         editModeHeader.style.display = 'none';
         editModeHeader.classList.remove('show-header');
     }
-    
+
     if (chatInput) chatInput.value = '';
     conversationHistory = [];
     chatMessages = [];
@@ -598,9 +597,9 @@ if (chatInput) {
         if (e.key === 'Enter' && e.shiftKey) {
             return;
         }
-        
+
         if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
-            e.preventDefault(); 
+            e.preventDefault();
             sendChatMessage();
         }
     });
@@ -629,7 +628,7 @@ function sendChatMessage() {
 
     const model = availableModels.find(m => m.id === currentModel);
     const system = availableDesignSystems.find(s => s.id === currentDesignSystem);
-    
+
     // Check if parent exists before postMessage
     if (typeof parent !== 'undefined') {
         addMessage('assistant', currentMode === 'edit'
@@ -643,8 +642,8 @@ function sendChatMessage() {
                     message: message,
                     history: conversationHistory,
                     layerJson: selectedLayerJson,
-                    model: currentModel, 
-                    designSystemId: currentDesignSystem 
+                    model: currentModel,
+                    designSystemId: currentDesignSystem
                 }
             }, '*');
         } else {
@@ -663,7 +662,7 @@ function sendChatMessage() {
 
 function addMessage(role, content, isLoading = false) {
     if (!chatMessagesEl) return;
-    
+
     const messageEl = document.createElement('div');
     messageEl.className = `message ${role}`;
     const isError = content.startsWith('Error:');
@@ -681,7 +680,7 @@ function addMessage(role, content, isLoading = false) {
       </div>
     `;
     } else {
-       const formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
+        const formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
         contentEl.innerHTML = `<div class="message-text">${formattedContent}</div>`;
     }
 
@@ -781,7 +780,7 @@ function addDesignPreview(designData, previewHtml = null, isEditMode = false, la
                     type: messageType,
                     designData: designData,
                     isEditMode: isEditMode,
-                    buttonId: uniqueId, 
+                    buttonId: uniqueId,
                     ...(isEditMode && { layerId: selectedLayerForEdit })
                 }
             }, '*');
@@ -1076,7 +1075,7 @@ async function loadVersions() {
 
 function renderVersionsList(versions) {
     if (!versionsList) return;
-    
+
     if (!versions || versions.length === 0) {
         versionsList.innerHTML = `
       <div class="empty-state">
@@ -1335,11 +1334,11 @@ function hideStatus() {
 
 function resetButton() {
     if (!importBtn) return;
-    
+
     importBtn.disabled = false;
     const currentTabEl = document.querySelector('.tab.active');
     if (!currentTabEl) return;
-    
+
     const currentTab = currentTabEl.dataset.tab;
     const buttonTexts = {
         'ai': '🚀 Generate & Import',
@@ -1395,7 +1394,7 @@ function debounce(func, wait) {
 
 function validateJsonInput() {
     if (!jsonInput || !jsonStats) return null;
-    
+
     const value = jsonInput.value.trim();
     if (!value) {
         jsonInput.classList.remove('error', 'valid');
@@ -1440,7 +1439,7 @@ function analyzeJsonStructure(data) {
 
 function updateSelectionInfo(selection) {
     if (!selectionInfo || !exportSelectedBtn) return;
-    
+
     if (!selection || selection.count === 0) {
         selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export, or export entire page.';
         exportSelectedBtn.disabled = true;
@@ -1454,7 +1453,7 @@ function updateSelectionInfo(selection) {
 function resetImportButton(buttonId) {
     const button = document.getElementById(buttonId);
     if (!button) return;
-    
+
     button.disabled = false;
     const isEditMode = currentMode === 'edit';
     button.textContent = isEditMode ? 'Update in Figma' : 'Import to Figma';
@@ -1672,7 +1671,7 @@ function setupTextareaResize() {
     let startY = 0;
     let startHeight = 0;
 
-    textarea.addEventListener('mousedown', function(e) {
+    textarea.addEventListener('mousedown', function (e) {
         const rect = textarea.getBoundingClientRect();
         const isTopEdge = e.clientY - rect.top < 10;
 
@@ -1684,20 +1683,20 @@ function setupTextareaResize() {
 
             document.body.style.cursor = 'ns-resize';
             document.body.style.userSelect = 'none';
-            
+
             console.log('🎯 Started resize from:', startHeight);
         }
     });
 
-    document.addEventListener('mousemove', function(e) {
+    document.addEventListener('mousemove', function (e) {
         // Change cursor on hover
         if (!isResizing) {
             const rect = textarea.getBoundingClientRect();
-            const isTopEdge = e.clientY - rect.top < 10 && 
-                             e.clientX >= rect.left && 
-                             e.clientX <= rect.right &&
-                             e.clientY >= rect.top;
-            
+            const isTopEdge = e.clientY - rect.top < 10 &&
+                e.clientX >= rect.left &&
+                e.clientX <= rect.right &&
+                e.clientY >= rect.top;
+
             textarea.style.cursor = isTopEdge ? 'ns-resize' : 'text';
             return;
         }
@@ -1705,18 +1704,18 @@ function setupTextareaResize() {
         // Resize
         const deltaY = startY - e.clientY;
         const newHeight = Math.max(44, Math.min(140, startHeight + deltaY));
-        
+
         textarea.style.setProperty('height', newHeight + 'px', 'important');
-        
+
         console.log('📏 Resizing to:', newHeight);
     });
 
-    document.addEventListener('mouseup', function() {
+    document.addEventListener('mouseup', function () {
         if (isResizing) {
             isResizing = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
-            
+
             console.log('✋ Resize stopped at:', textarea.style.height);
         }
     });
