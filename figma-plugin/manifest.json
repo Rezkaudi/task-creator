@@ -14,7 +14,8 @@
       "https://api.anthropic.com",
       "https://api.iconify.design",
       "https://wsrv.nl",
-      "https://picsum.photos"
+      "https://picsum.photos",
+      "https://rio-back-end-517983668741.europe-west1.run.app"
     ],
     "reasoning": "Allows the plugin to communicate with the backend API for task creation, design generation, and version management."
   },
