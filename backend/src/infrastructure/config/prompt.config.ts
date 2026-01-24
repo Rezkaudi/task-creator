@@ -45,7 +45,10 @@ export const iconInstructionsPrompt = fs.readFileSync(
     path.join(__dirname, '../../../public/prompt/icon-instructions.txt'),
     'utf-8'
 ).trim();
-
+export const basedOnExistingSystemPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/based-on-existing-system-prompt.txt'),
+    'utf-8'
+).trim();
 
 
 
