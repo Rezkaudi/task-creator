@@ -84,7 +84,17 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 15.00,
     outputPricePerMillion: 75.00
   },
-  
+  {
+    id: 'claude-opus-4-5-20251101',
+    name: 'Claude Opus 4.5',
+    description: 'Most powerful Claude - Best for complex tasks-New flagship',
+    icon: 'C4',
+    maxTokens: 200000,
+    apiKey: ENV_CONFIG.CLAUDE_API_KEY,
+    baseURL: "https://api.anthropic.com/v1",
+    inputPricePerMillion: 5.00,
+    outputPricePerMillion: 25.00
+  },
   {
     id: 'claude-3-5-sonnet-20241022',
     name: 'Claude Sonnet 3.5',
