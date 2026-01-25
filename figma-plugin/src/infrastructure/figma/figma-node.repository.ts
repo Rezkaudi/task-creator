@@ -370,49 +370,61 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
   }
 
   async getHeaders(): Promise<Record<string, string>> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
 
-    const user = figma.currentUser;
+      const user = figma.currentUser;
 
-    if (user) {
-      headers['x-figma-user-id'] = user.id!;
-      // Encode username to handle non-ASCII characters (Japanese, Arabic, emoji, etc.)
-      headers['x-figma-user-name'] = this.encodeHeaderValue(user.name);
+      if (user) {
+        // Safely handle null values
+        if (user.id) {
+          headers['x-figma-user-id'] = user.id;
+        }
+        if (user.name) {
+          headers['x-figma-user-name'] = this.encodeHeaderValue(user.name);
+        }
 
-      const storageUser = await figma.clientStorage.getAsync(`figment:traits:${user.id!}`);
+        try {
+          const storageUser = await figma.clientStorage.getAsync(`figment:traits:${user.id}`);
 
-      console.log("storageUser", storageUser);
-      if (storageUser) {
-        if (storageUser.name) headers['x-figma-user-name'] = this.encodeHeaderValue(storageUser.name);
-        if (storageUser.email) headers['x-figma-user-email'] = this.encodeHeaderValue(storageUser.email);
+          if (storageUser) {
+            if (storageUser.name) {
+              headers['x-figma-user-name'] = this.encodeHeaderValue(String(storageUser.name));
+            }
+            if (storageUser.email) {
+              headers['x-figma-user-email'] = this.encodeHeaderValue(String(storageUser.email));
+            }
+          }
+        } catch (storageError) {
+          console.warn('Failed to read client storage:', storageError);
+        }
       }
-    }
-    return headers;
+      
+      return headers;
   }
 
   /**
    * Encode a string to be safe for HTTP headers (ISO-8859-1 compatible)
-   * Uses URL encoding for non-ASCII characters
    */
-  private encodeHeaderValue(value: string): string {
-    if (!value) return '';
+  private encodeHeaderValue(value: string | null | undefined): string {
+      // Handle null/undefined
+      if (value == null) return '';
+      
+      // Ensure it's a string
+      const strValue = String(value);
+      if (!strValue) return '';
 
-    try {
-      // Check if the string contains non-ASCII characters
-      const hasNonAscii = /[^\x00-\x7F]/.test(value);
-
-      if (hasNonAscii) {
-        // URL-encode the value to make it ASCII-safe
-        return encodeURIComponent(value);
+      try {
+        // Check if the string contains non-ASCII characters
+        if (/[^\x00-\x7F]/.test(strValue)) {
+          return encodeURIComponent(strValue);
+        }
+        return strValue;
+      } catch (error) {
+        console.warn('Error encoding header value:', error);
+        // Fallback: remove non-ASCII characters entirely
+        return strValue.replace(/[^\x00-\x7F]/g, '');
       }
-
-      return value;
-    } catch (error) {
-      console.warn('Error encoding header value:', error);
-      // Fallback: remove non-ASCII characters
-      return value.replace(/[^\x00-\x7F]/g, '');
-    }
   }
 }
