@@ -17,6 +17,10 @@ const options = {
                 url: "https://task-creator-api.onrender.com/",
                 description: 'Production Server',
             },
+            {
+                url: "https://rio-back-end-517983668741.europe-west1.run.app/",
+                description: 'Production 2 Server',
+            },
         ]
     },
     apis: ['src/**/*.swagger.yaml']
