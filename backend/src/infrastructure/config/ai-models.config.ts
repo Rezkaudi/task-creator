@@ -13,7 +13,7 @@ export interface AIModelConfig {
   outputPricePerMillion: number;
 }
 
-export const DEFAULT_MODEL_ID = 'gpt-4.1'; // default model
+export const DEFAULT_MODEL_ID = 'mistralai/devstral-2512:free'; // default model
 
 export const AI_MODELS: AIModelConfig[] = [
   // paid
@@ -84,7 +84,7 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 15.00,
     outputPricePerMillion: 75.00
   },
-  
+
   {
     id: 'claude-3-5-sonnet-20241022',
     name: 'Claude Sonnet 3.5',

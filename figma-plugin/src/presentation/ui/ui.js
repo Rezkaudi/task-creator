@@ -10,7 +10,7 @@ let selectedVersionId = null;
 let versionsCache = [];
 
 // Model & Design System state
-let currentModel = 'gpt-4.1';
+let currentModel = 'mistralai/devstral-2512:free';
 let availableModels = [];
 let currentDesignSystem = 'Default design system';
 let availableDesignSystems = [];
@@ -94,8 +94,9 @@ const backToModeFromBasedBtn = document.getElementById('back-to-mode-selection-f
 const basedOnExistingModeHeader = document.getElementById('based-on-existing-mode-header');
 const referenceLayerNameEl = document.getElementById('reference-layer-name');
 
+
 basedOnExistingModeBtn.addEventListener('click', () => {
-    showStatus('📍 Please select a reference layer...', 'info');
+    // showStatus('📍 Please select a reference layer...', 'info');
     parent.postMessage({
         pluginMessage: { type: 'request-layer-selection-for-reference' }
     }, '*');
@@ -481,7 +482,7 @@ function showChatInterface() {
     // Welcome message
     const model = availableModels.find(m => m.id === currentModel);
     const system = availableDesignSystems.find(s => s.id === currentDesignSystem);
-    const modelName = model?.name || 'GPT-4.1';
+    const modelName = model?.name || 'Devstral-2512';
     const systemName = system?.name || 'Default design system';
 
     let welcomeMessage;
@@ -590,9 +591,9 @@ tabs.forEach(tab => {
                     loadVersions();
                 }
             } else if (tabName === 'ai') {
-                mainButtonGroup.style.display = 'none';
+                mainButtonGroup.style.display = 'none';  // ✅ Already hides on AI tab
             } else {
-                mainButtonGroup.style.display = 'flex';
+                mainButtonGroup.style.display = 'flex';  // ✅ Shows on 'auto' and 'manual' tabs
                 if (importBtn) importBtn.textContent = buttonTexts[tabName] || 'Import';
             }
         } else {
@@ -649,7 +650,7 @@ function sendChatMessage() {
     conversationHistory.push({ role: 'user', content: message });
 
     const model = availableModels.find(m => m.id === currentModel);
-    const modelName = model?.name || 'GPT-4.1';
+    const modelName = model?.name || 'Devstral-2512';
 
     if (isBasedOnExistingMode) {
         // ✨ BASED ON EXISTING MODE
@@ -1734,7 +1735,7 @@ window.onmessage = async (event) => {
 
             // Update welcome message
             const model = availableModels.find(m => m.id === currentModel);
-            const modelName = model?.name || 'GPT-4.1';
+            const modelName = model?.name || 'Devstral-2512';
 
             chatMessagesEl.innerHTML = `
         <div class="message assistant">
@@ -1748,7 +1749,7 @@ window.onmessage = async (event) => {
             chatInput.placeholder = `e.g., Create a login page based on "${referenceLayerName}" style...`;
             chatInput.focus();
 
-            showStatus(`✅ Reference design "${referenceLayerName}" loaded`, 'success');
+            // showStatus(`✅ Reference design "${referenceLayerName}" loaded`, 'success');
             setTimeout(hideStatus, 2000);
             break;
 
@@ -1785,68 +1786,68 @@ window.onmessage = async (event) => {
     }
 };
 // ==================== RESIZE TEXTAREA FROM TOP ====================
-function setupTextareaResize() {
-    const textarea = document.getElementById('chat-input');
-    if (!textarea) {
-        console.warn('⚠️ chatInput not found');
-        return;
-    }
+// function setupTextareaResize() {
+//     const textarea = document.getElementById('chat-input');
+//     if (!textarea) {
+//         console.warn('⚠️ chatInput not found');
+//         return;
+//     }
 
-    console.log('✅ Resize initialized');
+//     console.log('✅ Resize initialized');
 
-    let isResizing = false;
-    let startY = 0;
-    let startHeight = 0;
+//     let isResizing = false;
+//     let startY = 0;
+//     let startHeight = 0;
 
-    textarea.addEventListener('mousedown', function (e) {
-        const rect = textarea.getBoundingClientRect();
-        const isTopEdge = e.clientY - rect.top < 10;
+//     textarea.addEventListener('mousedown', function (e) {
+//         const rect = textarea.getBoundingClientRect();
+//         const isTopEdge = e.clientY - rect.top < 10;
 
-        if (isTopEdge) {
-            isResizing = true;
-            startY = e.clientY;
-            startHeight = parseInt(getComputedStyle(textarea).height);
-            e.preventDefault();
+//         if (isTopEdge) {
+//             isResizing = true;
+//             startY = e.clientY;
+//             startHeight = parseInt(getComputedStyle(textarea).height);
+//             e.preventDefault();
 
-            document.body.style.cursor = 'ns-resize';
-            document.body.style.userSelect = 'none';
+//             document.body.style.cursor = 'ns-resize';
+//             document.body.style.userSelect = 'none';
 
-            console.log('🎯 Started resize from:', startHeight);
-        }
-    });
+//             console.log('🎯 Started resize from:', startHeight);
+//         }
+//     });
 
-    document.addEventListener('mousemove', function (e) {
-        // Change cursor on hover
-        if (!isResizing) {
-            const rect = textarea.getBoundingClientRect();
-            const isTopEdge = e.clientY - rect.top < 10 &&
-                e.clientX >= rect.left &&
-                e.clientX <= rect.right &&
-                e.clientY >= rect.top;
+//     document.addEventListener('mousemove', function (e) {
+//         // Change cursor on hover
+//         if (!isResizing) {
+//             const rect = textarea.getBoundingClientRect();
+//             const isTopEdge = e.clientY - rect.top < 10 &&
+//                 e.clientX >= rect.left &&
+//                 e.clientX <= rect.right &&
+//                 e.clientY >= rect.top;
 
-            textarea.style.cursor = isTopEdge ? 'ns-resize' : 'text';
-            return;
-        }
+//             textarea.style.cursor = isTopEdge ? 'ns-resize' : 'text';
+//             return;
+//         }
 
-        // Resize
-        const deltaY = startY - e.clientY;
-        const newHeight = Math.max(44, Math.min(140, startHeight + deltaY));
+//         // Resize
+//         const deltaY = startY - e.clientY;
+//         const newHeight = Math.max(44, Math.min(140, startHeight + deltaY));
 
-        textarea.style.setProperty('height', newHeight + 'px', 'important');
+//         textarea.style.setProperty('height', newHeight + 'px', 'important');
 
-        console.log('📏 Resizing to:', newHeight);
-    });
+//         console.log('📏 Resizing to:', newHeight);
+//     });
 
-    document.addEventListener('mouseup', function () {
-        if (isResizing) {
-            isResizing = false;
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
+//     document.addEventListener('mouseup', function () {
+//         if (isResizing) {
+//             isResizing = false;
+//             document.body.style.cursor = '';
+//             document.body.style.userSelect = '';
 
-            console.log('✋ Resize stopped at:', textarea.style.height);
-        }
-    });
-}
+//             console.log('✋ Resize stopped at:', textarea.style.height);
+//         }
+//     });
+// }
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function () {

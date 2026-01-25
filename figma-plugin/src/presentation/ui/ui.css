@@ -72,7 +72,7 @@ input[type="text"]:focus:not(.design-preview input[type="text"]) {
 textarea:not(.design-preview textarea) {
     width: 100%;
     flex: 1;
-    min-height: 120px;
+    /* min-height: 120px; */
     padding: 12px;
     border: 2px solid #e5e7eb;
     border-radius: 8px;
@@ -230,6 +230,7 @@ button:disabled:not(.design-preview button) {
 }
 
 .tab {
+    flex: auto;
     padding: 8px 12px;
     background: transparent;
     border: none;
@@ -510,7 +511,7 @@ button:disabled:not(.design-preview button) {
     display: flex;
     gap: 20px;
     width: 100%;
-    max-width: 500px;
+    /* max-width: 500px; */
 }
 
 .mode-card {
@@ -646,7 +647,7 @@ button:disabled:not(.design-preview button) {
     flex-direction: column;
     gap: 12px;
     min-height: 300px;
-    max-height: calc(100vh - 400px);
+    max-height: calc(100vh - 300px);
 }
 
 .message {
@@ -781,6 +782,13 @@ button:disabled:not(.design-preview button) {
     margin-top: 12px;
 }
 
+.chat-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
 #chat-input {
     flex: 1;
     padding: 10px 12px;
@@ -788,14 +796,15 @@ button:disabled:not(.design-preview button) {
     border-radius: 8px;
     font-size: 13px;
     font-family: inherit;
-    resize: none !important;
-    height: 44px !important; 
+    /* resize: none !important;
+    height: 44px !important;
     min-height: 44px;
-    max-height: 300px;
+    max-height: 300px; */
     transition: border-color 0.3s;
     overflow-y: auto;
     box-sizing: border-box;
 }
+
 #chat-input:focus {
     outline: none;
     border-color: #6366f1;
@@ -816,6 +825,7 @@ button:disabled:not(.design-preview button) {
     height: 44px;
     flex-shrink: 0;
 }
+
 #chat-send-btn:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
@@ -883,6 +893,7 @@ button:disabled:not(.design-preview button) {
     visibility: visible !important;
     opacity: 1 !important;
     flex-direction: column !important;
+    justify-content: space-between;
 }
 
 #chat-input-container.show-input {
@@ -1132,30 +1143,29 @@ button:disabled:not(.design-preview button) {
     }
 }
 
-/* ===== MODEL FLOATING BUTTON STYLES ===== */
+/* ===== MODEL/DESIGN SYSTEM BUTTON STYLES ===== */
 .model-floating-btn {
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 10px 18px;
+    padding: 12px 20px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    z-index: 999;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+    transition: all 0.2s ease;
     font-size: 13px;
     font-weight: 600;
+    white-space: nowrap;
+    max-width: 130px;
+    width: 130px;
 }
 
 .model-floating-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
 }
 
 .model-floating-btn:active {
@@ -1166,8 +1176,18 @@ button:disabled:not(.design-preview button) {
     font-size: 16px;
 }
 
-.model-btn-text {
+.model-btn-text,
+.design-system-btn-text {
     white-space: nowrap;
+    max-width: 130px;
+    width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Design System Button */
+#design-system-floating-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
 }
 
 /* Model Panel Styles */
@@ -1369,7 +1389,7 @@ button:disabled:not(.design-preview button) {
     .model-floating-btn {
         bottom: 70px;
         right: 15px;
-        padding: 8px 14px;
+        padding: 12px 20px;
         font-size: 12px;
     }
 
@@ -1429,27 +1449,6 @@ button:disabled:not(.design-preview button) {
 
 
 
-
-/* Design System Floating Button */
-#design-system-floating-btn {
-    bottom: 140px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-}
-
-#design-system-panel-backdrop {}
-
-@media (max-width: 500px) {
-
-    .model-floating-btn,
-    #design-system-floating-btn {
-        padding: 8px;
-    }
-
-    .model-btn-text,
-    .design-system-btn-text {
-        display: none;
-    }
-}
 
 /* Add this to ui.css */
 .loading-spinner {
@@ -1516,4 +1515,8 @@ button:disabled:not(.design-preview button) {
     color: #16a34a;
     font-weight: 400;
     margin-left: 4px;
+}
+
+#main-button-group {
+    display: none;
 }
