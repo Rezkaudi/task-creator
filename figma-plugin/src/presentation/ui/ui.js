@@ -1856,7 +1856,7 @@ document.addEventListener('DOMContentLoaded', function () {
     resetToModeSelection();
     fetchDesignSystems();
     fetchAIModels();
-    setupTextareaResize();
+    // setupTextareaResize();
 
 
     setTimeout(() => {
