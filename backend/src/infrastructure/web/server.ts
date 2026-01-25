@@ -16,6 +16,7 @@ import designSystemsRoutes from './routes/design-systems.routes';
 
 import { setupDependencies } from './dependencies';
 import { logger } from './middleware/logger.middleware';
+import compression from 'compression';
 
 
 export class Server {
@@ -33,6 +34,14 @@ export class Server {
   }
 
   private configureMiddleware(): void {
+    this.app.use(compression({
+      level: 6, // Balance between speed and compression
+      threshold: 1024, // Only compress responses > 1KB
+      filter: (req, res) => {
+        if (req.headers['x-no-compression']) return false;
+        return compression.filter(req, res);
+      }
+    }));
     this.app.use(logger);
     this.app.use(cors(corsOptions));
     this.app.use(express.json({ limit: '50mb' }));
