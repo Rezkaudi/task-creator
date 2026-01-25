@@ -717,36 +717,35 @@ ${isChanged ? `⚠️ The current design uses a different system - CONVERT EVERY
     private async handleToolCalls(
         toolCalls: FunctionToolCall[],
     ): Promise<{ tool_call_id: string; role: 'tool'; content: string }[]> {
-        const toolResults: { tool_call_id: string; role: 'tool'; content: string }[] = [];
 
-        for (const toolCall of toolCalls) {
-            const { name, arguments: args } = toolCall.function;
-            const parsedArgs = JSON.parse(args);
+        const results = await Promise.all(
+            toolCalls.map(async (toolCall) => {
+                const { name, arguments: args } = toolCall.function;
+                const parsedArgs = JSON.parse(args);
 
-            let result: string;
+                let result: string;
 
-            switch (name) {
-                case 'searchIcons':
-                    const searchResult = await this.searchIcons(parsedArgs.query);
-                    result = JSON.stringify(searchResult);
-                    break;
+                switch (name) {
+                    case 'searchIcons':
+                        const searchResult = await this.searchIcons(parsedArgs.query);
+                        result = JSON.stringify(searchResult);
+                        break;
+                    case 'getIconUrl':
+                        const url = this.getIconUrl(parsedArgs.iconData);
+                        result = JSON.stringify({ url });
+                        break;
+                    default:
+                        result = JSON.stringify({ error: `Unknown tool: ${name}` });
+                }
 
-                case 'getIconUrl':
-                    const url = this.getIconUrl(parsedArgs.iconData);
-                    result = JSON.stringify({ url });
-                    break;
+                return {
+                    tool_call_id: toolCall.id,
+                    role: 'tool' as const,
+                    content: result,
+                };
+            })
+        );
 
-                default:
-                    result = JSON.stringify({ error: `Unknown tool: ${name}` });
-            }
-
-            toolResults.push({
-                tool_call_id: toolCall.id,
-                role: 'tool',
-                content: result,
-            });
-        }
-
-        return toolResults;
+        return results;
     }
 }
