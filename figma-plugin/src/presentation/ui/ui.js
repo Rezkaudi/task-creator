@@ -1350,7 +1350,7 @@ if (copyJsonBtn) {
             setTimeout(() => copyJsonBtn.textContent = '📋 Copy', 2000);
         } catch (err) {
             const textarea = document.createElement('textarea');
-            textarea.value = JSON.stringify(currentExportData, null, 2);
+            textarea.value = JSON.stringify(currentExportData);
             document.body.appendChild(textarea);
             textarea.select();
             document.execCommand('copy');
@@ -1363,7 +1363,7 @@ if (copyJsonBtn) {
 if (downloadJsonBtn) {
     downloadJsonBtn.addEventListener('click', () => {
         if (!currentExportData) return;
-        const jsonString = JSON.stringify(currentExportData, null, 2);
+        const jsonString = JSON.stringify(currentExportData);
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1427,7 +1427,7 @@ function setLoading(message = 'Working...') {
 
 function updateExportOutput(data) {
     currentExportData = data;
-    if (exportOutput) exportOutput.value = JSON.stringify(data, null, 2);
+    if (exportOutput) exportOutput.value = JSON.stringify(data);
     if (copyJsonBtn) copyJsonBtn.disabled = false;
     if (downloadJsonBtn) downloadJsonBtn.disabled = false;
     if (saveToDbBtn) saveToDbBtn.disabled = false;
@@ -1856,7 +1856,7 @@ document.addEventListener('DOMContentLoaded', function () {
     resetToModeSelection();
     fetchDesignSystems();
     fetchAIModels();
-    setupTextareaResize();
+    // setupTextareaResize();
 
 
     setTimeout(() => {
