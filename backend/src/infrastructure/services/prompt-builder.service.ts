@@ -1,8 +1,16 @@
 import { getDesignSystemById } from '../config/design-systems.config';
-import { iconInstructionsPrompt, textToDesignSystemPrompt } from '../config/prompt.config';
+import { basedOnExistingSystemPrompt, iconInstructionsPrompt, textToDesignSystemPrompt } from '../config/prompt.config';
 
 
 export class PromptBuilderService {
+
+buildBasedOnExistingSystemPrompt(): string {
+    return `${textToDesignSystemPrompt}
+
+${iconInstructionsPrompt}
+
+${basedOnExistingSystemPrompt}`;
+}
 
     buildSystemPrompt(designSystemId: string): string {
         if (!designSystemId) {
@@ -189,6 +197,9 @@ ${designSystemName && designSystemName !== 'Default design system' ? `
         const designSystem = getDesignSystemById(designSystemId);
         return designSystem?.name ?? 'Default design system';
     }
+    
+
+
 
 
     private getDesignSystemNote(designSystemId: string): string {
@@ -203,4 +214,6 @@ ${designSystemName && designSystemName !== 'Default design system' ? `
 
         return ` following ${displayName} guidelines`;
     }
+
+    
 }

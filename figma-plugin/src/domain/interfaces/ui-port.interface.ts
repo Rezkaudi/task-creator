@@ -32,8 +32,8 @@ export interface DesignVersionFull extends DesignVersionInfo {
  */
 export type UIMessage =
   | { type: 'selection-changed'; selection: SelectionInfo }
-  | { type: 'import-success'; buttonId?: string } // 👈 أضفنا buttonId
-  | { type: 'import-error'; error: string; buttonId?: string } // 👈 أضفنا buttonId
+  | { type: 'import-success'; buttonId?: string }
+  | { type: 'import-error'; error: string; buttonId?: string }
   | { type: 'export-success'; data: DesignNode[]; nodeCount: number }
   | { type: 'export-error'; error: string }
   | { type: 'call-backend-for-claude'; prompt: string }
@@ -48,10 +48,14 @@ export type UIMessage =
   | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo }
   | { type: 'ai-chat-error'; error: string }
   | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any }
+  | { type: 'layer-selected-for-reference'; layerName: string; layerJson: any } // ✨ NEW
   | { type: 'no-layer-selected' }
   | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo }
   | { type: 'ai-edit-error'; error: string }
-  | { type: 'design-updated'; layerJson: any; buttonId?: string };
+  | { type: 'ai-based-on-existing-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo } // ✨ NEW
+  | { type: 'ai-based-on-existing-error'; error: string } // ✨ NEW
+  | { type: 'design-updated'; layerJson: any; buttonId?: string }
+  | { type: 'HEADERS_RESPONSE'; headers: any };
 
 /**
  * Messages received from the UI (PluginMessage)
@@ -78,11 +82,20 @@ export type PluginMessage =
       isEditMode?: boolean; 
     }
   | { type: 'request-layer-selection-for-edit' }
+  | { type: 'request-layer-selection-for-reference' } // ✨ NEW
   | {
       type: 'ai-edit-design';
       message: string;
       history?: Array<{ role: string; content: string }>;
       layerJson: any;
+      model?: string;
+      designSystemId?: string;
+    }
+  | {
+      type: 'ai-generate-based-on-existing'; // ✨ NEW
+      message: string;
+      history?: Array<{ role: string; content: string }>;
+      referenceJson: any;
       model?: string;
       designSystemId?: string;
     }
@@ -92,6 +105,11 @@ export type PluginMessage =
       buttonId?: string; 
       isEditMode?: boolean; 
       layerId?: string; 
+    }
+  | { 
+      type: 'import-based-on-existing-design'; // ✨ NEW
+      designData: unknown;
+      buttonId?: string;
     }
   // Version management messages
   | { type: 'load-versions' }

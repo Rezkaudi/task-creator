@@ -88,6 +88,28 @@ export const extractTasksValidation = [
         .optional()
         .isBoolean().withMessage('generateDesign must be a boolean'),
 ];
+export const generateBasedOnExistingValidation = [
+    body('message')
+        .notEmpty().withMessage('Message is required')
+        .isString().withMessage('Message must be a string'),
+
+    body('referenceDesign')
+        .notEmpty().withMessage('Reference design is required'),
+
+    body('history')
+        .optional()
+        .isArray().withMessage('History must be an array'),
+
+    body('modelId')
+        .optional()
+        .isString().withMessage('Model ID must be a string')
+        .isIn(AI_MODELS.map(model => model.id)).withMessage('Invalid model'),
+
+    body('designSystemId')
+        .optional()
+        .isString().withMessage('Design System ID must be a string')
+        .isIn(DESIGN_SYSTEMS.map(designSystem => designSystem.id)).withMessage('Invalid design system'),
+];
 
 // Design Version validations
 export const saveDesignVersionValidation = [

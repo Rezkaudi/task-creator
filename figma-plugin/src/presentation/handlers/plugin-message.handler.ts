@@ -9,18 +9,6 @@ import {
 import { ApiConfig } from '../../shared/constants';
 import { GetUserInfoUseCase } from '@application/use-cases/getUserInfoUseCase';
 
-interface BackendChatResponse {
-  success: boolean;
-  message: string;
-  design: any;
-  previewHtml?: string | null;
-  cost?: {
-    inputCost: number;
-    outputCost: number;
-    totalCost: number;
-  };
-}
-
 /**
  * Handler for messages received from the UI
  */
@@ -37,9 +25,6 @@ export class PluginMessageHandler {
     private readonly getUserInfoUseCase: GetUserInfoUseCase
   ) { }
 
-  /**
-    * Initialize the message handler
-  */
   initialize(): void {
     this.uiPort.onMessage((message: PluginMessage) => this.handleMessage(message));
   }
@@ -55,12 +40,28 @@ export class PluginMessageHandler {
         break;
 
       case 'request-layer-selection-for-edit':
-        await this.handleRequestLayerSelection();
+        await this.handleRequestLayerSelectionForEdit();
+        break;
+
+      case 'request-layer-selection-for-reference':
+        await this.handleRequestLayerSelectionForReference();
         break;
 
       case 'ai-edit-design':
         if (message.message !== undefined && message.layerJson !== undefined) {
           await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model, message.designSystemId);
+        }
+        break;
+
+      case 'ai-generate-based-on-existing':
+        if (message.message !== undefined && message.referenceJson !== undefined) {
+          console.log('🎨 Handling generate-based-on-existing request');
+          await this.handleGenerateBasedOnExisting(
+            message.message,
+            message.history,
+            message.referenceJson,
+            message.model
+          );
         }
         break;
 
@@ -70,6 +71,10 @@ export class PluginMessageHandler {
 
       case 'import-edited-design':
         await this.handleImportEditedDesign(message.designData, message.buttonId);
+        break;
+
+      case 'import-based-on-existing-design':
+        await this.handleImportBasedOnExistingDesign(message.designData, message.buttonId);
         break;
 
       case 'design-generated-from-ai':
@@ -101,21 +106,64 @@ export class PluginMessageHandler {
 
       case 'GET_HEADERS':
         const headers = await this.getUserInfoUseCase.execute();
-        // Send back to UI
         figma.ui.postMessage({
           type: 'HEADERS_RESPONSE',
           headers: headers
         });
         break;
 
-
       default:
         console.warn('Unknown message type:', message.type);
     }
   }
 
+  // ==================== LAYER SELECTION FOR REFERENCE MODE ====================
+  private async handleRequestLayerSelectionForReference(): Promise<void> {
+    try {
+      const selection = figma.currentPage.selection;
+
+      if (selection.length === 0) {
+        this.uiPort.postMessage({
+          type: 'no-layer-selected'
+        });
+        this.notificationPort.notify('⚠️ Please select a reference layer');
+        return;
+      }
+
+      if (selection.length > 1) {
+        this.uiPort.postMessage({
+          type: 'no-layer-selected'
+        });
+        this.notificationPort.notify('⚠️ Please select only one reference layer');
+        return;
+      }
+
+      const selectedNode = selection[0];
+      const exportResult = await this.exportSelectedUseCase.execute();
+
+      if (!exportResult.success || exportResult.nodes.length === 0) {
+        throw new Error('Failed to export selected layer');
+      }
+
+      this.uiPort.postMessage({
+        type: 'layer-selected-for-reference',
+        layerName: selectedNode.name,
+        layerJson: exportResult.nodes[0]
+      });
+
+      this.notificationPort.notify(`✅ Reference layer "${selectedNode.name}" selected`);
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to select layer';
+      this.notificationPort.notifyError(errorMessage);
+      this.uiPort.postMessage({
+        type: 'no-layer-selected'
+      });
+    }
+  }
+
   // ==================== LAYER SELECTION FOR EDIT MODE ====================
-  private async handleRequestLayerSelection(): Promise<void> {
+  private async handleRequestLayerSelectionForEdit(): Promise<void> {
     try {
       const selection = figma.currentPage.selection;
 
@@ -136,7 +184,6 @@ export class PluginMessageHandler {
       }
 
       const selectedNode = selection[0];
-
       const exportResult = await this.exportSelectedUseCase.execute();
 
       if (!exportResult.success || exportResult.nodes.length === 0) {
@@ -219,8 +266,74 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== AI CHAT FUNCTIONS ====================
+  // ==================== GENERATE BASED ON EXISTING ====================
+  private async handleGenerateBasedOnExisting(
+    userMessage: string,
+    history: Array<{ role: string; content: string }> | undefined,
+    referenceJson: any,
+    model?: string
+  ): Promise<void> {
+    try {
+      let conversationHistory: Array<{ role: string; content: string }> = [];
 
+      if (history && history.length > 0) {
+        conversationHistory = history;
+      }
+
+      const selectedModel = model || 'gpt-4.1';
+
+      console.log("🎨 Generating design based on existing reference");
+      console.log("📍 Endpoint: /api/designs/generate-based-on-existing");
+
+      const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-based-on-existing`, {
+        method: 'POST',
+        headers: await this.getUserInfoUseCase.execute(),
+        body: JSON.stringify({
+          message: userMessage,
+          history: conversationHistory,
+          referenceDesign: referenceJson,
+          modelId: selectedModel
+        })
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Server error: ${response.status}`;
+        try {
+          const errorResult = await response.json();
+          errorMessage = errorResult.message || errorResult.error || errorMessage;
+        } catch (e) { }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+
+      console.log("✅ Received response from generate-based-on-existing");
+
+      this.uiPort.postMessage({
+        type: 'ai-based-on-existing-response',
+        message: result.message,
+        designData: result.design,
+        previewHtml: result.previewHtml,
+        cost: result.cost ? {
+          inputCost: result.cost.inputCost,
+          outputCost: result.cost.outputCost,
+          totalCost: result.cost.totalCost,
+          inputTokens: result.cost.inputTokens,
+          outputTokens: result.cost.outputTokens
+        } : undefined
+      });
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+      console.error("❌ Error in handleGenerateBasedOnExisting:", errorMessage);
+      this.uiPort.postMessage({
+        type: 'ai-based-on-existing-error',
+        error: errorMessage
+      });
+    }
+  }
+
+  // ==================== AI CHAT FUNCTIONS ====================
   private async handleAIChatMessage(
     userMessage: string,
     history?: Array<{ role: string; content: string }>,
@@ -279,34 +392,30 @@ export class PluginMessageHandler {
     }
   }
 
-
-
+  // ==================== IMPORT HANDLERS ====================
   private async handleImportDesignFromChat(designData: unknown, buttonId: any): Promise<void> {
     const result = await this.importAIDesignUseCase.execute(designData);
 
     if (result.success) {
-      this.uiPort.postMessage({ type: 'import-success',buttonId: buttonId });
+      this.uiPort.postMessage({ type: 'import-success', buttonId: buttonId });
       this.notificationPort.notify('✅ Design imported successfully!');
-      // Don't close UI to allow further edits
     } else {
       this.notificationPort.notifyError(result.error || 'Import failed');
       this.uiPort.postMessage({
         type: 'import-error',
         error: result.error || 'Import failed',
-        buttonId: buttonId 
+        buttonId: buttonId
       });
     }
   }
 
   private async handleImportEditedDesign(designData: unknown, buttonId: any): Promise<void> {
-    // Store reference to selected node before import
     const selection = figma.currentPage.selection;
     const oldNode = selection.length === 1 ? selection[0] : null;
 
     const result = await this.importAIDesignUseCase.execute(designData);
 
     if (result.success) {
-      // Remove the old layer after successful import
       if (oldNode) {
         try {
           oldNode.remove();
@@ -318,12 +427,10 @@ export class PluginMessageHandler {
         this.notificationPort.notify('✅ Edited design imported successfully!');
       }
 
-      this.uiPort.postMessage({ type: 'import-success' ,buttonId: buttonId});
+      this.uiPort.postMessage({ type: 'import-success', buttonId: buttonId });
 
-      // Export the new design using ExportSelectedUseCase (same format!)
       try {
         const exportResult = await this.exportSelectedUseCase.execute();
-
         if (exportResult.success && exportResult.nodes.length > 0) {
           this.uiPort.postMessage({
             type: 'design-updated',
@@ -344,7 +451,25 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== STANDARD IMPORT/EXPORT FUNCTIONS ====================
+  private async handleImportBasedOnExistingDesign(designData: unknown, buttonId: any): Promise<void> {
+    const result = await this.importAIDesignUseCase.execute(designData);
+
+    if (result.success) {
+      this.uiPort.postMessage({
+        type: 'import-success',
+        buttonId: buttonId
+      });
+      this.notificationPort.notify('✅ New design imported successfully!');
+    } else {
+      this.notificationPort.notifyError(result.error || 'Import failed');
+      this.uiPort.postMessage({
+        type: 'import-error',
+        error: result.error || 'Import failed',
+        buttonId: buttonId
+      });
+    }
+  }
+
   private async handleAIDesignImport(designData: unknown): Promise<void> {
     const result = await this.importAIDesignUseCase.execute(designData);
 
@@ -373,6 +498,7 @@ export class PluginMessageHandler {
     }
   }
 
+  // ==================== EXPORT HANDLERS ====================
   private async handleExportSelected(): Promise<void> {
     const result = await this.exportSelectedUseCase.execute();
 
