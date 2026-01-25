@@ -547,14 +547,14 @@ function resetToModeSelection() {
     isBasedOnExistingMode = false;
     referenceDesignJson = null;
     referenceLayerName = '';
-    
+
     modeSelectionScreen.style.display = 'flex';
     aiChatContainer.style.display = 'none';
     aiChatContainer.classList.remove('show-chat');
     editModeHeader.style.display = 'none';
     editModeHeader.classList.remove('show-header');
     basedOnExistingModeHeader.style.display = 'none';
-    
+
     chatInput.value = '';
 
     conversationHistory = [];
@@ -749,7 +749,7 @@ function addDesignPreview(designData, previewHtml = null, isEditMode = false, la
 
     // 🔥 تحديد النص بناءً على الـ mode الحقيقي
     let modeText, buttonText, modeBadge;
-    
+
     if (isBasedOnExistingMode) {
         modeText = '🎨 Generated Design (Based on Existing)';
         buttonText = 'Import to Figma';
@@ -836,7 +836,6 @@ function addDesignPreview(designData, previewHtml = null, isEditMode = false, la
                 messageType = 'import-design-from-chat';
             }
 
-main
             parent.postMessage({
                 pluginMessage: {
                     type: messageType,
@@ -1719,70 +1718,70 @@ window.onmessage = async (event) => {
             break;
 
         case 'layer-selected-for-reference':
-    // User selected a reference layer for "based on existing" mode
-    referenceDesignJson = msg.layerJson;
-    referenceLayerName = msg.layerName;
-    isBasedOnExistingMode = true;
-    currentMode = 'based-on-existing';
-    
-    // Show chat interface
-    modeSelectionScreen.style.display = 'none';
-    aiChatContainer.style.display = 'flex';
-    aiChatContainer.classList.add('show-chat');
-    basedOnExistingModeHeader.style.display = 'block';
-    editModeHeader.style.display = 'none';
-    referenceLayerNameEl.textContent = `"${referenceLayerName}"`;
-    
-    // Update welcome message
-    const model = availableModels.find(m => m.id === currentModel);
-    const modelName = model?.name || 'GPT-4.1';
-    
-    chatMessagesEl.innerHTML = `
+            // User selected a reference layer for "based on existing" mode
+            referenceDesignJson = msg.layerJson;
+            referenceLayerName = msg.layerName;
+            isBasedOnExistingMode = true;
+            currentMode = 'based-on-existing';
+
+            // Show chat interface
+            modeSelectionScreen.style.display = 'none';
+            aiChatContainer.style.display = 'flex';
+            aiChatContainer.classList.add('show-chat');
+            basedOnExistingModeHeader.style.display = 'block';
+            editModeHeader.style.display = 'none';
+            referenceLayerNameEl.textContent = `"${referenceLayerName}"`;
+
+            // Update welcome message
+            const model = availableModels.find(m => m.id === currentModel);
+            const modelName = model?.name || 'GPT-4.1';
+
+            chatMessagesEl.innerHTML = `
         <div class="message assistant">
             <div class="message-content">
                 <div>I'll create a new design based on <strong>"${referenceLayerName}"</strong> style using ${modelName}. What would you like to create? 🎨</div>
             </div>
         </div>
     `;
-    
-    // Update input placeholder
-    chatInput.placeholder = `e.g., Create a login page based on "${referenceLayerName}" style...`;
-    chatInput.focus();
-    
-    showStatus(`✅ Reference design "${referenceLayerName}" loaded`, 'success');
-    setTimeout(hideStatus, 2000);
-    break;
+
+            // Update input placeholder
+            chatInput.placeholder = `e.g., Create a login page based on "${referenceLayerName}" style...`;
+            chatInput.focus();
+
+            showStatus(`✅ Reference design "${referenceLayerName}" loaded`, 'success');
+            setTimeout(hideStatus, 2000);
+            break;
 
 
 
-case 'ai-based-on-existing-response':
-    isGenerating = false;
-    chatSendBtn.disabled = false;
-    removeLoadingMessages();
+        case 'ai-based-on-existing-response':
+            isGenerating = false;
+            chatSendBtn.disabled = false;
+            removeLoadingMessages();
 
-    addMessage('assistant', msg.message);
-    conversationHistory.push({ role: 'assistant', content: msg.message });
+            addMessage('assistant', msg.message);
+            conversationHistory.push({ role: 'assistant', content: msg.message });
 
-    if (msg.cost) {
-        displayCostInfo(msg.cost);
-    }
+            if (msg.cost) {
+                displayCostInfo(msg.cost);
+            }
 
-    if (msg.designData || msg.previewHtml) {
-        currentDesignData = msg.designData;
-        const referenceInfo = {
-            name: referenceLayerName,
-            type: 'REFERENCE'
-        };
-        addDesignPreview(msg.designData, msg.previewHtml, false, referenceInfo);
-    }
-    break;
+            if (msg.designData || msg.previewHtml) {
+                currentDesignData = msg.designData;
+                const referenceInfo = {
+                    name: referenceLayerName,
+                    type: 'REFERENCE'
+                };
+                addDesignPreview(msg.designData, msg.previewHtml, false, referenceInfo);
+            }
+            break;
 
-case 'ai-based-on-existing-error':
-    isGenerating = false;
-    chatSendBtn.disabled = false;
-    removeLoadingMessages();
-    addMessage('assistant', `Error: ${msg.error}`);
-    break;
+        case 'ai-based-on-existing-error':
+            isGenerating = false;
+            chatSendBtn.disabled = false;
+            removeLoadingMessages();
+            addMessage('assistant', `Error: ${msg.error}`);
+            break;
     }
 };
 // ==================== RESIZE TEXTAREA FROM TOP ====================

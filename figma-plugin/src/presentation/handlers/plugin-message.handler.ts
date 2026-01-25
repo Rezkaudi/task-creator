@@ -32,6 +32,8 @@ export class PluginMessageHandler {
   private async handleMessage(message: PluginMessage): Promise<void> {
     console.log('📨 Plugin received:', message.type);
 
+    console.log("Plugin Message with Data", message);
+
     switch (message.type) {
       case 'ai-chat-message':
         if (message.message !== undefined) {
