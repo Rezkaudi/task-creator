@@ -12,7 +12,7 @@
     <div id="status" class="status"></div>
     <div class="tabs">
       <button class="tab active" data-tab="ai">🤖 AI Generate</button>
-      <button class="tab" data-tab="auto">🔗 Fetch API</button>
+      <!-- <button class="tab" data-tab="auto">🔗 Fetch API</button> -->
       <button class="tab" data-tab="manual">📋 Paste JSON</button>
       <button class="tab" data-tab="export">📤 Export</button>
       <button class="tab" data-tab="versions">💾 Versions</button>
@@ -20,28 +20,28 @@
 
     <div id="ai-tab" class="tab-content active">
       <div id="mode-selection-screen">
-  <div class="mode-selection-header">
-    <h2>Choose Your Action</h2>
-    <p class="mode-subtitle">Create new, edit existing, or design based on reference</p>
-  </div>
-  <div class="mode-options">
-    <div class="mode-card" id="create-mode-btn">
-      <div class="mode-icon">✨</div>
-      <h3>Create New</h3>
-      <p>Start from scratch with AI assistance</p>
-    </div>
-    <div class="mode-card" id="edit-mode-btn">
-      <div class="mode-icon">✏️</div>
-      <h3>Edit Existing</h3>
-      <p>Modify a selected layer with AI</p>
-    </div>
-    <div class="mode-card" id="based-on-existing-mode-btn">
-      <div class="mode-icon">🎨</div>
-      <h3>Based on Existing</h3>
-      <p>Create new design using existing style</p>
-    </div>
-  </div>
-</div>
+        <div class="mode-selection-header">
+          <h2>Choose Your Action</h2>
+          <p class="mode-subtitle">Create new, edit existing, or design based on reference</p>
+        </div>
+        <div class="mode-options">
+          <div class="mode-card" id="create-mode-btn">
+            <div class="mode-icon">✨</div>
+            <h3>Create New</h3>
+            <p>Start from scratch with AI assistance</p>
+          </div>
+          <div class="mode-card" id="edit-mode-btn">
+            <div class="mode-icon">✏️</div>
+            <h3>Edit Existing</h3>
+            <p>Modify a selected layer with AI</p>
+          </div>
+          <div class="mode-card" id="based-on-existing-mode-btn">
+            <div class="mode-icon">🎨</div>
+            <h3>Based on Existing</h3>
+            <p>Create new design using existing style</p>
+          </div>
+        </div>
+      </div>
 
 
       <div id="ai-chat-container" style="display: none;">
@@ -53,12 +53,12 @@
           </div>
         </div>
         <div id="based-on-existing-mode-header" style="display: none;">
-  <button id="back-to-mode-selection-from-based" class="back-btn">← Back to Mode Selection</button>
-  <div class="edit-mode-info">
-    <span class="edit-mode-label">🎨 Based on Existing Mode</span>
-    <span id="reference-layer-name" class="selected-layer-name"></span>
-  </div>
-</div>
+          <button id="back-to-mode-selection-from-based" class="back-btn">← Back to Mode Selection</button>
+          <div class="edit-mode-info">
+            <span class="edit-mode-label">🎨 Based on Existing Mode</span>
+            <span id="reference-layer-name" class="selected-layer-name"></span>
+          </div>
+        </div>
 
         <div id="chat-messages" style="display: flex;">
           <div class="message assistant">
@@ -68,9 +68,19 @@
           </div>
         </div>
         <div id="chat-input-container">
-          <textarea id="chat-input"
+          <textarea id="chat-input" rows="8"
             placeholder="e.g. Create a login page with email and password fields..."></textarea>
-          <button id="chat-send-btn">Send</button>
+          <div class="chat-actions">
+            <button id="chat-send-btn">Send</button>
+            <div id="model-floating-btn" class="model-floating-btn">
+              <div class="model-btn-icon">🤖</div>
+              <span class="model-btn-text">Devstral-2512</span>
+            </div>
+            <div id="design-system-floating-btn" class="model-floating-btn">
+              <div class="model-btn-icon">🎨</div>
+              <span class="design-system-btn-text">Default Design System</span>
+            </div>
+          </div>
         </div>
         <div class="chat-hint">Press Enter to send • Shift + Enter for new line</div>
       </div>
@@ -79,8 +89,7 @@
     <div id="auto-tab" class="tab-content">
       <div class="input-group">
         <label for="api-url">API Endpoint URL</label>
-        <input type="url" id="api-url" value="https://task-creator-api.onrender.com/api/tasks/latest-design"
-          placeholder="https://api.example.com/design" />
+        <input type="url" id="api-url" placeholder="https://api.example.com/design" />
         <p class="helper-text">Enter the URL that returns Figma-compatible JSON.</p>
       </div>
     </div>
@@ -143,8 +152,13 @@ Example format:
         </div>
       </div>
     </div>
-
+    <!-- Main button group -->
+    <div class="button-group" id="main-button-group">
+      <button id="import-btn" class="btn-primary">🚀 Generate & Import</button>
+      <button id="cancel-btn" class="btn-secondary">Cancel</button>
     </div>
+
+  </div>
 
   <div id="save-modal"
     style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
@@ -163,15 +177,6 @@ Example format:
     </div>
   </div>
 
-  <div id="model-floating-btn" class="model-floating-btn">
-    <div class="model-btn-icon"></div>
-    <span class="model-btn-text">GPT-4.1</span>
-  </div>
-  <div id="design-system-floating-btn" class="model-floating-btn" style="bottom: 100px;">
-    <div class="model-btn-icon">🎨</div>
-    <span class="design-system-btn-text">Default design system</span>
-  </div>
-
   <div id="design-system-panel" class="model-panel">
     <div class="model-panel-header">
       <h3>🎨 Select Design System</h3>
@@ -186,7 +191,8 @@ Example format:
     </div>
 
     <div class="model-panel-footer">
-      <span id="selected-design-system-info">Currently using: <span id="current-design-system-name">Default design system</span></span>
+      <span id="selected-design-system-info">Currently using: <span id="current-design-system-name">Default design
+          system</span></span>
       <div id="design-system-status" class="model-status"></div>
     </div>
   </div>
@@ -205,7 +211,7 @@ Example format:
     </div>
 
     <div class="model-panel-footer">
-      <span id="selected-model-info">Currently using: <span id="current-model-name">GPT-4.1</span></span>
+      <span id="selected-model-info">Currently using: <span id="current-model-name">Devstral-2512</span></span>
       <div id="model-status" class="model-status"></div>
     </div>
   </div>
@@ -214,6 +220,6 @@ Example format:
   <div id="design-system-panel-backdrop" class="model-panel-backdrop"></div>
 
   <script src="./ui.js"></script>
-  </body>
+</body>
 
 </html>

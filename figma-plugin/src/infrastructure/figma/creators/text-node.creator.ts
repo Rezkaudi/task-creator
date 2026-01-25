@@ -14,7 +14,6 @@ export class TextNodeCreator extends BaseNodeCreator {
    */
   async create(nodeData: DesignNode): Promise<TextNode> {
     const font = await figma.listAvailableFontsAsync();
-    console.log("Fonts:", font);
 
     const textNode = figma.createText();
     textNode.name = nodeData.name || 'Text';

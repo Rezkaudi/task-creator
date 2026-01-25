@@ -32,6 +32,8 @@ export class PluginMessageHandler {
   private async handleMessage(message: PluginMessage): Promise<void> {
     console.log('📨 Plugin received:', message.type);
 
+    console.log("Plugin Message with Data", message);
+
     switch (message.type) {
       case 'ai-chat-message':
         if (message.message !== undefined) {
@@ -218,7 +220,7 @@ export class PluginMessageHandler {
         this.conversationHistory = history;
       }
 
-      const selectedModel = model || 'gpt-4.1';
+      const selectedModel = model || 'mistralai/devstral-2512:free';
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
         method: 'POST',
@@ -280,7 +282,7 @@ export class PluginMessageHandler {
         conversationHistory = history;
       }
 
-      const selectedModel = model || 'gpt-4.1';
+      const selectedModel = model || 'mistralai/devstral-2512:free';
 
       console.log("🎨 Generating design based on existing reference");
       console.log("📍 Endpoint: /api/designs/generate-based-on-existing");
@@ -345,7 +347,7 @@ export class PluginMessageHandler {
         this.conversationHistory = history;
       }
 
-      const selectedModel = model || 'gpt-4.1';
+      const selectedModel = model || 'mistralai/devstral-2512:free';
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
         method: 'POST',

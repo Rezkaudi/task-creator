@@ -138,7 +138,7 @@ export class DesignController {
                 message,
                 history || [],
                 referenceDesign,
-                modelId || 'gpt-4.1'
+                modelId || 'mistralai/devstral-2512:free'
             );
 
             res.status(200).json({
@@ -148,7 +148,7 @@ export class DesignController {
                 previewHtml: result.previewHtml,
                 cost: result.cost,
                 metadata: {
-                    model: modelId || 'gpt-4.1',
+                    model: modelId || 'mistralai/devstral-2512:free',
                     mode: 'based-on-existing'
                 }
             });
