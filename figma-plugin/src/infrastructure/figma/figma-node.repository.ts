@@ -370,23 +370,61 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
   }
 
   async getHeaders(): Promise<Record<string, string>> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
 
-    const user = figma.currentUser;
+      const user = figma.currentUser;
 
-    if (user) {
-      headers['x-figma-user-id'] = user.id!;
-      headers['x-figma-user-name'] = user.name;
+      if (user) {
+        // Safely handle null values
+        if (user.id) {
+          headers['x-figma-user-id'] = user.id;
+        }
+        if (user.name) {
+          headers['x-figma-user-name'] = this.encodeHeaderValue(user.name);
+        }
 
-      const storageUser = await figma.clientStorage.getAsync(`figment:traits:${user.id!}`);
-      console.log(storageUser);
-      if (storageUser) {
-        if (storageUser.name) headers['x-figma-user-name'] = storageUser.name;
-        if (storageUser.email) headers['x-figma-user-email'] = storageUser.email;
+        try {
+          const storageUser = await figma.clientStorage.getAsync(`figment:traits:${user.id}`);
+
+          if (storageUser) {
+            if (storageUser.name) {
+              headers['x-figma-user-name'] = this.encodeHeaderValue(String(storageUser.name));
+            }
+            if (storageUser.email) {
+              headers['x-figma-user-email'] = this.encodeHeaderValue(String(storageUser.email));
+            }
+          }
+        } catch (storageError) {
+          console.warn('Failed to read client storage:', storageError);
+        }
       }
-    }
-    return headers;
+      
+      return headers;
+  }
+
+  /**
+   * Encode a string to be safe for HTTP headers (ISO-8859-1 compatible)
+   */
+  private encodeHeaderValue(value: string | null | undefined): string {
+      // Handle null/undefined
+      if (value == null) return '';
+      
+      // Ensure it's a string
+      const strValue = String(value);
+      if (!strValue) return '';
+
+      try {
+        // Check if the string contains non-ASCII characters
+        if (/[^\x00-\x7F]/.test(strValue)) {
+          return encodeURIComponent(strValue);
+        }
+        return strValue;
+      } catch (error) {
+        console.warn('Error encoding header value:', error);
+        // Fallback: remove non-ASCII characters entirely
+        return strValue.replace(/[^\x00-\x7F]/g, '');
+      }
   }
 }

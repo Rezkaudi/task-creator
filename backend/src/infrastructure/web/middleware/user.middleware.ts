@@ -29,8 +29,12 @@ export class UserMiddleware {
 
             // Get user info from request headers
             const figmaUserId = req.headers['x-figma-user-id'] as string;
-            const userName = req.headers['x-figma-user-name'] as string;
-            const userEmail = req.headers['x-figma-user-email'] as string;
+            const rawUserName = req.headers['x-figma-user-name'] as string;
+            const rawUserEmail = req.headers['x-figma-user-email'] as string;
+
+            // Decode URL-encoded header values
+            const userName = rawUserName ? decodeURIComponent(rawUserName) : undefined;
+            const userEmail = rawUserEmail ? decodeURIComponent(rawUserEmail) : undefined;
 
             // For Figma plugin requests (from manifest.json)
             const pluginOrigin = req.headers['origin'];

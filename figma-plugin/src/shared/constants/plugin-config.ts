@@ -1,3 +1,4 @@
+declare const process: { env: { [key: string]: string } };
 /**
  * Plugin configuration constants
  */
@@ -11,11 +12,13 @@ export const PluginConfig = {
  * API Configuration
  */
 export const ApiConfig = {
-  BASE_URL: 'https://task-creator-api.onrender.com',
+  BASE_URL: process.env.BACKEND_URL || 'http://localhost:5000',
   // For local development, use:
 
   //BASE_URL: 'http://localhost:5000',
 } as const;
+
+console.log('🔌 Current Backend URL:', ApiConfig.BASE_URL);
 
 /**
  * Default values

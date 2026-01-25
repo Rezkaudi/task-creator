@@ -1,5 +1,4 @@
-const API_BASE_URL = 'https://task-creator-api.onrender.com';
-//const API_BASE_URL = "http://localhost:5000"
+const API_BASE_URL = process.env.BACKEND_URL;
 
 // ==================== STATE ====================
 let chatMessages = [];
@@ -27,13 +26,15 @@ let referenceLayerName = '';
 
 
 // ==================== ELEMENTS ====================
+// These might be null if commented out in HTML
 const importBtn = document.getElementById('import-btn');
 const cancelBtn = document.getElementById('cancel-btn');
+const mainButtonGroup = document.getElementById('main-button-group');
+
 const tabs = document.querySelectorAll('.tab');
 const jsonInput = document.getElementById('json-input');
 const jsonStats = document.getElementById('json-stats');
 const statusEl = document.getElementById('status');
-const mainButtonGroup = document.getElementById('main-button-group');
 
 // Mode selection elements
 const modeSelectionScreen = document.getElementById('mode-selection-screen');
@@ -137,14 +138,20 @@ const getHeaders = async () => {
 
 // ==================== MODEL SELECTION ====================
 function initModelSelection() {
+    if (!modelFloatingBtn) return; // Guard clause
+
     // Floating button click handler
     modelFloatingBtn.addEventListener('click', toggleModelPanel);
 
     // Close button handler
-    closeModelPanel.addEventListener('click', closeModelPanelFunc);
+    if (closeModelPanel) {
+        closeModelPanel.addEventListener('click', closeModelPanelFunc);
+    }
 
     // Backdrop click handler
-    modelPanelBackdrop.addEventListener('click', closeModelPanelFunc);
+    if (modelPanelBackdrop) {
+        modelPanelBackdrop.addEventListener('click', closeModelPanelFunc);
+    }
 
     // Load models on first click
     let modelsLoaded = false;
@@ -167,6 +174,7 @@ function initModelSelection() {
 }
 
 function toggleModelPanel() {
+    if (!modelPanel) return;
     if (modelPanel.style.display === 'block') {
         closeModelPanelFunc();
     } else {
@@ -175,13 +183,13 @@ function toggleModelPanel() {
 }
 
 function openModelPanel() {
-    modelPanel.style.display = 'block';
-    modelPanelBackdrop.style.display = 'block';
+    if (modelPanel) modelPanel.style.display = 'block';
+    if (modelPanelBackdrop) modelPanelBackdrop.style.display = 'block';
 }
 
 function closeModelPanelFunc() {
-    modelPanel.style.display = 'none';
-    modelPanelBackdrop.style.display = 'none';
+    if (modelPanel) modelPanel.style.display = 'none';
+    if (modelPanelBackdrop) modelPanelBackdrop.style.display = 'none';
 }
 
 function selectModel(modelId, showNotification = true) {
@@ -228,6 +236,8 @@ function updateModelUI(model, showNotification = true) {
 
 // ==================== DESIGN SYSTEM SELECTION ====================
 function initDesignSystemSelection() {
+    if (!designSystemFloatingBtn) return; // Guard clause
+
     // Floating button click handler
     designSystemFloatingBtn.addEventListener('click', toggleDesignSystemPanel);
 
@@ -241,7 +251,10 @@ function initDesignSystemSelection() {
     }
 
     // Close button handler
-    document.getElementById('close-design-system-panel').addEventListener('click', closeDesignSystemPanelFunc);
+    const closeBtn = document.getElementById('close-design-system-panel');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeDesignSystemPanelFunc);
+    }
 
     // Load design systems on first click
     let systemsLoaded = false;
@@ -265,7 +278,7 @@ function initDesignSystemSelection() {
 
 function toggleDesignSystemPanel() {
     const panel = document.getElementById('design-system-panel');
-    if (panel.style.display === 'block') {
+    if (panel && panel.style.display === 'block') {
         closeDesignSystemPanelFunc();
     } else {
         openDesignSystemPanel();
@@ -275,15 +288,15 @@ function toggleDesignSystemPanel() {
 function openDesignSystemPanel() {
     const panel = document.getElementById('design-system-panel');
     const backdrop = document.getElementById('design-system-panel-backdrop');
-    panel.style.display = 'block';
-    backdrop.style.display = 'block';
+    if (panel) panel.style.display = 'block';
+    if (backdrop) backdrop.style.display = 'block';
 }
 
 function closeDesignSystemPanelFunc() {
     const panel = document.getElementById('design-system-panel');
     const backdrop = document.getElementById('design-system-panel-backdrop');
-    panel.style.display = 'none';
-    backdrop.style.display = 'none';
+    if (panel) panel.style.display = 'none';
+    if (backdrop) backdrop.style.display = 'none';
 }
 
 function selectDesignSystem(systemId, showNotification = true) {
@@ -322,8 +335,6 @@ function updateDesignSystemUI(system, showNotification = true) {
     if (currentDesignSystemNameEl) {
         currentDesignSystemNameEl.textContent = system.name;
     }
-
-    
 }
 
 async function fetchDesignSystems() {
@@ -413,42 +424,54 @@ function hideDesignSystemStatus() {
 }
 
 // ==================== MODE SELECTION ====================
-createModeBtn.addEventListener('click', () => {
-    currentMode = 'create';
-    showChatInterface();
-});
+if (createModeBtn) {
+    createModeBtn.addEventListener('click', () => {
+        currentMode = 'create';
+        showChatInterface();
+    });
+}
 
-editModeBtn.addEventListener('click', () => {
-    showStatus('📍 Please select a layer to edit...', 'info');
-    parent.postMessage({
-        pluginMessage: { type: 'request-layer-selection-for-edit' }
-    }, '*');
-});
+if (editModeBtn) {
+    editModeBtn.addEventListener('click', () => {
+        showStatus('📍 Please select a layer to edit...', 'info');
+        parent.postMessage({
+            pluginMessage: { type: 'request-layer-selection-for-edit' }
+        }, '*');
+    });
+}
 
-backToModeBtn.addEventListener('click', () => {
-    resetToModeSelection();
-});
+if (backToModeBtn) {
+    backToModeBtn.addEventListener('click', () => {
+        resetToModeSelection();
+    });
+}
 
 function showChatInterface() {
     console.log('🔥 showChatInterface called, mode:', currentMode);
 
     // Hide mode selection
-    modeSelectionScreen.style.display = 'none';
+    if (modeSelectionScreen) modeSelectionScreen.style.display = 'none';
 
     // Show chat interface
-    aiChatContainer.classList.add('show-chat');
-    aiChatContainer.style.display = 'flex';
+    if (aiChatContainer) {
+        aiChatContainer.classList.add('show-chat');
+        aiChatContainer.style.display = 'flex';
+    }
 
     // Show/hide edit mode header
-    if (currentMode === 'edit') {
-        editModeHeader.classList.add('show-header');
-        editModeHeader.style.display = 'block';
+    if (editModeHeader) {
+        if (currentMode === 'edit') {
+            editModeHeader.classList.add('show-header');
+            editModeHeader.style.display = 'block';
 
-        const layerName = selectedLayerForEdit || 'selected layer';
-        selectedLayerNameEl.textContent = `"${layerName}"`;
-    } else {
-        editModeHeader.classList.remove('show-header');
-        editModeHeader.style.display = 'none';
+            if (selectedLayerNameEl) {
+                const layerName = selectedLayerForEdit || 'selected layer';
+                selectedLayerNameEl.textContent = `"${layerName}"`;
+            }
+        } else {
+            editModeHeader.classList.remove('show-header');
+            editModeHeader.style.display = 'none';
+        }
     }
 
     // Clear old conversation
@@ -468,14 +491,16 @@ function showChatInterface() {
         welcomeMessage = `Hi! I'll create your design using ${modelName} and ${systemName}. Describe what you want. 🎨`;
     }
 
-    chatMessagesEl.innerHTML = `
-        <div class="message assistant">
-            <div class="message-content">
-                <div>${welcomeMessage}</div>
+    if (chatMessagesEl) {
+        chatMessagesEl.innerHTML = `
+            <div class="message assistant">
+                <div class="message-content">
+                    <div>${welcomeMessage}</div>
+                </div>
             </div>
-        </div>
-    `;
-    chatMessagesEl.classList.add('show-messages');
+        `;
+        chatMessagesEl.classList.add('show-messages');
+    }
 
     // Show input elements
     const inputContainer = document.getElementById('chat-input-container');
@@ -509,7 +534,7 @@ function showChatInterface() {
 
     // Scroll to bottom
     setTimeout(() => {
-        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+        if (chatMessagesEl) chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
     }, 50);
 
     console.log('✅ Chat interface shown successfully');
@@ -531,6 +556,7 @@ function resetToModeSelection() {
     basedOnExistingModeHeader.style.display = 'none';
     
     chatInput.value = '';
+
     conversationHistory = [];
     chatMessages = [];
 }
@@ -541,7 +567,8 @@ tabs.forEach(tab => {
         tabs.forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         tab.classList.add('active');
-        document.getElementById(`${tabName}-tab`).classList.add('active');
+        const tabContent = document.getElementById(`${tabName}-tab`);
+        if (tabContent) tabContent.classList.add('active');
 
         // Reset to mode selection when switching to AI tab
         if (tabName === 'ai') {
@@ -556,16 +583,23 @@ tabs.forEach(tab => {
             'versions': null
         };
 
-        if (tabName === 'export' || tabName === 'versions') {
-            mainButtonGroup.style.display = 'none';
+        if (mainButtonGroup) {
+            if (tabName === 'export' || tabName === 'versions') {
+                mainButtonGroup.style.display = 'none';
+                if (tabName === 'versions') {
+                    loadVersions();
+                }
+            } else if (tabName === 'ai') {
+                mainButtonGroup.style.display = 'none';
+            } else {
+                mainButtonGroup.style.display = 'flex';
+                if (importBtn) importBtn.textContent = buttonTexts[tabName] || 'Import';
+            }
+        } else {
+            // Even if button group is missing, load versions if needed
             if (tabName === 'versions') {
                 loadVersions();
             }
-        } else if (tabName === 'ai') {
-            mainButtonGroup.style.display = 'none';
-        } else {
-            mainButtonGroup.style.display = 'flex';
-            importBtn.textContent = buttonTexts[tabName] || 'Import';
         }
 
         resetButton();
@@ -576,28 +610,33 @@ tabs.forEach(tab => {
 // ==================== AI CHAT FUNCTIONS ====================
 let isComposing = false;
 
-chatSendBtn.addEventListener('click', sendChatMessage);
+if (chatSendBtn) {
+    chatSendBtn.addEventListener('click', sendChatMessage);
+}
 
-chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.shiftKey) {
-        return;
-    }
-    
-    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
-        e.preventDefault(); 
-        sendChatMessage();
-    }
-});
+if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.shiftKey) {
+            return;
+        }
 
-chatInput.addEventListener('compositionstart', () => {
-    isComposing = true;
-});
+        if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+            e.preventDefault();
+            sendChatMessage();
+        }
+    });
 
-chatInput.addEventListener('compositionend', () => {
-    isComposing = false;
-});
+    chatInput.addEventListener('compositionstart', () => {
+        isComposing = true;
+    });
+
+    chatInput.addEventListener('compositionend', () => {
+        isComposing = false;
+    });
+}
 
 function sendChatMessage() {
+    if (!chatInput) return;
     const message = chatInput.value.trim();
     if (!message || isGenerating) return;
 
@@ -605,7 +644,7 @@ function sendChatMessage() {
     chatInput.value = '';
     chatInput.style.height = 'auto';
     isGenerating = true;
-    chatSendBtn.disabled = true;
+    if (chatSendBtn) chatSendBtn.disabled = true;
 
     conversationHistory.push({ role: 'user', content: message });
 
@@ -654,10 +693,13 @@ function sendChatMessage() {
                 designSystemId: currentDesignSystem
             }
         }, '*');
+
     }
 }
 
 function addMessage(role, content, isLoading = false) {
+    if (!chatMessagesEl) return;
+
     const messageEl = document.createElement('div');
     messageEl.className = `message ${role}`;
     const isError = content.startsWith('Error:');
@@ -675,7 +717,7 @@ function addMessage(role, content, isLoading = false) {
       </div>
     `;
     } else {
-       const formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
+        const formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
         contentEl.innerHTML = `<div class="message-text">${formattedContent}</div>`;
     }
 
@@ -686,14 +728,15 @@ function addMessage(role, content, isLoading = false) {
 }
 
 function removeLoadingMessages() {
+    if (!chatMessagesEl) return;
     const loadingEls = chatMessagesEl.querySelectorAll('.loading-indicator');
     loadingEls.forEach(el => el.closest('.message').remove());
 }
 
 // ==================== DESIGN PREVIEW FUNCTIONS ====================
-// استبدلي دالة addDesignPreview بهذه النسخة المحدثة:
 
 function addDesignPreview(designData, previewHtml = null, isEditMode = false, layerInfo = null) {
+    if (!chatMessagesEl) return;
     const lastMessage = chatMessagesEl.lastElementChild;
     if (!lastMessage || !lastMessage.classList.contains('assistant')) return;
 
@@ -768,13 +811,13 @@ function addDesignPreview(designData, previewHtml = null, isEditMode = false, la
 
     function updateZoom(newZoom) {
         currentZoom = Math.max(0.1, Math.min(2, newZoom));
-        previewContent.style.transform = `scale(${currentZoom})`;
-        zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
+        if (previewContent) previewContent.style.transform = `scale(${currentZoom})`;
+        if (zoomLevel) zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
     }
 
-    zoomIn.addEventListener('click', () => updateZoom(currentZoom + 0.1));
-    zoomOut.addEventListener('click', () => updateZoom(currentZoom - 0.1));
-    zoomReset.addEventListener('click', () => updateZoom(1));
+    if (zoomIn) zoomIn.addEventListener('click', () => updateZoom(currentZoom + 0.1));
+    if (zoomOut) zoomOut.addEventListener('click', () => updateZoom(currentZoom - 0.1));
+    if (zoomReset) zoomReset.addEventListener('click', () => updateZoom(1));
 
     // Import button
     const importButton = previewEl.querySelector('.import-to-figma-btn');
@@ -783,7 +826,7 @@ function addDesignPreview(designData, previewHtml = null, isEditMode = false, la
             importButton.disabled = true;
             importButton.textContent = isEditMode ? 'Updating...' : 'Importing...';
 
-            // 🔥 تحديد نوع الرسالة بناءً على الـ mode
+
             let messageType;
             if (isBasedOnExistingMode) {
                 messageType = 'import-based-on-existing-design';
@@ -793,6 +836,7 @@ function addDesignPreview(designData, previewHtml = null, isEditMode = false, la
                 messageType = 'import-design-from-chat';
             }
 
+main
             parent.postMessage({
                 pluginMessage: {
                     type: messageType,
@@ -917,6 +961,7 @@ function getElementIcon(type) {
     return icons[type] || '🔲';
 }
 function displayCostInfo(cost) {
+    if (!chatMessagesEl) return;
     const lastAssistantMessage = Array.from(chatMessagesEl.querySelectorAll('.message.assistant')).pop();
 
     if (!lastAssistantMessage) {
@@ -1054,8 +1099,10 @@ function hideModelStatus() {
 async function loadVersions() {
     try {
         showStatus('📡 Loading versions...', 'info');
-        refreshVersionsBtn.disabled = true;
-        refreshVersionsBtn.innerHTML = '<span class="loading"></span>';
+        if (refreshVersionsBtn) {
+            refreshVersionsBtn.disabled = true;
+            refreshVersionsBtn.innerHTML = '<span class="loading"></span>';
+        }
 
         const response = await fetch(`${API_BASE_URL}/api/design-versions`, {
             headers: await getHeaders()
@@ -1072,19 +1119,25 @@ async function loadVersions() {
     } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
         setTimeout(hideStatus, 2000);
-        versionsList.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">⚠️</div>
-        <div class="empty-state-text">Failed to load versions.<br>Check your connection and try again.</div>
-      </div>
-    `;
+        if (versionsList) {
+            versionsList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <div class="empty-state-text">Failed to load versions.<br>Check your connection and try again.</div>
+                </div>
+            `;
+        }
     } finally {
-        refreshVersionsBtn.disabled = false;
-        refreshVersionsBtn.innerHTML = '🔄 Refresh';
+        if (refreshVersionsBtn) {
+            refreshVersionsBtn.disabled = false;
+            refreshVersionsBtn.innerHTML = '🔄 Refresh';
+        }
     }
 }
 
 function renderVersionsList(versions) {
+    if (!versionsList) return;
+
     if (!versions || versions.length === 0) {
         versionsList.innerHTML = `
       <div class="empty-state">
@@ -1092,7 +1145,7 @@ function renderVersionsList(versions) {
         <div class="empty-state-text">No versions saved yet.<br>Export a design and save it to the database.</div>
       </div>
     `;
-        selectedVersionActions.style.display = 'none';
+        if (selectedVersionActions) selectedVersionActions.style.display = 'none';
         return;
     }
 
@@ -1116,14 +1169,16 @@ function selectVersion(id) {
     document.querySelectorAll('.version-item').forEach(item => {
         item.classList.toggle('selected', item.dataset.id === id);
     });
-    selectedVersionActions.style.display = 'flex';
+    if (selectedVersionActions) selectedVersionActions.style.display = 'flex';
 }
 
 async function saveVersionToDb(description, designJson) {
     try {
         showStatus('💾 Saving to database...', 'info');
-        confirmSaveBtn.disabled = true;
-        confirmSaveBtn.innerHTML = '<span class="loading"></span> Saving...';
+        if (confirmSaveBtn) {
+            confirmSaveBtn.disabled = true;
+            confirmSaveBtn.innerHTML = '<span class="loading"></span> Saving...';
+        }
 
         const response = await fetch(`${API_BASE_URL}/api/design-versions`, {
             method: 'POST',
@@ -1138,8 +1193,8 @@ async function saveVersionToDb(description, designJson) {
         }
 
         showStatus(`✅ Saved as version ${data.version.version}!`, 'success');
-        saveModal.style.display = 'none';
-        saveDescription.value = '';
+        if (saveModal) saveModal.style.display = 'none';
+        if (saveDescription) saveDescription.value = '';
 
         if (document.querySelector('.tab[data-tab="versions"]').classList.contains('active')) {
             loadVersions();
@@ -1147,16 +1202,20 @@ async function saveVersionToDb(description, designJson) {
     } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
     } finally {
-        confirmSaveBtn.disabled = false;
-        confirmSaveBtn.innerHTML = 'Save';
+        if (confirmSaveBtn) {
+            confirmSaveBtn.disabled = false;
+            confirmSaveBtn.innerHTML = 'Save';
+        }
     }
 }
 
 async function importVersionFromDb(id) {
     try {
         showStatus('📥 Loading version...', 'info');
-        importVersionBtn.disabled = true;
-        importVersionBtn.innerHTML = '<span class="loading"></span> Loading...';
+        if (importVersionBtn) {
+            importVersionBtn.disabled = true;
+            importVersionBtn.innerHTML = '<span class="loading"></span> Loading...';
+        }
 
         const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`, {
             headers: await getHeaders()
@@ -1176,8 +1235,10 @@ async function importVersionFromDb(id) {
         }, '*');
     } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
-        importVersionBtn.disabled = false;
-        importVersionBtn.innerHTML = '📥 Import to Figma';
+        if (importVersionBtn) {
+            importVersionBtn.disabled = false;
+            importVersionBtn.innerHTML = '📥 Import to Figma';
+        }
     }
 }
 
@@ -1188,8 +1249,10 @@ async function deleteVersion(id) {
 
     try {
         showStatus('🗑️ Deleting version...', 'info');
-        deleteVersionBtn.disabled = true;
-        deleteVersionBtn.innerHTML = '<span class="loading"></span>';
+        if (deleteVersionBtn) {
+            deleteVersionBtn.disabled = true;
+            deleteVersionBtn.innerHTML = '<span class="loading"></span>';
+        }
 
         const response = await fetch(`${API_BASE_URL}/api/design-versions/${id}`, {
             headers: await getHeaders(),
@@ -1204,113 +1267,141 @@ async function deleteVersion(id) {
 
         showStatus('✅ Version deleted!', 'success');
         selectedVersionId = null;
-        selectedVersionActions.style.display = 'none';
+        if (selectedVersionActions) selectedVersionActions.style.display = 'none';
         loadVersions();
     } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
     } finally {
-        deleteVersionBtn.disabled = false;
-        deleteVersionBtn.innerHTML = '🗑️ Delete';
+        if (deleteVersionBtn) {
+            deleteVersionBtn.disabled = false;
+            deleteVersionBtn.innerHTML = '🗑️ Delete';
+        }
     }
 }
 
-refreshVersionsBtn.addEventListener('click', loadVersions);
-importVersionBtn.addEventListener('click', () => {
-    if (selectedVersionId) importVersionFromDb(selectedVersionId);
-});
-deleteVersionBtn.addEventListener('click', () => {
-    if (selectedVersionId) deleteVersion(selectedVersionId);
-});
+if (refreshVersionsBtn) refreshVersionsBtn.addEventListener('click', loadVersions);
+if (importVersionBtn) {
+    importVersionBtn.addEventListener('click', () => {
+        if (selectedVersionId) importVersionFromDb(selectedVersionId);
+    });
+}
+if (deleteVersionBtn) {
+    deleteVersionBtn.addEventListener('click', () => {
+        if (selectedVersionId) deleteVersion(selectedVersionId);
+    });
+}
 
-saveToDbBtn.addEventListener('click', () => {
-    if (!currentExportData) {
-        showStatus('⚠️ No design data to save. Export first.', 'warning');
-        return;
-    }
-    saveModal.style.display = 'block';
-    saveDescription.focus();
-});
+if (saveToDbBtn) {
+    saveToDbBtn.addEventListener('click', () => {
+        if (!currentExportData) {
+            showStatus('⚠️ No design data to save. Export first.', 'warning');
+            return;
+        }
+        if (saveModal) saveModal.style.display = 'block';
+        if (saveDescription) saveDescription.focus();
+    });
+}
 
-confirmSaveBtn.addEventListener('click', () => {
-    const description = saveDescription.value.trim();
-    if (!description) {
-        showStatus('⚠️ Please enter a description', 'warning');
-        return;
-    }
-    saveVersionToDb(description, currentExportData);
-});
+if (confirmSaveBtn) {
+    confirmSaveBtn.addEventListener('click', () => {
+        if (!saveDescription) return;
+        const description = saveDescription.value.trim();
+        if (!description) {
+            showStatus('⚠️ Please enter a description', 'warning');
+            return;
+        }
+        saveVersionToDb(description, currentExportData);
+    });
+}
 
-cancelSaveBtn.addEventListener('click', () => {
-    saveModal.style.display = 'none';
-    saveDescription.value = '';
-});
+if (cancelSaveBtn) {
+    cancelSaveBtn.addEventListener('click', () => {
+        if (saveModal) saveModal.style.display = 'none';
+        if (saveDescription) saveDescription.value = '';
+    });
+}
 
 // ==================== EXPORT FUNCTIONS ====================
-exportSelectedBtn.addEventListener('click', () => {
-    exportSelectedBtn.disabled = true;
-    exportSelectedBtn.innerHTML = '<span class="loading"></span> Exporting...';
-    showStatus('📦 Exporting selected layers...', 'info');
-    parent.postMessage({ pluginMessage: { type: 'export-selected' } }, '*');
-});
+if (exportSelectedBtn) {
+    exportSelectedBtn.addEventListener('click', () => {
+        exportSelectedBtn.disabled = true;
+        exportSelectedBtn.innerHTML = '<span class="loading"></span> Exporting...';
+        showStatus('📦 Exporting selected layers...', 'info');
+        parent.postMessage({ pluginMessage: { type: 'export-selected' } }, '*');
+    });
+}
 
-exportAllBtn.addEventListener('click', () => {
-    exportAllBtn.disabled = true;
-    exportAllBtn.innerHTML = '<span class="loading"></span> Exporting...';
-    showStatus('📄 Exporting all layers on page...', 'info');
-    parent.postMessage({ pluginMessage: { type: 'export-all' } }, '*');
-});
+if (exportAllBtn) {
+    exportAllBtn.addEventListener('click', () => {
+        exportAllBtn.disabled = true;
+        exportAllBtn.innerHTML = '<span class="loading"></span> Exporting...';
+        showStatus('📄 Exporting all layers on page...', 'info');
+        parent.postMessage({ pluginMessage: { type: 'export-all' } }, '*');
+    });
+}
 
-copyJsonBtn.addEventListener('click', async () => {
-    if (!currentExportData) return;
-    try {
-        await navigator.clipboard.writeText(JSON.stringify(currentExportData, null, 2));
-        showStatus('✅ Copied to clipboard!', 'success');
-        copyJsonBtn.textContent = '✅ Copied!';
-        setTimeout(() => copyJsonBtn.textContent = '📋 Copy', 2000);
-    } catch (err) {
-        const textarea = document.createElement('textarea');
-        textarea.value = JSON.stringify(currentExportData, null, 2);
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showStatus('✅ Copied to clipboard!', 'success');
-    }
-});
+if (copyJsonBtn) {
+    copyJsonBtn.addEventListener('click', async () => {
+        if (!currentExportData) return;
+        try {
+            await navigator.clipboard.writeText(JSON.stringify(currentExportData, null, 2));
+            showStatus('✅ Copied to clipboard!', 'success');
+            copyJsonBtn.textContent = '✅ Copied!';
+            setTimeout(() => copyJsonBtn.textContent = '📋 Copy', 2000);
+        } catch (err) {
+            const textarea = document.createElement('textarea');
+            textarea.value = JSON.stringify(currentExportData, null, 2);
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showStatus('✅ Copied to clipboard!', 'success');
+        }
+    });
+}
 
-downloadJsonBtn.addEventListener('click', () => {
-    if (!currentExportData) return;
-    const jsonString = JSON.stringify(currentExportData, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    let filename = 'figma-design';
-    if (Array.isArray(currentExportData) && currentExportData[0]?.name) {
-        filename = currentExportData[0].name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    }
-    a.download = `${filename}-${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showStatus('✅ Downloaded!', 'success');
-});
+if (downloadJsonBtn) {
+    downloadJsonBtn.addEventListener('click', () => {
+        if (!currentExportData) return;
+        const jsonString = JSON.stringify(currentExportData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        let filename = 'figma-design';
+        if (Array.isArray(currentExportData) && currentExportData[0]?.name) {
+            filename = currentExportData[0].name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        }
+        a.download = `${filename}-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showStatus('✅ Downloaded!', 'success');
+    });
+}
 
 // ==================== UTILITY FUNCTIONS ====================
 function showStatus(message, type) {
+    if (!statusEl) return;
     statusEl.textContent = message;
     statusEl.className = `status ${type}`;
 }
 
 function hideStatus() {
+    if (!statusEl) return;
     statusEl.className = 'status';
     statusEl.textContent = '';
 }
 
 function resetButton() {
+    if (!importBtn) return;
+
     importBtn.disabled = false;
-    const currentTab = document.querySelector('.tab.active').dataset.tab;
+    const currentTabEl = document.querySelector('.tab.active');
+    if (!currentTabEl) return;
+
+    const currentTab = currentTabEl.dataset.tab;
     const buttonTexts = {
         'ai': '🚀 Generate & Import',
         'auto': '📥 Fetch & Import',
@@ -1320,24 +1411,28 @@ function resetButton() {
 }
 
 function resetExportButtons() {
-    exportSelectedBtn.innerHTML = '📦 Export Selected';
-    exportAllBtn.innerHTML = '📄 Export All (Page)';
-    exportAllBtn.disabled = false;
+    if (exportSelectedBtn) exportSelectedBtn.innerHTML = '📦 Export Selected';
+    if (exportAllBtn) {
+        exportAllBtn.innerHTML = '📄 Export All (Page)';
+        exportAllBtn.disabled = false;
+    }
 }
 
 function setLoading(message = 'Working...') {
-    importBtn.disabled = true;
-    importBtn.innerHTML = `<span class="loading"></span> ${message}`;
+    if (importBtn) {
+        importBtn.disabled = true;
+        importBtn.innerHTML = `<span class="loading"></span> ${message}`;
+    }
 }
 
 function updateExportOutput(data) {
     currentExportData = data;
-    exportOutput.value = JSON.stringify(data, null, 2);
-    copyJsonBtn.disabled = false;
-    downloadJsonBtn.disabled = false;
-    saveToDbBtn.disabled = false;
+    if (exportOutput) exportOutput.value = JSON.stringify(data, null, 2);
+    if (copyJsonBtn) copyJsonBtn.disabled = false;
+    if (downloadJsonBtn) downloadJsonBtn.disabled = false;
+    if (saveToDbBtn) saveToDbBtn.disabled = false;
     const stats = analyzeJsonStructure(data);
-    exportStats.textContent = stats;
+    if (exportStats) exportStats.textContent = stats;
 }
 
 function formatDate(dateString) {
@@ -1360,6 +1455,8 @@ function debounce(func, wait) {
 }
 
 function validateJsonInput() {
+    if (!jsonInput || !jsonStats) return null;
+
     const value = jsonInput.value.trim();
     if (!value) {
         jsonInput.classList.remove('error', 'valid');
@@ -1403,6 +1500,8 @@ function analyzeJsonStructure(data) {
 }
 
 function updateSelectionInfo(selection) {
+    if (!selectionInfo || !exportSelectedBtn) return;
+
     if (!selection || selection.count === 0) {
         selectionInfo.innerHTML = '<strong>No selection.</strong> Select layers to export, or export entire page.';
         exportSelectedBtn.disabled = true;
@@ -1416,28 +1515,32 @@ function updateSelectionInfo(selection) {
 function resetImportButton(buttonId) {
     const button = document.getElementById(buttonId);
     if (!button) return;
-    
+
     button.disabled = false;
     const isEditMode = currentMode === 'edit';
     button.textContent = isEditMode ? 'Update in Figma' : 'Import to Figma';
 }
 
 // ==================== MAIN IMPORT HANDLERS ====================
-jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
+if (jsonInput) jsonInput.addEventListener('input', debounce(validateJsonInput, 300));
 
-importBtn.addEventListener('click', async () => {
-    const activeTab = document.querySelector('.tab.active').dataset.tab;
-    try {
-        if (activeTab === 'ai') await handleAiGeneration();
-        else if (activeTab === 'auto') await handleApiFetch();
-        else await handleManualJson();
-    } catch (error) {
-        showStatus(`❌ ${error.message}`, 'error');
-        resetButton();
-    }
-});
+if (importBtn) {
+    importBtn.addEventListener('click', async () => {
+        const activeTabEl = document.querySelector('.tab.active');
+        const activeTab = activeTabEl ? activeTabEl.dataset.tab : '';
+        try {
+            if (activeTab === 'ai') await handleAiGeneration();
+            else if (activeTab === 'auto') await handleApiFetch();
+            else await handleManualJson();
+        } catch (error) {
+            showStatus(`❌ ${error.message}`, 'error');
+            resetButton();
+        }
+    });
+}
 
 async function handleAiGeneration() {
+    if (!chatInput) return;
     const prompt = chatInput.value.trim();
     if (!prompt) throw new Error('Please describe the design you want.');
     if (prompt.length < 10) throw new Error('Please provide more detail (at least 10 characters).');
@@ -1447,7 +1550,9 @@ async function handleAiGeneration() {
 }
 
 async function handleApiFetch() {
-    const apiUrl = document.getElementById('api-url').value.trim();
+    const apiUrlEl = document.getElementById('api-url');
+    if (!apiUrlEl) return;
+    const apiUrl = apiUrlEl.value.trim();
     if (!apiUrl) throw new Error('Please enter an API URL.');
     try { new URL(apiUrl); } catch (e) { throw new Error('Please enter a valid URL'); }
     setLoading('Fetching design...');
@@ -1464,6 +1569,7 @@ async function handleApiFetch() {
 }
 
 async function handleManualJson() {
+    if (!jsonInput) return;
     const jsonValue = jsonInput.value.trim();
     if (!jsonValue) throw new Error('Please paste your design JSON.');
     let designData;
@@ -1473,9 +1579,11 @@ async function handleManualJson() {
     parent.postMessage({ pluginMessage: { type: 'import-design', designData } }, '*');
 }
 
-cancelBtn.addEventListener('click', () => {
-    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-});
+if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+        parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    });
+}
 
 
 // ==================== PLUGIN MESSAGES ====================
@@ -1499,7 +1607,7 @@ window.onmessage = async (event) => {
             selectedLayerForEdit = msg.layerName;
             selectedLayerJson = msg.layerJson;
             showChatInterface();
-            selectedLayerNameEl.textContent = msg.layerName;
+            if (selectedLayerNameEl) selectedLayerNameEl.textContent = msg.layerName;
             hideStatus();
             break;
 
@@ -1510,7 +1618,7 @@ window.onmessage = async (event) => {
 
         case 'ai-chat-response':
             isGenerating = false;
-            chatSendBtn.disabled = false;
+            if (chatSendBtn) chatSendBtn.disabled = false;
             removeLoadingMessages();
 
             addMessage('assistant', msg.message);
@@ -1528,7 +1636,7 @@ window.onmessage = async (event) => {
 
         case 'ai-edit-response':
             isGenerating = false;
-            chatSendBtn.disabled = false;
+            if (chatSendBtn) chatSendBtn.disabled = false;
             removeLoadingMessages();
 
             addMessage('assistant', msg.message);
@@ -1552,7 +1660,7 @@ window.onmessage = async (event) => {
         case 'ai-chat-error':
         case 'ai-edit-error':
             isGenerating = false;
-            chatSendBtn.disabled = false;
+            if (chatSendBtn) chatSendBtn.disabled = false;
             removeLoadingMessages();
             addMessage('assistant', `Error: ${msg.error}`);
             break;
@@ -1563,8 +1671,10 @@ window.onmessage = async (event) => {
             if (msg.buttonId) {
                 resetImportButton(msg.buttonId);
             }
-            importVersionBtn.disabled = false;
-            importVersionBtn.innerHTML = '📥 Import to Figma';
+            if (importVersionBtn) {
+                importVersionBtn.disabled = false;
+                importVersionBtn.innerHTML = '📥 Import to Figma';
+            }
             setTimeout(hideStatus, 3000);
             break;
 
@@ -1584,8 +1694,10 @@ window.onmessage = async (event) => {
             if (msg.buttonId) {
                 resetImportButton(msg.buttonId);
             }
-            importVersionBtn.disabled = false;
-            importVersionBtn.innerHTML = '📥 Import to Figma';
+            if (importVersionBtn) {
+                importVersionBtn.disabled = false;
+                importVersionBtn.innerHTML = '📥 Import to Figma';
+            }
             setTimeout(hideStatus, 3000);
 
             break;
@@ -1687,7 +1799,7 @@ function setupTextareaResize() {
     let startY = 0;
     let startHeight = 0;
 
-    textarea.addEventListener('mousedown', function(e) {
+    textarea.addEventListener('mousedown', function (e) {
         const rect = textarea.getBoundingClientRect();
         const isTopEdge = e.clientY - rect.top < 10;
 
@@ -1699,20 +1811,20 @@ function setupTextareaResize() {
 
             document.body.style.cursor = 'ns-resize';
             document.body.style.userSelect = 'none';
-            
+
             console.log('🎯 Started resize from:', startHeight);
         }
     });
 
-    document.addEventListener('mousemove', function(e) {
+    document.addEventListener('mousemove', function (e) {
         // Change cursor on hover
         if (!isResizing) {
             const rect = textarea.getBoundingClientRect();
-            const isTopEdge = e.clientY - rect.top < 10 && 
-                             e.clientX >= rect.left && 
-                             e.clientX <= rect.right &&
-                             e.clientY >= rect.top;
-            
+            const isTopEdge = e.clientY - rect.top < 10 &&
+                e.clientX >= rect.left &&
+                e.clientX <= rect.right &&
+                e.clientY >= rect.top;
+
             textarea.style.cursor = isTopEdge ? 'ns-resize' : 'text';
             return;
         }
@@ -1720,24 +1832,23 @@ function setupTextareaResize() {
         // Resize
         const deltaY = startY - e.clientY;
         const newHeight = Math.max(44, Math.min(140, startHeight + deltaY));
-        
+
         textarea.style.setProperty('height', newHeight + 'px', 'important');
-        
+
         console.log('📏 Resizing to:', newHeight);
     });
 
-    document.addEventListener('mouseup', function() {
+    document.addEventListener('mouseup', function () {
         if (isResizing) {
             isResizing = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
-            
+
             console.log('✋ Resize stopped at:', textarea.style.height);
         }
     });
 }
 
-// ==================== INITIALIZATION ====================
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function () {
     initModelSelection();
