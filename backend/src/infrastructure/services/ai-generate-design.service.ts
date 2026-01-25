@@ -313,17 +313,17 @@ export class AiGenerateDesignService implements IAiDesignService {
 async generateDesignBasedOnExisting(
     userMessage: string,
     history: ConversationMessage[],
-    referenceDesign: any,
+    referenceToon: string, 
     modelId: string
 ): Promise<DesignGenerationResult> {
     try {
         console.log("🎨 Generating design based on existing design system");
-        console.log("Reference design size:", JSON.stringify(referenceDesign).length, "characters");
+        console.log("Reference design size (TOON):", referenceToon.length, "characters");
 
         const messages = this.buildBasedOnExistingMessages(
             userMessage,
             history,
-            referenceDesign
+            referenceToon // ← TOON string
         );
 
         const aiModel: AIModelConfig = getModelById(modelId);
@@ -340,7 +340,7 @@ async generateDesignBasedOnExisting(
             tools: iconTools,
         });
 
-        // Handle tool calls loop (for icons if needed)
+        // Handle tool calls loop
         while (completion.choices[0]?.message?.tool_calls) {
             const toolCalls = completion.choices[0].message.tool_calls as FunctionToolCall[];
             console.log(`--- Processing ${toolCalls.length} tool calls ---`);
@@ -377,7 +377,6 @@ async generateDesignBasedOnExisting(
 
         const aiMessage = this.extractMessageFromResponse(responseText);
 
-        // Calculate cost
         let costBreakdown: CostBreakdown | null = null;
         const usage = completion.usage;
 
@@ -410,7 +409,7 @@ async generateDesignBasedOnExisting(
 private buildBasedOnExistingMessages(
     currentMessage: string,
     history: ConversationMessage[],
-    referenceDesign: any
+    referenceToon: string 
 ): AiMessage[] {
     const systemPrompt = this.promptBuilder.buildBasedOnExistingSystemPrompt();
 
@@ -418,7 +417,6 @@ private buildBasedOnExistingMessages(
         { role: 'system', content: systemPrompt }
     ];
 
-    // Include limited history (only last 3 messages to keep context manageable)
     const recentHistory = history.slice(-3);
     for (const msg of recentHistory) {
         messages.push({
@@ -427,11 +425,9 @@ private buildBasedOnExistingMessages(
         });
     }
 
-    // Build the main request with reference design
-    const designStr = JSON.stringify(referenceDesign, null, 2);
-    const request = `REFERENCE DESIGN (extract design system from this):
-\`\`\`json
-${designStr}
+    const request = `REFERENCE DESIGN (TOON Format - extract design system from this):
+\`\`\`
+${referenceToon}
 \`\`\`
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -441,11 +437,12 @@ USER REQUEST FOR NEW DESIGN: ${currentMessage}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 INSTRUCTIONS:
-1. Analyze the REFERENCE DESIGN to understand its design system (colors, spacing, typography, borders, shadows, component patterns)
+1. Analyze the REFERENCE DESIGN (in TOON format) to understand its design system
+   - Extract colors, spacing, typography, borders, shadows, component patterns
 2. Create a NEW design based on the user's request
-3. Apply the SAME design system extracted from the reference design
+3. Apply the SAME design system extracted from the reference
 4. The new design should feel like it belongs to the same project
-5. Return the complete new design as a valid JSON array
+5. Return the complete new design as a valid Figma JSON array (NOT TOON - return proper JSON!)
 6. Start your response with a brief description, then the JSON`;
 
     messages.push({
