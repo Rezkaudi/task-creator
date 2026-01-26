@@ -248,14 +248,30 @@ export abstract class BaseNodeCreator {
     }
 
     // Layout properties for children in auto-layout
-    if (typeof nodeData.layoutGrow === 'number' && 'layoutGrow' in node) {
-      (node as any).layoutGrow = nodeData.layoutGrow;
-    }
-    if (nodeData.layoutAlign && 'layoutAlign' in node) {
-      (node as any).layoutAlign = nodeData.layoutAlign;
-    }
-    if (nodeData.layoutPositioning && 'layoutPositioning' in node) {
-      (node as any).layoutPositioning = nodeData.layoutPositioning;
+    // These properties only work when the parent has auto-layout enabled
+    if ('layoutGrow' in node || 'layoutAlign' in node || 'layoutPositioning' in node) {
+      // Check if parent has auto-layout before applying these properties
+      const parent = node.parent;
+      const parentHasAutoLayout = parent &&
+        'layoutMode' in parent &&
+        (parent as any).layoutMode !== 'NONE';
+
+      if (parentHasAutoLayout) {
+        if (typeof nodeData.layoutGrow === 'number' && 'layoutGrow' in node) {
+          (node as any).layoutGrow = nodeData.layoutGrow;
+        }
+        if (nodeData.layoutAlign && 'layoutAlign' in node) {
+          (node as any).layoutAlign = nodeData.layoutAlign;
+        }
+        if (nodeData.layoutPositioning && 'layoutPositioning' in node) {
+          (node as any).layoutPositioning = nodeData.layoutPositioning;
+        }
+      } else {
+        // Log warning for debugging but don't crash
+        if (nodeData.layoutPositioning === 'ABSOLUTE') {
+          console.warn(`Cannot set layoutPositioning to ABSOLUTE on "${nodeData.name}" - parent doesn't have auto-layout`);
+        }
+      }
     }
 
     // Mask
