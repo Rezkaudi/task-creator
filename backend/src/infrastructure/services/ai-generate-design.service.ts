@@ -6,11 +6,13 @@ import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '.
 import { htmlPreviewPrompt, designSystemChangeWarningPrompt } from '../config/prompt.config';
 import { CostBreakdown, IAiCostCalculator } from '../../domain/services/IAiCostCanculator';
 import { iconTools } from '../config/ai-tools.config';
+import { DesignSystemExtractorService } from './design-system-extractor.service';
 
 interface AiMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
 }
+
 interface FunctionToolCall {
     id: string;
     type: 'function';
@@ -19,13 +21,31 @@ interface FunctionToolCall {
         arguments: string;
     };
 }
+
+// Default timeout in milliseconds (10 minutes)
+const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
+
 export class AiGenerateDesignService implements IAiDesignService {
     private promptBuilder: PromptBuilderService;
     private costCalculator: IAiCostCalculator;
+    private designSystemExtractor: DesignSystemExtractorService;
 
     constructor(promptBuilderService: PromptBuilderService, costCalculator: IAiCostCalculator) {
         this.promptBuilder = promptBuilderService;
         this.costCalculator = costCalculator;
+        this.designSystemExtractor = new DesignSystemExtractorService();
+    }
+
+    /**
+     * Create OpenAI client with timeout configuration
+     */
+    private createOpenAIClient(aiModel: AIModelConfig, timeoutMs: number = DEFAULT_TIMEOUT_MS): OpenAI {
+        return new OpenAI({
+            baseURL: aiModel.baseURL,
+            apiKey: aiModel.apiKey,
+            timeout: timeoutMs,
+            maxRetries: 2,
+        });
     }
 
     async generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any> {
@@ -43,10 +63,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             console.log(`🎨 Generating design with GPT-4${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
 
-            const openai: OpenAI = new OpenAI({
-                baseURL: aiModel.baseURL,
-                apiKey: aiModel.apiKey,
-            });
+            const openai = this.createOpenAIClient(aiModel);
 
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
@@ -100,10 +117,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             const messages = this.buildConversationMessages(userMessage, history, designSystemId);
             const aiModel: AIModelConfig = getModelById(modelId)
-            const openai: OpenAI = new OpenAI({
-                baseURL: aiModel.baseURL,
-                apiKey: aiModel.apiKey,
-            });
+            const openai = this.createOpenAIClient(aiModel);
 
             console.log("--- 1. Sending Conversation to GPT for JSON ---");
 
@@ -211,10 +225,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'default design system'}`);
             console.log("Design size:", JSON.stringify(currentDesign).length, "characters");
 
-            const openai: OpenAI = new OpenAI({
-                baseURL: aiModel.baseURL,
-                apiKey: aiModel.apiKey,
-            });
+            const openai = this.createOpenAIClient(aiModel);
 
             let completion = await openai.chat.completions.create({
                 model: aiModel.id,
@@ -310,53 +321,24 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
     }
 
-async generateDesignBasedOnExisting(
-    userMessage: string,
-    history: ConversationMessage[],
-    referenceToon: string, 
-    modelId: string
-): Promise<DesignGenerationResult> {
-    try {
-        console.log("🎨 Generating design based on existing design system");
-        console.log("Reference design size (TOON):", referenceToon.length, "characters");
-
-        const messages = this.buildBasedOnExistingMessages(
-            userMessage,
-            history,
-            referenceToon // ← TOON string
-        );
-
-        const aiModel: AIModelConfig = getModelById(modelId);
-        const openai: OpenAI = new OpenAI({
-            baseURL: aiModel.baseURL,
-            apiKey: aiModel.apiKey,
-        });
-
-        console.log("--- 1. Sending request to analyze design system and create new design ---");
-
-        let completion = await openai.chat.completions.create({
-            model: aiModel.id,
-            messages: messages,
-            tools: iconTools,
-        });
-
-        // Handle tool calls loop
-        while (completion.choices[0]?.message?.tool_calls) {
-            const toolCalls = completion.choices[0].message.tool_calls as FunctionToolCall[];
-            console.log(`--- Processing ${toolCalls.length} tool calls ---`);
-
+    async generateDesignBasedOnExisting(
+        userMessage: string,
+        history: ConversationMessage[],
+        referenceToon: string,
+        modelId: string
+    ): Promise<DesignGenerationResult> {
+        try {
+            console.log("🎨 Generating design based on existing design system");
+            console.log("Reference design size (TOON):", referenceToon.length, "characters");
 
             const messages = this.buildBasedOnExistingMessages(
                 userMessage,
                 history,
-                referenceDesign
+                referenceToon // ← TOON string
             );
 
             const aiModel: AIModelConfig = getModelById(modelId);
-            const openai: OpenAI = new OpenAI({
-                baseURL: aiModel.baseURL,
-                apiKey: aiModel.apiKey,
-            });
+            const openai = this.createOpenAIClient(aiModel);
 
             console.log("--- 1. Sending request to analyze design system and create new design ---");
 
@@ -366,7 +348,7 @@ async generateDesignBasedOnExisting(
                 tools: iconTools,
             });
 
-            // Handle tool calls loop (for icons if needed)
+            // Handle tool calls loop
             while (completion.choices[0]?.message?.tool_calls) {
                 const toolCalls = completion.choices[0].message.tool_calls as FunctionToolCall[];
                 console.log(`--- Processing ${toolCalls.length} tool calls ---`);
@@ -381,9 +363,12 @@ async generateDesignBasedOnExisting(
 
                 messages.push(...toolResults as any);
 
-        let costBreakdown: CostBreakdown | null = null;
-        const usage = completion.usage;
-
+                completion = await openai.chat.completions.create({
+                    model: aiModel.id,
+                    messages: messages,
+                    tools: iconTools,
+                });
+            }
 
             const responseText = completion.choices[0]?.message?.content;
             if (!responseText) {
@@ -400,13 +385,8 @@ async generateDesignBasedOnExisting(
 
             const aiMessage = this.extractMessageFromResponse(responseText);
 
-private buildBasedOnExistingMessages(
-    currentMessage: string,
-    history: ConversationMessage[],
-    referenceToon: string 
-): AiMessage[] {
-    const systemPrompt = this.promptBuilder.buildBasedOnExistingSystemPrompt();
-
+            let costBreakdown: CostBreakdown | null = null;
+            const usage = completion.usage;
 
             if (usage) {
                 costBreakdown = this.costCalculator.calculateCost(
@@ -421,18 +401,47 @@ private buildBasedOnExistingMessages(
                 costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
             }
 
-    const recentHistory = history.slice(-3);
-    for (const msg of recentHistory) {
-        messages.push({
-            role: msg.role as 'user' | 'assistant',
-            content: msg.content
-        });
+            return {
+                message: aiMessage,
+                design: designData,
+                previewHtml: null,
+                cost: costBreakdown
+            };
+
+        } catch (error) {
+            console.error("An error occurred in generateDesignBasedOnExisting:", error);
+
+            // Provide more specific error message for timeouts
+            if (error instanceof Error && error.message.includes('timed out')) {
+                throw new Error(`Request timed out. The reference design may be too complex. Try using a simpler design as reference or break it into smaller parts.`);
+            }
+
+            throw new Error(`Failed to generate design based on existing. Original error: ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
 
-    const request = `REFERENCE DESIGN (TOON Format - extract design system from this):
+    private buildBasedOnExistingMessages(
+        currentMessage: string,
+        history: ConversationMessage[],
+        referenceToon: string
+    ): AiMessage[] {
+        const systemPrompt = this.promptBuilder.buildBasedOnExistingSystemPrompt();
+
+        const messages: AiMessage[] = [
+            { role: 'system', content: systemPrompt }
+        ];
+
+        const recentHistory = history.slice(-3);
+        for (const msg of recentHistory) {
+            messages.push({
+                role: msg.role as 'user' | 'assistant',
+                content: msg.content
+            });
+        }
+
+        const request = `REFERENCE DESIGN (TOON Format - extract design system from this):
 \`\`\`
 ${referenceToon}
-
 \`\`\`
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

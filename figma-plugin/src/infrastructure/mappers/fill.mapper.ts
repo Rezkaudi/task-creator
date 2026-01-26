@@ -349,18 +349,53 @@ export class FillMapper {
     return Math.max(0, Math.min(1, opacity));
   }
 
-  private static base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const buffer = new ArrayBuffer(len);
-    const bytes = new Uint8Array(buffer);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    // @ts-ignore - Workaround for TypeScript Uint8Array<ArrayBuffer> vs Uint8Array<ArrayBufferLike> issue
-    return bytes;
-  }
+  private static base64ToBytes(base64: string): Uint8Array {
+    try {
+      // Remove data URL prefix if present
+      const cleanBase64 = base64.replace(/^data:image\/[a-z]+;base64,/, '');
 
+      // Try using atob if available
+      if (typeof atob === 'function') {
+        const binaryString = atob(cleanBase64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      // Fallback: manual base64 decoding
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+      const lookup = new Uint8Array(256);
+      for (let i = 0; i < chars.length; i++) {
+        lookup[chars.charCodeAt(i)] = i;
+      }
+
+      let adjustedLength = Math.floor(cleanBase64.length * 0.75);
+      if (cleanBase64[cleanBase64.length - 1] === '=') adjustedLength--;
+      if (cleanBase64[cleanBase64.length - 2] === '=') adjustedLength--;
+
+      const bytes = new Uint8Array(adjustedLength);
+      let p = 0;
+
+      for (let i = 0; i < cleanBase64.length; i += 4) {
+        const encoded1 = lookup[cleanBase64.charCodeAt(i)];
+        const encoded2 = lookup[cleanBase64.charCodeAt(i + 1)];
+        const encoded3 = lookup[cleanBase64.charCodeAt(i + 2)];
+        const encoded4 = lookup[cleanBase64.charCodeAt(i + 3)];
+
+        bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
+        if (p < adjustedLength) bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
+        if (p < adjustedLength) bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
+      }
+
+      return bytes;
+    } catch (error) {
+      console.error('Error decoding base64:', error);
+      throw new Error('Failed to decode base64 image data');
+    }
+  }
   /**
    * Clear the URL cache
    */
