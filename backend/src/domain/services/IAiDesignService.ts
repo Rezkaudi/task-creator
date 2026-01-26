@@ -14,17 +14,7 @@ export interface DesignGenerationResult {
     previewHtml?: string | null;
     cost: CostBreakdown;
 }
-export interface generateDesignBasedOnExisting{
-        userMessage: string;
-        history: ConversationMessage[];
-        referenceDesign: any;
-        modelId: string;
-}
- Promise<DesignGenerationResult>;
-/**
- * Interface for AI Design Services
- * Supports multiple AI models with optional Design System integration
- */
+
 export interface IAiDesignService {
     generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any>;
     
@@ -43,11 +33,10 @@ export interface IAiDesignService {
         designSystemId: string,
     ): Promise<DesignGenerationResult>;
 
-    // ✨ NEW METHOD
     generateDesignBasedOnExisting(
         userMessage: string,
         history: ConversationMessage[],
-        referenceDesign: any,
+        referenceToon: string,
         modelId: string
     ): Promise<DesignGenerationResult>;
 }
