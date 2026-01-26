@@ -322,7 +322,10 @@ export abstract class BaseNodeCreator {
     if (nodeData.primaryAxisAlignItems) {
       frameNode.primaryAxisAlignItems = nodeData.primaryAxisAlignItems;
     }
-    if (nodeData.counterAxisAlignItems && nodeData.counterAxisAlignItems !== 'BASELINE') {
+    // Valid values for counterAxisAlignItems are: 'MIN' | 'MAX' | 'CENTER' | 'BASELINE'
+    // 'STRETCH' is NOT valid for counterAxisAlignItems (it's valid for layoutAlign on children)
+    const validCounterAxisAlignItems = ['MIN', 'MAX', 'CENTER', 'BASELINE'];
+    if (nodeData.counterAxisAlignItems && nodeData.counterAxisAlignItems !== 'BASELINE' && validCounterAxisAlignItems.includes(nodeData.counterAxisAlignItems)) {
       frameNode.counterAxisAlignItems = nodeData.counterAxisAlignItems;
     }
     if (nodeData.primaryAxisSizingMode) {

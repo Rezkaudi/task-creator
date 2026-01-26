@@ -23,7 +23,7 @@ interface FunctionToolCall {
 }
 
 // Default timeout in milliseconds (2 minutes)
-const DEFAULT_TIMEOUT_MS = 120000;
+const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
 
 export class AiGenerateDesignService implements IAiDesignService {
     private promptBuilder: PromptBuilderService;
@@ -318,8 +318,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             const aiModel: AIModelConfig = getModelById(modelId);
 
-            // Use longer timeout for this operation
-            const openai = this.createOpenAIClient(aiModel, 180000); // 3 minutes
+            const openai = this.createOpenAIClient(aiModel);
 
             console.log("--- 1. Sending request to create new design based on extracted design system ---");
 
