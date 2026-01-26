@@ -1191,11 +1191,25 @@ export class NodeExporter {
   // ==================== UTILITIES ====================
 
   private bytesToBase64(bytes: Uint8Array): string {
-    let binary = '';
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+    let result = '';
+    const len = bytes.length;
+    let i = 0;
+
+    while (i < len) {
+      const a = bytes[i++];
+      const b = i < len ? bytes[i++] : 0;
+      const c = i < len ? bytes[i++] : 0;
+
+      const triplet = (a << 16) | (b << 8) | c;
+
+      result += chars[(triplet >> 18) & 0x3F];
+      result += chars[(triplet >> 12) & 0x3F];
+      result += i > len + 1 ? '=' : chars[(triplet >> 6) & 0x3F];
+      result += i > len ? '=' : chars[triplet & 0x3F];
     }
-    return btoa(binary);
+
+    return result;
   }
 }

@@ -1350,7 +1350,7 @@ if (copyJsonBtn) {
             setTimeout(() => copyJsonBtn.textContent = '📋 Copy', 2000);
         } catch (err) {
             const textarea = document.createElement('textarea');
-            textarea.value = JSON.stringify(currentExportData);
+            textarea.value = JSON.stringify(currentExportData, null, 2);
             document.body.appendChild(textarea);
             textarea.select();
             document.execCommand('copy');
@@ -1427,7 +1427,7 @@ function setLoading(message = 'Working...') {
 
 function updateExportOutput(data) {
     currentExportData = data;
-    if (exportOutput) exportOutput.value = JSON.stringify(data);
+    if (exportOutput) exportOutput.value = JSON.stringify(data, null, 2);
     if (copyJsonBtn) copyJsonBtn.disabled = false;
     if (downloadJsonBtn) downloadJsonBtn.disabled = false;
     if (saveToDbBtn) saveToDbBtn.disabled = false;

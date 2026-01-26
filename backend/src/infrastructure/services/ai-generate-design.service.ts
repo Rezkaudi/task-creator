@@ -6,11 +6,13 @@ import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '.
 import { htmlPreviewPrompt, designSystemChangeWarningPrompt } from '../config/prompt.config';
 import { CostBreakdown, IAiCostCalculator } from '../../domain/services/IAiCostCanculator';
 import { iconTools } from '../config/ai-tools.config';
+import { DesignSystemExtractorService } from './design-system-extractor.service';
 
 interface AiMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
 }
+
 interface FunctionToolCall {
     id: string;
     type: 'function';
@@ -19,13 +21,31 @@ interface FunctionToolCall {
         arguments: string;
     };
 }
+
+// Default timeout in milliseconds (2 minutes)
+const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
+
 export class AiGenerateDesignService implements IAiDesignService {
     private promptBuilder: PromptBuilderService;
     private costCalculator: IAiCostCalculator;
+    private designSystemExtractor: DesignSystemExtractorService;
 
     constructor(promptBuilderService: PromptBuilderService, costCalculator: IAiCostCalculator) {
         this.promptBuilder = promptBuilderService;
         this.costCalculator = costCalculator;
+        this.designSystemExtractor = new DesignSystemExtractorService();
+    }
+
+    /**
+     * Create OpenAI client with timeout configuration
+     */
+    private createOpenAIClient(aiModel: AIModelConfig, timeoutMs: number = DEFAULT_TIMEOUT_MS): OpenAI {
+        return new OpenAI({
+            baseURL: aiModel.baseURL,
+            apiKey: aiModel.apiKey,
+            timeout: timeoutMs,
+            maxRetries: 2,
+        });
     }
 
     async generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any> {
@@ -43,10 +63,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             console.log(`🎨 Generating design with GPT-4${designSystemId ? ` + ${this.promptBuilder.getDesignSystemDisplayName(designSystemId)}` : ''}`);
 
-            const openai: OpenAI = new OpenAI({
-                baseURL: aiModel.baseURL,
-                apiKey: aiModel.apiKey,
-            });
+            const openai = this.createOpenAIClient(aiModel);
 
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
@@ -100,17 +117,14 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             const messages = this.buildConversationMessages(userMessage, history, designSystemId);
             const aiModel: AIModelConfig = getModelById(modelId)
-            const openai: OpenAI = new OpenAI({
-                baseURL: aiModel.baseURL,
-                apiKey: aiModel.apiKey,
-            });
+            const openai = this.createOpenAIClient(aiModel);
 
             console.log("--- 1. Sending Conversation to GPT for JSON ---");
 
             let completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                tools: iconTools, // Add tools here
+                tools: iconTools,
             });
 
             // Handle tool calls loop
@@ -120,17 +134,14 @@ export class AiGenerateDesignService implements IAiDesignService {
 
                 const toolResults = await this.handleToolCalls(toolCalls);
 
-                // Add assistant message with tool calls
                 messages.push({
                     role: 'assistant',
                     content: completion.choices[0].message.content || '',
                     tool_calls: toolCalls,
                 } as any);
 
-                // Add tool results
                 messages.push(...toolResults as any);
 
-                // Get next completion
                 completion = await openai.chat.completions.create({
                     model: aiModel.id,
                     messages: messages,
@@ -149,20 +160,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             let previewHtml: string | null = null;
             let inputTokensForPreview = 0;
             let outputTokensForPreview = 0;
-
-            // if (designData) {
-            //     try {
-            //         console.log("--- 3. Requesting HTML preview ---");
-            //         const { design, inputTokens, outputTokens } = await this.generateHtmlPreview(designData, openai, aiModel);
-            //         previewHtml = design
-            //         inputTokensForPreview = inputTokens;
-            //         outputTokensForPreview = outputTokens;
-            //         console.log("--- 4. HTML Preview Generated ---");
-            //     } catch (previewError) {
-            //         console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
-            //         previewHtml = "<div style='padding: 20px; text-align: center; color: #666;'>Preview generation failed, but the design is ready.</div>";
-            //     }
-            // }
 
             let costBreakdown: CostBreakdown | null = null;
             const usage = completion.usage;
@@ -211,15 +208,12 @@ export class AiGenerateDesignService implements IAiDesignService {
             console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'default design system'}`);
             console.log("Design size:", JSON.stringify(currentDesign).length, "characters");
 
-            const openai: OpenAI = new OpenAI({
-                baseURL: aiModel.baseURL,
-                apiKey: aiModel.apiKey,
-            });
+            const openai = this.createOpenAIClient(aiModel);
 
             let completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                tools: iconTools, // Add tools here
+                tools: iconTools,
             });
 
             // Handle tool calls loop
@@ -229,17 +223,14 @@ export class AiGenerateDesignService implements IAiDesignService {
 
                 const toolResults = await this.handleToolCalls(toolCalls);
 
-                // Add assistant message with tool calls
                 messages.push({
                     role: 'assistant',
                     content: completion.choices[0].message.content || '',
                     tool_calls: toolCalls,
                 } as any);
 
-                // Add tool results
                 messages.push(...toolResults as any);
 
-                // Get next completion
                 completion = await openai.chat.completions.create({
                     model: aiModel.id,
                     messages: messages,
@@ -266,20 +257,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             let previewHtml: string | null = null;
             let inputTokensForPreview = 0;
             let outputTokensForPreview = 0;
-
-            // if (designData) {
-            //     try {
-            //         console.log("--- 3. Requesting HTML preview for edited design ---");
-            //         const { design, inputTokens, outputTokens } = await this.generateHtmlPreview(designData, openai, aiModel);
-            //         previewHtml = design
-            //         inputTokensForPreview = inputTokens;
-            //         outputTokensForPreview = outputTokens;
-            //         console.log("--- 4. HTML Preview Generated ---");
-            //     } catch (previewError) {
-            //         console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
-            //         previewHtml = "<div style='padding: 20px; text-align: center; color: #666;'>Preview generation failed, but the edited design is ready.</div>";
-            //     }
-            // }
 
             let costBreakdown: CostBreakdown | null = null;
             const usage = completion.usage;
@@ -318,21 +295,32 @@ export class AiGenerateDesignService implements IAiDesignService {
     ): Promise<DesignGenerationResult> {
         try {
             console.log("🎨 Generating design based on existing design system");
-            console.log("Reference design size:", JSON.stringify(referenceDesign).length, "characters");
+            const originalSize = JSON.stringify(referenceDesign).length;
+            console.log("Reference design size:", originalSize, "characters");
 
+            // Extract design system from the reference design
+            console.log("--- Extracting design system from reference design ---");
+            const extractedDesignSystem = this.designSystemExtractor.extract(referenceDesign);
+            const designSystemSummary = this.designSystemExtractor.createSummary(extractedDesignSystem);
+            const simplifiedStructure = this.designSystemExtractor.getSimplifiedStructure(referenceDesign, 2);
+
+            console.log("Design system summary length:", designSystemSummary.length, "characters");
+            console.log("Simplified structure size:", JSON.stringify(simplifiedStructure).length, "characters");
+
+            // Build messages with extracted design system instead of full design
             const messages = this.buildBasedOnExistingMessages(
                 userMessage,
                 history,
-                referenceDesign
+                extractedDesignSystem,
+                designSystemSummary,
+                simplifiedStructure
             );
 
             const aiModel: AIModelConfig = getModelById(modelId);
-            const openai: OpenAI = new OpenAI({
-                baseURL: aiModel.baseURL,
-                apiKey: aiModel.apiKey,
-            });
 
-            console.log("--- 1. Sending request to analyze design system and create new design ---");
+            const openai = this.createOpenAIClient(aiModel);
+
+            console.log("--- 1. Sending request to create new design based on extracted design system ---");
 
             let completion = await openai.chat.completions.create({
                 model: aiModel.id,
@@ -403,6 +391,12 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         } catch (error) {
             console.error("An error occurred in generateDesignBasedOnExisting:", error);
+
+            // Provide more specific error message for timeouts
+            if (error instanceof Error && error.message.includes('timed out')) {
+                throw new Error(`Request timed out. The reference design may be too complex. Try using a simpler design as reference or break it into smaller parts.`);
+            }
+
             throw new Error(`Failed to generate design based on existing. Original error: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
@@ -410,7 +404,9 @@ export class AiGenerateDesignService implements IAiDesignService {
     private buildBasedOnExistingMessages(
         currentMessage: string,
         history: ConversationMessage[],
-        referenceDesign: any
+        extractedDesignSystem: any,
+        designSystemSummary: string,
+        simplifiedStructure: any
     ): AiMessage[] {
         const systemPrompt = this.promptBuilder.buildBasedOnExistingSystemPrompt();
 
@@ -418,8 +414,8 @@ export class AiGenerateDesignService implements IAiDesignService {
             { role: 'system', content: systemPrompt }
         ];
 
-        // Include limited history (only last 3 messages to keep context manageable)
-        const recentHistory = history.slice(-3);
+        // Include limited history (only last 2 messages to keep context manageable)
+        const recentHistory = history.slice(-2);
         for (const msg of recentHistory) {
             messages.push({
                 role: msg.role as 'user' | 'assistant',
@@ -427,11 +423,16 @@ export class AiGenerateDesignService implements IAiDesignService {
             });
         }
 
-        // Build the main request with reference design
-        const designStr = JSON.stringify(referenceDesign);
-        const request = `REFERENCE DESIGN (extract design system from this):
+        // Build the main request with EXTRACTED design system (not full design)
+        const request = `EXTRACTED DESIGN SYSTEM FROM REFERENCE:
+
+${designSystemSummary}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+REFERENCE STRUCTURE (simplified):
 \`\`\`json
-${designStr}
+${JSON.stringify(simplifiedStructure, null, 2)}
 \`\`\`
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -441,12 +442,14 @@ USER REQUEST FOR NEW DESIGN: ${currentMessage}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 INSTRUCTIONS:
-1. Analyze the REFERENCE DESIGN to understand its design system (colors, spacing, typography, borders, shadows, component patterns)
+1. Use the EXTRACTED DESIGN SYSTEM above (colors, typography, spacing, borders, shadows)
 2. Create a NEW design based on the user's request
-3. Apply the SAME design system extracted from the reference design
+3. Apply the SAME design patterns consistently
 4. The new design should feel like it belongs to the same project
 5. Return the complete new design as a valid JSON array
-6. Start your response with a brief description, then the JSON`;
+6. Start your response with a brief description, then the JSON
+
+IMPORTANT: Use the exact color values, font settings, and spacing from the extracted design system.`;
 
         messages.push({
             role: 'user',
@@ -455,49 +458,6 @@ INSTRUCTIONS:
 
         return messages;
     }
-
-    // private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<{ design: string, inputTokens: number, outputTokens: number }> {
-    //     const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
-    //     const messages: AiMessage[] = [
-    //         {
-    //             role: 'system',
-    //             content: "You are an expert at converting design JSON into a single, clean HTML block with inline CSS for preview purposes. You only output raw HTML code."
-    //         },
-    //         { role: 'user', content: prompt }
-    //     ]
-
-    //     const completion = await openai.chat.completions.create({
-    //         model: aiModel.id,
-    //         messages: messages,
-    //     });
-
-    //     const htmlContent = completion.choices[0]?.message?.content;
-    //     if (!htmlContent) {
-    //         throw new Error("Invalid or empty HTML preview response from GPT.");
-    //     }
-
-    //     let cleaned = htmlContent;
-    //     if (cleaned.startsWith('```html')) {
-    //         cleaned = cleaned.substring(7, cleaned.length - 3).trim();
-    //     } else if (cleaned.startsWith('```')) {
-    //         cleaned = cleaned.substring(3, cleaned.length - 3).trim();
-    //     }
-
-    //     let inputTokens: number = 0
-    //     let outputTokens: number = 0
-
-    //     const usage = completion.usage
-
-    //     if (usage) {
-    //         inputTokens = usage.prompt_tokens;
-    //         outputTokens = usage.completion_tokens;
-    //     } else {
-    //         inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages));
-    //         outputTokens = this.costCalculator.estimateTokens(htmlContent);
-    //     }
-
-    //     return { design: cleaned, inputTokens, outputTokens };
-    // }
 
     private buildConversationMessages(
         currentMessage: string,
