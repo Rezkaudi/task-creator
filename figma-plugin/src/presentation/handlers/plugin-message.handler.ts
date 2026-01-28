@@ -35,6 +35,13 @@ export class PluginMessageHandler {
     console.log("Plugin Message with Data", message);
 
     switch (message.type) {
+      case 'resize-window':
+        if ('size' in message) {
+          figma.ui.resize(message.size.w, message.size.h);
+          // Save size for persistence
+          figma.clientStorage.setAsync('pluginSize', message.size).catch(() => {});
+        }
+        break;
       case 'ai-chat-message':
         if (message.message !== undefined) {
           await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId);

@@ -68,6 +68,7 @@ export type PluginMessage =
   | { type: 'export-all' }
   | { type: 'get-selection-info' }
   | { type: 'cancel' }
+  | { type: 'resize-window'; size: { w: number; h: number } }
   | {
       type: 'ai-chat-message';
       message: string;
