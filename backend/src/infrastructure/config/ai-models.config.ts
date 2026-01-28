@@ -39,19 +39,6 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 0.00,
     outputPricePerMillion: 0.00
   },
-  {
-    id: 'qwen/qwen-2.5-vl-7b-instruct:free',
-    name: 'Qwen-2.5-VL',
-    description: 'Fast & efficient',
-    icon: 'DS',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
-
-
 
   // paid
   {
