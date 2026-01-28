@@ -19,6 +19,7 @@ export class UserMiddleware {
                 '/docs',
                 '/api',
                 '/api/docs',
+                'api/tasks/extract'
                 // '/api/ai-models',
                 // '/api/design-systems'
             ];
