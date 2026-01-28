@@ -27,6 +27,13 @@ export class FigmaUIPort implements IUIPort {
    */
   show(options: { width: number; height: number; themeColors: boolean }): void {
     figma.showUI(__html__, options);
+
+    // Restore previously saved size
+    figma.clientStorage.getAsync('pluginSize').then(size => {
+      if (size && size.w && size.h) {
+        figma.ui.resize(size.w, size.h);
+      }
+    }).catch(() => {});
   }
 
   /**
