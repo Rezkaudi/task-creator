@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { GenerateDesignFromTextUseCase } from '../../../application/use-cases/generate-design-from-text.use-case';
 import { GenerateDesignFromConversationUseCase } from '../../../application/use-cases/generate-design-from-conversation.use-case';
 import { EditDesignWithAIUseCase } from '../../../application/use-cases/edit-design-with-ai.use-case';
 import { GenerateDesignBasedOnExistingUseCase } from '../../../application/use-cases/generate-design-based-on-existing.use-case';
@@ -7,42 +6,10 @@ import { DesignGenerationResult } from '../../../domain/services/IAiDesignServic
 
 export class DesignController {
     constructor(
-        private readonly generateDesignUseCase: GenerateDesignFromTextUseCase,
         private readonly generateDesignFromConversationUseCase: GenerateDesignFromConversationUseCase,
         private readonly editDesignWithAIUseCase: EditDesignWithAIUseCase,
         private readonly generateDesignBasedOnExistingUseCase: GenerateDesignBasedOnExistingUseCase
     ) { }
-
-    // Generate design from simple text prompt
-    async generateFromText(req: Request, res: Response): Promise<void> {
-        const { prompt, modelId, designSystemId } = req.body;
-
-        try {
-            const designData = await this.generateDesignUseCase.execute(prompt, modelId, designSystemId);
-            res.status(200).json({
-                success: true,
-                message: 'Design generated successfully',
-                design: designData.design,
-                cost: designData.cost,
-                metadata: {
-                    model: modelId,
-                    designSystem: designSystemId
-                }
-            });
-
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'An unknown error occurred.';
-            console.error('Error generating design:', error);
-            res.status(500).json({
-                success: false,
-                message,
-                metadata: {
-                    model: modelId,
-                    designSystem: designSystemId
-                }
-            });
-        }
-    }
 
     // Generate design from conversation with history
     async generateFromConversation(req: Request, res: Response): Promise<void> {
