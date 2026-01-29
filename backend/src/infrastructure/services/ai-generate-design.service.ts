@@ -69,7 +69,7 @@ export class AiGenerateDesignService implements IAiDesignService {
         );
 
         console.log('--- 1. Sending Conversation ---');
-        console.log(JSON.stringify(messages, null, 2));
+        // console.log(JSON.stringify(messages, null, 2));
 
         try {
             const { responseText, usage } = await this.executeWithToolCalls(

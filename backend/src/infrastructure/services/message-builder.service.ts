@@ -32,10 +32,10 @@ export class MessageBuilderService {
         }
 
         // // Add current message
-        // messages.push({
-        //     role: 'user',
-        //     content: currentMessage
-        // });
+        messages.push({
+            role: 'user',
+            content: currentMessage
+        });
 
         return messages;
     }
