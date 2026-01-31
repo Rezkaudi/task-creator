@@ -70,48 +70,52 @@ export type PluginMessage =
   | { type: 'cancel' }
   | { type: 'resize-window'; size: { w: number; h: number } }
   | {
-      type: 'ai-chat-message';
-      message: string;
-      history?: Array<{ role: string; content: string }>;
-      model?: string;
-      designSystemId?: string;
-    }
-  | { 
-      type: 'import-design-from-chat'; 
-      designData: unknown;
-      buttonId?: string; 
-      isEditMode?: boolean; 
-    }
+    type: 'ai-chat-message';
+    message: string;
+    history?: Array<{ role: string; content: string }>;
+    model?: string;
+    designSystemId?: string;
+  }
+  | {
+    type: 'import-design-from-chat';
+    designData: unknown;
+    buttonId?: string;
+    isEditMode?: boolean;
+  }
   | { type: 'request-layer-selection-for-edit' }
   | { type: 'request-layer-selection-for-reference' } // ✨ NEW
   | {
-      type: 'ai-edit-design';
-      message: string;
-      history?: Array<{ role: string; content: string }>;
-      layerJson: any;
-      model?: string;
-      designSystemId?: string;
-    }
+    type: 'ai-edit-design';
+    message: string;
+    history?: Array<{ role: string; content: string }>;
+    layerJson: any;
+    model?: string;
+    designSystemId?: string;
+  }
   | {
-      type: 'ai-generate-based-on-existing'; // ✨ NEW
-      message: string;
-      history?: Array<{ role: string; content: string }>;
-      referenceJson: any;
-      model?: string;
-      designSystemId?: string;
-    }
-  | { 
-      type: 'import-edited-design'; 
-      designData: unknown;
-      buttonId?: string; 
-      isEditMode?: boolean; 
-      layerId?: string; 
-    }
-  | { 
-      type: 'import-based-on-existing-design'; // ✨ NEW
-      designData: unknown;
-      buttonId?: string;
-    }
+    type: 'ai-generate-based-on-existing'; // ✨ NEW
+    message: string;
+    history?: Array<{ role: string; content: string }>;
+    referenceJson: any;
+    model?: string;
+    designSystemId?: string;
+  }
+  | {
+    type: 'import-edited-design';
+    designData: unknown;
+    buttonId?: string;
+    isEditMode?: boolean;
+    layerId?: string;
+  }
+  | {
+    type: 'import-based-on-existing-design'; // ✨ NEW
+    designData: unknown;
+    buttonId?: string;
+  }
+  | {
+    type: 'REPORT_ERROR';
+    error: any;
+  }
   // Version management messages
   | { type: 'load-versions' }
   | { type: 'save-version'; description: string; designJson: any }
