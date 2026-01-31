@@ -39,7 +39,6 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 0.00,
     outputPricePerMillion: 0.00
   },
-
   // paid
   {
     id: 'gpt-5.2',
@@ -62,6 +61,39 @@ export const AI_MODELS: AIModelConfig[] = [
     baseURL: "https://api.openai.com/v1",
     inputPricePerMillion: 1.25,
     outputPricePerMillion: 10.00
+  },
+  {
+    id: 'gpt-5-mini',
+    name: 'GPT-5-Mini',
+    description: 'Fast and efficient for general tasks',
+    icon: 'GPT',
+    maxTokens: 128000,
+    apiKey: ENV_CONFIG.OPENAI_API_KEY,
+    baseURL: "https://api.openai.com/v1",
+    inputPricePerMillion: 0.25,
+    outputPricePerMillion: 2.00
+  },
+  {
+    id: 'gpt-5-nano',
+    name: 'GPT-5-Nano',
+    description: 'Fastest and cheapest option',
+    icon: 'GPT',
+    maxTokens: 128000,
+    apiKey: ENV_CONFIG.OPENAI_API_KEY,
+    baseURL: "https://api.openai.com/v1",
+    inputPricePerMillion: 0.05,
+    outputPricePerMillion: 0.40
+  },
+  {
+    id: 'gpt-4.1-mini',
+    name: 'GPT-4.1-Mini',
+    description: 'Fast and efficient for general tasks',
+    icon: 'GPT',
+    maxTokens: 128000,
+    apiKey: ENV_CONFIG.OPENAI_API_KEY,
+    baseURL: "https://api.openai.com/v1",
+    inputPricePerMillion: 0.40,
+    outputPricePerMillion: 1.60
   },
   {
     id: 'gpt-4.1',
