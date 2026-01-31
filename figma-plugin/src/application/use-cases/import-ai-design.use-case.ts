@@ -23,7 +23,7 @@ export class ImportAIDesignUseCase {
     private readonly nodeRepository: INodeRepository,
     private readonly notificationPort: INotificationPort,
     private readonly parser: DesignDataParser
-  ) {}
+  ) { }
 
   /**
    * Execute the AI design import use case
@@ -40,9 +40,9 @@ export class ImportAIDesignUseCase {
       }
 
       const existingNodes = await this.getExistingDesignPositions();
-      
+
       const designBounds = this.calculateAvailableSpace(existingNodes);
-      
+
       // Sort nodes by layer index if available to maintain z-order
       const sortedNodes = this.sortByLayerIndex(nodes);
 
@@ -126,15 +126,15 @@ export class ImportAIDesignUseCase {
     }
   }
 
- 
-  private async getExistingDesignPositions(): Promise<Array<{x: number, y: number, width: number, height: number}>> {
+
+  private async getExistingDesignPositions(): Promise<Array<{ x: number, y: number, width: number, height: number }>> {
     try {
       const page = figma.currentPage;
       const positions = [];
-      
+
       for (const child of page.children) {
-        if (child.type === 'FRAME' || child.type === 'GROUP' || 
-            child.type === 'COMPONENT' || child.type === 'INSTANCE') {
+        if (child.type === 'FRAME' || child.type === 'GROUP' ||
+          child.type === 'COMPONENT' || child.type === 'INSTANCE') {
           positions.push({
             x: child.x,
             y: child.y,
@@ -143,7 +143,7 @@ export class ImportAIDesignUseCase {
           });
         }
       }
-      
+
       return positions;
     } catch (error) {
       console.warn('Could not get existing design positions:', error);
@@ -151,7 +151,7 @@ export class ImportAIDesignUseCase {
     }
   }
 
-  private calculateAvailableSpace(existingDesigns: Array<{x: number, y: number, width: number, height: number}>): {
+  private calculateAvailableSpace(existingDesigns: Array<{ x: number, y: number, width: number, height: number }>): {
     startX: number;
     startY: number;
     gridWidth: number;
@@ -168,21 +168,21 @@ export class ImportAIDesignUseCase {
 
     let maxX = 0;
     let maxY = 0;
-    
+
     for (const design of existingDesigns) {
       const rightEdge = design.x + design.width;
       const bottomEdge = design.y + design.height;
-      
+
       if (rightEdge > maxX) maxX = rightEdge;
       if (bottomEdge > maxY) maxY = bottomEdge;
     }
 
     const gridSpacing = 400;
     const pagePadding = 100;
-    
+
     const newX = maxX + pagePadding;
-    
-    const viewportWidth = 2000; 
+
+    const viewportWidth = 2000;
     if (newX > viewportWidth) {
       return {
         startX: pagePadding,
@@ -191,7 +191,7 @@ export class ImportAIDesignUseCase {
         gridHeight: 4
       };
     }
-    
+
     return {
       startX: newX,
       startY: pagePadding,
@@ -200,13 +200,13 @@ export class ImportAIDesignUseCase {
     };
   }
 
- 
-  private positionNewDesign(nodes: SceneNode[], bounds: {startX: number, startY: number, gridWidth: number, gridHeight: number}): void {
+
+  private positionNewDesign(nodes: SceneNode[], bounds: { startX: number, startY: number, gridWidth: number, gridHeight: number }): void {
     if (nodes.length === 0) return;
 
     const offsetX = bounds.startX - nodes[0].x;
     const offsetY = bounds.startY - nodes[0].y;
-    
+
     for (const node of nodes) {
       node.x += offsetX;
       node.y += offsetY;

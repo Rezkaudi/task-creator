@@ -21,7 +21,7 @@ export class ImportDesignUseCase {
     private readonly nodeRepository: INodeRepository,
     private readonly notificationPort: INotificationPort,
     private readonly parser: DesignDataParser
-  ) {}
+  ) { }
 
   /**
    * Execute the import design use case

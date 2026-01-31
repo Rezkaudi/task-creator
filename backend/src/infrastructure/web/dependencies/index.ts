@@ -10,6 +10,7 @@ import { AiCostCalculatorService } from "../../services/ai-cost.calculator.servi
 // Repositories
 import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-version.repository";
 import { TypeORMUserRepository } from "../../repository/typeorm-user.repository";
+import { TypeORMClientErrorRepository } from "../../repository/typeorm-client-error.repository";
 
 // Use Cases - Tasks
 import { GetBoardListsUseCase } from "../../../application/use-cases/get-board-lists-in-trello.use-case";
@@ -28,13 +29,17 @@ import { GetAllDesignVersionsUseCase } from "../../../application/use-cases/get-
 import { GetDesignVersionByIdUseCase } from "../../../application/use-cases/get-design-version-by-id.use-case";
 import { DeleteDesignVersionUseCase } from "../../../application/use-cases/delete-design-version.use-case";
 
+// Use Cases - Client Errors
+import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
+
 // Controllers
 import { TaskController } from "../controllers/task.controller";
 import { TrelloController } from "../controllers/trello.controller";
 import { DesignController } from "../controllers/design.controller";
 import { DesignVersionController } from "../controllers/design-version.controller";
-import { AIModelsController } from "../controllers/ai-models.controller"; // ← NEW
+import { AIModelsController } from "../controllers/ai-models.controller";
 import { DesignSystemsController } from "../controllers/design-systems.controller";
+import { ClientErrorController } from "../controllers/client-error.controller";
 
 import { UserMiddleware } from "../middleware/user.middleware";
 import { GenerateDesignBasedOnExistingUseCase } from "../../../application/use-cases/generate-design-based-on-existing.use-case";
@@ -47,7 +52,8 @@ export const setupDependencies = () => {
     const jsonToToonService = new JsonToToonService();
     const userRepository = new TypeORMUserRepository();
     const designVersionRepository = new TypeORMDesignVersionRepository();
-    
+    const clientErrorRepository = new TypeORMClientErrorRepository();
+
 
 
     // Services
@@ -69,7 +75,7 @@ export const setupDependencies = () => {
     const generateDesignBasedOnExistingUseCase = new GenerateDesignBasedOnExistingUseCase(
         defaultAiDesignService,
         jsonToToonService
-        );
+    );
 
 
 
@@ -77,6 +83,9 @@ export const setupDependencies = () => {
     const getAllDesignVersionsUseCase = new GetAllDesignVersionsUseCase(designVersionRepository);
     const getDesignVersionByIdUseCase = new GetDesignVersionByIdUseCase(designVersionRepository);
     const deleteDesignVersionUseCase = new DeleteDesignVersionUseCase(designVersionRepository);
+
+    // Use Cases - Client Errors
+    const reportClientErrorUseCase = new ReportClientErrorUseCase(clientErrorRepository);
 
     // Controllers
     const trelloController = new TrelloController(getBoardListsUseCase);
@@ -98,9 +107,12 @@ export const setupDependencies = () => {
         deleteDesignVersionUseCase
     );
 
-    // ✨ NEW: AI Models Controller
+    // AI Models Controller
     const aiModelsController = new AIModelsController();
     const designSystemsController = new DesignSystemsController();
+
+    // Client Error Controller
+    const clientErrorController = new ClientErrorController(reportClientErrorUseCase);
 
 
 
@@ -111,6 +123,7 @@ export const setupDependencies = () => {
         designVersionController,
         aiModelsController,
         designSystemsController,
+        clientErrorController,
         userMiddleware
     };
 };

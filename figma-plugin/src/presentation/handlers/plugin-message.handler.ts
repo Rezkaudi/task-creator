@@ -8,6 +8,7 @@ import {
 } from '../../application/use-cases';
 import { ApiConfig } from '../../shared/constants';
 import { GetUserInfoUseCase } from '@application/use-cases/getUserInfoUseCase';
+import { errorReporter } from '../../infrastructure/services/error-reporter.service';
 
 /**
  * Handler for messages received from the UI
@@ -27,6 +28,18 @@ export class PluginMessageHandler {
 
   initialize(): void {
     this.uiPort.onMessage((message: PluginMessage) => this.handleMessage(message));
+
+    // Initialize error reporter with headers
+    this.initializeErrorReporter();
+  }
+
+  private async initializeErrorReporter(): Promise<void> {
+    try {
+      const headers = await this.getUserInfoUseCase.execute();
+      errorReporter.setHeaders(headers);
+    } catch (error) {
+      console.warn('Failed to initialize error reporter headers:', error);
+    }
   }
 
   private async handleMessage(message: PluginMessage): Promise<void> {
@@ -34,95 +47,122 @@ export class PluginMessageHandler {
 
     console.log("Plugin Message with Data", message);
 
-    switch (message.type) {
-      case 'resize-window':
-        if ('size' in message) {
-          figma.ui.resize(message.size.w, message.size.h);
-          // Save size for persistence
-          figma.clientStorage.setAsync('pluginSize', message.size).catch(() => {});
-        }
-        break;
-      case 'ai-chat-message':
-        if (message.message !== undefined) {
-          await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId);
-        }
-        break;
+    try {
+      switch (message.type) {
+        case 'resize-window':
+          if ('size' in message) {
+            figma.ui.resize(message.size.w, message.size.h);
+            // Save size for persistence
+            figma.clientStorage.setAsync('pluginSize', message.size).catch(() => { });
+          }
+          break;
+        case 'ai-chat-message':
+          if (message.message !== undefined) {
+            await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId);
+          }
+          break;
 
-      case 'request-layer-selection-for-edit':
-        await this.handleRequestLayerSelectionForEdit();
-        break;
+        case 'request-layer-selection-for-edit':
+          await this.handleRequestLayerSelectionForEdit();
+          break;
 
-      case 'request-layer-selection-for-reference':
-        await this.handleRequestLayerSelectionForReference();
-        break;
+        case 'request-layer-selection-for-reference':
+          await this.handleRequestLayerSelectionForReference();
+          break;
 
-      case 'ai-edit-design':
-        if (message.message !== undefined && message.layerJson !== undefined) {
-          await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model, message.designSystemId);
-        }
-        break;
+        case 'ai-edit-design':
+          if (message.message !== undefined && message.layerJson !== undefined) {
+            await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model, message.designSystemId);
+          }
+          break;
 
-      case 'ai-generate-based-on-existing':
-        if (message.message !== undefined && message.referenceJson !== undefined) {
-          console.log('🎨 Handling generate-based-on-existing request');
-          await this.handleGenerateBasedOnExisting(
-            message.message,
-            message.history,
-            message.referenceJson,
-            message.model
-          );
-        }
-        break;
+        case 'ai-generate-based-on-existing':
+          if (message.message !== undefined && message.referenceJson !== undefined) {
+            console.log('🎨 Handling generate-based-on-existing request');
+            await this.handleGenerateBasedOnExisting(
+              message.message,
+              message.history,
+              message.referenceJson,
+              message.model
+            );
+          }
+          break;
 
-      case 'import-design-from-chat':
-        await this.handleImportDesignFromChat(message.designData, message.buttonId);
-        break;
+        case 'import-design-from-chat':
+          await this.handleImportDesignFromChat(message.designData, message.buttonId);
+          break;
 
-      case 'import-edited-design':
-        await this.handleImportEditedDesign(message.designData, message.buttonId);
-        break;
+        case 'import-edited-design':
+          await this.handleImportEditedDesign(message.designData, message.buttonId);
+          break;
 
-      case 'import-based-on-existing-design':
-        await this.handleImportBasedOnExistingDesign(message.designData, message.buttonId);
-        break;
+        case 'import-based-on-existing-design':
+          await this.handleImportBasedOnExistingDesign(message.designData, message.buttonId);
+          break;
 
-      case 'design-generated-from-ai':
-        await this.handleAIDesignImport(message.designData);
-        break;
+        case 'design-generated-from-ai':
+          await this.handleAIDesignImport(message.designData);
+          break;
 
-      case 'import-design':
-        await this.handleImportDesign(message.designData);
-        break;
+        case 'import-design':
+          await this.handleImportDesign(message.designData);
+          break;
 
-      case 'export-selected':
-        await this.handleExportSelected();
-        break;
+        case 'export-selected':
+          await this.handleExportSelected();
+          break;
 
-      case 'export-all':
-        await this.handleExportAll();
-        break;
+        case 'export-all':
+          await this.handleExportAll();
+          break;
 
-      case 'get-selection-info':
-        break;
+        case 'get-selection-info':
+          break;
 
-      case 'cancel':
-        this.uiPort.close();
-        break;
+        case 'cancel':
+          this.uiPort.close();
+          break;
 
-      case 'import-version':
-        await this.handleImportVersion(message.designJson);
-        break;
+        case 'import-version':
+          await this.handleImportVersion(message.designJson);
+          break;
 
-      case 'GET_HEADERS':
-        const headers = await this.getUserInfoUseCase.execute();
-        figma.ui.postMessage({
-          type: 'HEADERS_RESPONSE',
-          headers: headers
-        });
-        break;
+        case 'GET_HEADERS':
+          const headers = await this.getUserInfoUseCase.execute();
+          figma.ui.postMessage({
+            type: 'HEADERS_RESPONSE',
+            headers: headers
+          });
+          break;
 
-      default:
-        console.warn('Unknown message type:', message.type);
+        case 'REPORT_ERROR':
+          await this.handleReportError((message as any).errorData);
+          break;
+
+        default:
+          console.warn('Unknown message type:', message.type);
+      }
+    } catch (error) {
+      // Report any unhandled errors in message handling
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: `handleMessage:${message.type}`,
+      });
+      throw error;
+    }
+  }
+
+  // ==================== ERROR REPORTING ====================
+  private async handleReportError(errorData: any): Promise<void> {
+    try {
+      await errorReporter.reportError(errorData.error || errorData.message, {
+        errorCode: errorData.errorCode,
+        errorDetails: errorData.details,
+        componentName: errorData.componentName,
+        actionType: errorData.actionType,
+      });
+    } catch (error) {
+      console.error('Failed to report error:', error);
     }
   }
 
@@ -168,6 +208,12 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({
         type: 'no-layer-selected'
       });
+
+      // Report error
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleRequestLayerSelectionForReference',
+      });
     }
   }
 
@@ -210,6 +256,11 @@ export class PluginMessageHandler {
       this.notificationPort.notifyError(errorMessage);
       this.uiPort.postMessage({
         type: 'no-layer-selected'
+      });
+
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleRequestLayerSelectionForEdit',
       });
     }
   }
@@ -271,6 +322,12 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({
         type: 'ai-edit-error',
         error: errorMessage
+      });
+
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleAIEditDesign',
+        errorDetails: { model, designSystemId },
       });
     }
   }
@@ -339,6 +396,12 @@ export class PluginMessageHandler {
         type: 'ai-based-on-existing-error',
         error: errorMessage
       });
+
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleGenerateBasedOnExisting',
+        errorDetails: { model },
+      });
     }
   }
 
@@ -398,155 +461,225 @@ export class PluginMessageHandler {
         type: 'ai-chat-error',
         error: errorMessage
       });
+
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleAIChatMessage',
+        errorDetails: { model, designSystemId },
+      });
     }
   }
 
   // ==================== IMPORT HANDLERS ====================
   private async handleImportDesignFromChat(designData: unknown, buttonId: any): Promise<void> {
-    const result = await this.importAIDesignUseCase.execute(designData);
+    try {
+      const result = await this.importAIDesignUseCase.execute(designData);
 
-    if (result.success) {
-      this.uiPort.postMessage({ type: 'import-success', buttonId: buttonId });
-      this.notificationPort.notify('✅ Design imported successfully!');
-    } else {
-      this.notificationPort.notifyError(result.error || 'Import failed');
-      this.uiPort.postMessage({
-        type: 'import-error',
-        error: result.error || 'Import failed',
-        buttonId: buttonId
+      if (result.success) {
+        this.uiPort.postMessage({ type: 'import-success', buttonId: buttonId });
+        this.notificationPort.notify('✅ Design imported successfully!');
+      } else {
+        this.notificationPort.notifyError(result.error || 'Import failed');
+        this.uiPort.postMessage({
+          type: 'import-error',
+          error: result.error || 'Import failed',
+          buttonId: buttonId
+        });
+      }
+    } catch (error) {
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleImportDesignFromChat',
       });
+      throw error;
     }
   }
 
   private async handleImportEditedDesign(designData: unknown, buttonId: any): Promise<void> {
-    const selection = figma.currentPage.selection;
-    const oldNode = selection.length === 1 ? selection[0] : null;
+    try {
+      const selection = figma.currentPage.selection;
+      const oldNode = selection.length === 1 ? selection[0] : null;
 
-    const result = await this.importAIDesignUseCase.execute(designData);
+      const result = await this.importAIDesignUseCase.execute(designData);
 
-    if (result.success) {
-      this.notificationPort.notify('✅ Edited design imported successfully!');
-      
-      this.uiPort.postMessage({ type: 'import-success', buttonId: buttonId });
+      if (result.success) {
+        this.notificationPort.notify('✅ Edited design imported successfully!');
 
-      try {
-        const exportResult = await this.exportSelectedUseCase.execute();
-        if (exportResult.success && exportResult.nodes.length > 0) {
-          this.uiPort.postMessage({
-            type: 'design-updated',
-            layerJson: exportResult.nodes[0],
-            buttonId: buttonId
-          });
+        this.uiPort.postMessage({ type: 'import-success', buttonId: buttonId });
+
+        try {
+          const exportResult = await this.exportSelectedUseCase.execute();
+          if (exportResult.success && exportResult.nodes.length > 0) {
+            this.uiPort.postMessage({
+              type: 'design-updated',
+              layerJson: exportResult.nodes[0],
+              buttonId: buttonId
+            });
+          }
+        } catch (error) {
+          console.error('Failed to export updated design:', error);
         }
-      } catch (error) {
-        console.error('Failed to export updated design:', error);
+      } else {
+        this.notificationPort.notifyError(result.error || 'Import failed');
+        this.uiPort.postMessage({
+          type: 'import-error',
+          error: result.error || 'Import failed',
+          buttonId: buttonId
+        });
       }
-    } else {
-      this.notificationPort.notifyError(result.error || 'Import failed');
-      this.uiPort.postMessage({
-        type: 'import-error',
-        error: result.error || 'Import failed',
-        buttonId: buttonId
+    } catch (error) {
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleImportEditedDesign',
       });
+      throw error;
     }
-}
+  }
 
   private async handleImportBasedOnExistingDesign(designData: unknown, buttonId: any): Promise<void> {
-    const result = await this.importAIDesignUseCase.execute(designData);
+    try {
+      const result = await this.importAIDesignUseCase.execute(designData);
 
-    if (result.success) {
-      this.uiPort.postMessage({
-        type: 'import-success',
-        buttonId: buttonId
+      if (result.success) {
+        this.uiPort.postMessage({
+          type: 'import-success',
+          buttonId: buttonId
+        });
+        this.notificationPort.notify('✅ New design imported successfully!');
+      } else {
+        this.notificationPort.notifyError(result.error || 'Import failed');
+        this.uiPort.postMessage({
+          type: 'import-error',
+          error: result.error || 'Import failed',
+          buttonId: buttonId
+        });
+      }
+    } catch (error) {
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleImportBasedOnExistingDesign',
       });
-      this.notificationPort.notify('✅ New design imported successfully!');
-    } else {
-      this.notificationPort.notifyError(result.error || 'Import failed');
-      this.uiPort.postMessage({
-        type: 'import-error',
-        error: result.error || 'Import failed',
-        buttonId: buttonId
-      });
+      throw error;
     }
   }
 
   private async handleAIDesignImport(designData: unknown): Promise<void> {
-    const result = await this.importAIDesignUseCase.execute(designData);
+    try {
+      const result = await this.importAIDesignUseCase.execute(designData);
 
-    if (result.success) {
-      this.uiPort.postMessage({ type: 'import-success' });
-    } else {
-      this.notificationPort.notifyError(result.error || 'Import failed');
-      this.uiPort.postMessage({
-        type: 'import-error',
-        error: result.error || 'Import failed',
+      if (result.success) {
+        this.uiPort.postMessage({ type: 'import-success' });
+      } else {
+        this.notificationPort.notifyError(result.error || 'Import failed');
+        this.uiPort.postMessage({
+          type: 'import-error',
+          error: result.error || 'Import failed',
+        });
+      }
+    } catch (error) {
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleAIDesignImport',
       });
+      throw error;
     }
   }
 
   private async handleImportDesign(designData: unknown): Promise<void> {
-    const result = await this.importDesignUseCase.execute(designData);
+    try {
+      const result = await this.importDesignUseCase.execute(designData);
 
-    if (result.success) {
-      this.uiPort.postMessage({ type: 'import-success' });
-    } else {
-      this.notificationPort.notifyError(result.error || 'Import failed');
-      this.uiPort.postMessage({
-        type: 'import-error',
-        error: result.error || 'Import failed',
+      if (result.success) {
+        this.uiPort.postMessage({ type: 'import-success' });
+      } else {
+        this.notificationPort.notifyError(result.error || 'Import failed');
+        this.uiPort.postMessage({
+          type: 'import-error',
+          error: result.error || 'Import failed',
+        });
+      }
+    } catch (error) {
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleImportDesign',
       });
+      throw error;
     }
   }
 
   // ==================== EXPORT HANDLERS ====================
   private async handleExportSelected(): Promise<void> {
-    const result = await this.exportSelectedUseCase.execute();
+    try {
+      const result = await this.exportSelectedUseCase.execute();
 
-    if (result.success) {
-      this.uiPort.postMessage({
-        type: 'export-success',
-        data: result.nodes,
-        nodeCount: result.nodeCount,
+      if (result.success) {
+        this.uiPort.postMessage({
+          type: 'export-success',
+          data: result.nodes,
+          nodeCount: result.nodeCount,
+        });
+      } else {
+        this.notificationPort.notifyError(result.error || 'Export failed');
+        this.uiPort.postMessage({
+          type: 'export-error',
+          error: result.error || 'Export failed',
+        });
+      }
+    } catch (error) {
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleExportSelected',
       });
-    } else {
-      this.notificationPort.notifyError(result.error || 'Export failed');
-      this.uiPort.postMessage({
-        type: 'export-error',
-        error: result.error || 'Export failed',
-      });
+      throw error;
     }
   }
 
   private async handleExportAll(): Promise<void> {
-    const result = await this.exportAllUseCase.execute();
+    try {
+      const result = await this.exportAllUseCase.execute();
 
-    if (result.success) {
-      this.uiPort.postMessage({
-        type: 'export-success',
-        data: result.nodes,
-        nodeCount: result.nodeCount,
+      if (result.success) {
+        this.uiPort.postMessage({
+          type: 'export-success',
+          data: result.nodes,
+          nodeCount: result.nodeCount,
+        });
+      } else {
+        this.notificationPort.notifyError(result.error || 'Export failed');
+        this.uiPort.postMessage({
+          type: 'export-error',
+          error: result.error || 'Export failed',
+        });
+      }
+    } catch (error) {
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleExportAll',
       });
-    } else {
-      this.notificationPort.notifyError(result.error || 'Export failed');
-      this.uiPort.postMessage({
-        type: 'export-error',
-        error: result.error || 'Export failed',
-      });
+      throw error;
     }
   }
 
   private async handleImportVersion(designJson: unknown): Promise<void> {
-    const result = await this.importDesignUseCase.execute(designJson);
+    try {
+      const result = await this.importDesignUseCase.execute(designJson);
 
-    if (result.success) {
-      this.notificationPort.notify('✅ Version imported successfully!');
-      this.uiPort.postMessage({ type: 'import-success' });
-    } else {
-      this.notificationPort.notifyError(result.error || 'Import failed');
-      this.uiPort.postMessage({
-        type: 'import-error',
-        error: result.error || 'Import failed',
+      if (result.success) {
+        this.notificationPort.notify('✅ Version imported successfully!');
+        this.uiPort.postMessage({ type: 'import-success' });
+      } else {
+        this.notificationPort.notifyError(result.error || 'Import failed');
+        this.uiPort.postMessage({
+          type: 'import-error',
+          error: result.error || 'Import failed',
+        });
+      }
+    } catch (error) {
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleImportVersion',
       });
+      throw error;
     }
   }
 }

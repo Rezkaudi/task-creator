@@ -125,3 +125,74 @@ export const designVersionIdParamValidation = [
     param('id')
         .isString().withMessage('ID must be a string'),
 ];
+
+export const reportClientErrorValidation = [
+    body('errorMessage')
+        .notEmpty()
+        .withMessage('Error message is required')
+        .isString()
+        .withMessage('Error message must be a string')
+        .isLength({ max: 5000 })
+        .withMessage('Error message must be less than 5000 characters'),
+
+    body('errorCode')
+        .optional()
+        .isString()
+        .withMessage('Error code must be a string')
+        .isLength({ max: 100 })
+        .withMessage('Error code must be less than 100 characters'),
+
+    body('errorStack')
+        .optional()
+        .isString()
+        .withMessage('Error stack must be a string')
+        .isLength({ max: 10000 })
+        .withMessage('Error stack must be less than 10000 characters'),
+
+    body('errorDetails')
+        .optional()
+        .isObject()
+        .withMessage('Error details must be an object'),
+
+    body('pluginVersion')
+        .optional()
+        .isString()
+        .withMessage('Plugin version must be a string')
+        .isLength({ max: 50 })
+        .withMessage('Plugin version must be less than 50 characters'),
+
+    body('figmaVersion')
+        .optional()
+        .isString()
+        .withMessage('Figma version must be a string')
+        .isLength({ max: 50 })
+        .withMessage('Figma version must be less than 50 characters'),
+
+    body('platform')
+        .optional()
+        .isString()
+        .withMessage('Platform must be a string')
+        .isLength({ max: 100 })
+        .withMessage('Platform must be less than 100 characters'),
+
+    body('browserInfo')
+        .optional()
+        .isString()
+        .withMessage('Browser info must be a string')
+        .isLength({ max: 500 })
+        .withMessage('Browser info must be less than 500 characters'),
+
+    body('componentName')
+        .optional()
+        .isString()
+        .withMessage('Component name must be a string')
+        .isLength({ max: 255 })
+        .withMessage('Component name must be less than 255 characters'),
+
+    body('actionType')
+        .optional()
+        .isString()
+        .withMessage('Action type must be a string')
+        .isLength({ max: 255 })
+        .withMessage('Action type must be less than 255 characters'),
+];
