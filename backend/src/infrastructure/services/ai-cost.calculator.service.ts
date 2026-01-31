@@ -21,9 +21,9 @@ export class AiCostCalculatorService {
         const totalCost = inputCost + outputCost;
 
         return {
-            inputCost: `$${this.roundToDecimal(inputCost, 2)}`,
-            outputCost: `$${this.roundToDecimal(outputCost, 2)}`,
-            totalCost: `$${this.roundToDecimal(totalCost, 2)}`,
+            inputCost: `$${this.roundToDecimal(inputCost, 6)}`,
+            outputCost: `$${this.roundToDecimal(outputCost, 6)}`,
+            totalCost: `$${this.roundToDecimal(totalCost, 6)}`,
             inputTokens,
             outputTokens,
             modelId: model.id,
@@ -63,6 +63,6 @@ export class AiCostCalculatorService {
         if (cost < 0.000001) {
             return '< $0.000001';
         }
-        return `$${cost.toFixed(2)}`;
+        return `$${cost.toFixed(6)}`;
     }
 }

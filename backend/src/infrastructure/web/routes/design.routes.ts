@@ -3,18 +3,11 @@
 import { Router, Request, Response } from 'express';
 import { DesignController } from '../controllers/design.controller';
 import { validateRequest } from '../middleware/validation.middleware';
-import { generateFromTextValidation, generateFromConversationValidation, editWithAIValidation ,generateBasedOnExistingValidation} from '../validation';
+import { generateFromConversationValidation, editWithAIValidation, generateBasedOnExistingValidation } from '../validation';
 
 
 const designRoutes = (designController: DesignController): Router => {
     const router = Router();
-
-    // Generate design from simple text prompt
-    router.post('/generate-from-text',
-        generateFromTextValidation,
-        validateRequest,
-        (req: Request, res: Response) => designController.generateFromText(req, res)
-    );
 
     // Generate design from conversation with history
     router.post('/generate-from-conversation',
@@ -31,7 +24,7 @@ const designRoutes = (designController: DesignController): Router => {
     );
     router.post('/generate-based-on-existing',
         generateBasedOnExistingValidation,
-        validateRequest, 
+        validateRequest,
         (req: Request, res: Response) => designController.generateBasedOnExisting(req, res)
     );
 
