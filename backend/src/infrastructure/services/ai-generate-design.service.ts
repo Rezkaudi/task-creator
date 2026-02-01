@@ -291,6 +291,19 @@ export class AiGenerateDesignService implements IAiDesignService {
             let previewHtml: string | null = null;
             let inputTokensForPreview = 0;
             let outputTokensForPreview = 0;
+            // if (designData) {
+            //     try {
+            //         console.log("--- 3. Requesting HTML preview for edited design ---");
+            //         const { design, inputTokens, outputTokens } = await this.generateHtmlPreview(designData, openai, aiModel);
+            //         previewHtml = design
+            //         inputTokensForPreview = inputTokens;
+            //         outputTokensForPreview = outputTokens;
+            //         console.log("--- 4. HTML Preview Generated ---");
+            //     } catch (previewError) {
+            //         console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
+            //         previewHtml = "<div style='padding: 20px; text-align: center; color: #666;'>Preview generation failed, but the edited design is ready.</div>";
+            //     }
+            // }
 
             let costBreakdown: CostBreakdown | null = null;
             const usage = completion.usage;
@@ -466,6 +479,48 @@ INSTRUCTIONS:
 
         return messages;
     }
+    // private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<{ design: string, inputTokens: number, outputTokens: number }> {
+    //     const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
+    //     const messages: AiMessage[] = [
+    //         {
+    //             role: 'system',
+    //             content: "You are an expert at converting design JSON into a single, clean HTML block with inline CSS for preview purposes. You only output raw HTML code."
+    //         },
+    //         { role: 'user', content: prompt }
+    //     ]
+
+    //     const completion = await openai.chat.completions.create({
+    //         model: aiModel.id,
+    //         messages: messages,
+    //     });
+
+    //     const htmlContent = completion.choices[0]?.message?.content;
+    //     if (!htmlContent) {
+    //         throw new Error("Invalid or empty HTML preview response from GPT.");
+    //     }
+
+    //     let cleaned = htmlContent;
+    //     if (cleaned.startsWith('```html')) {
+    //         cleaned = cleaned.substring(7, cleaned.length - 3).trim();
+    //     } else if (cleaned.startsWith('```')) {
+    //         cleaned = cleaned.substring(3, cleaned.length - 3).trim();
+    //     }
+
+    //     let inputTokens: number = 0
+    //     let outputTokens: number = 0
+
+    //     const usage = completion.usage
+
+    //     if (usage) {
+    //         inputTokens = usage.prompt_tokens;
+    //         outputTokens = usage.completion_tokens;
+    //     } else {
+    //         inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages));
+    //         outputTokens = this.costCalculator.estimateTokens(htmlContent);
+    //     }
+
+    //     return { design: cleaned, inputTokens, outputTokens };
+    // }
 
     private buildConversationMessages(
         currentMessage: string,
