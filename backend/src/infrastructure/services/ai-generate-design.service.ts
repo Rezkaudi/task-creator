@@ -7,7 +7,6 @@ import { htmlPreviewPrompt, designSystemChangeWarningPrompt } from '../config/pr
 import { CostBreakdown, IAiCostCalculator } from '../../domain/services/IAiCostCanculator';
 import { iconTools } from '../config/ai-tools.config';
 import { DesignSystemExtractorService } from './design-system-extractor.service';
-import { ImageOptimizerService, ImageStripResult } from './Image optimizer.service';
 
 interface AiMessage {
     role: 'system' | 'user' | 'assistant';
@@ -30,14 +29,11 @@ export class AiGenerateDesignService implements IAiDesignService {
     private promptBuilder: PromptBuilderService;
     private costCalculator: IAiCostCalculator;
     private designSystemExtractor: DesignSystemExtractorService;
-    private imageOptimizer: ImageOptimizerService;
 
     constructor(promptBuilderService: PromptBuilderService, costCalculator: IAiCostCalculator) {
         this.promptBuilder = promptBuilderService;
         this.costCalculator = costCalculator;
         this.designSystemExtractor = new DesignSystemExtractorService();
-        this.imageOptimizer = new ImageOptimizerService();
-        
     }
 
     /**
@@ -168,6 +164,20 @@ export class AiGenerateDesignService implements IAiDesignService {
             let inputTokensForPreview = 0;
             let outputTokensForPreview = 0;
 
+            // if (designData) {
+            //     try {
+            //         console.log("--- 3. Requesting HTML preview ---");
+            //         const { design, inputTokens, outputTokens } = await this.generateHtmlPreview(designData, openai, aiModel);
+            //         previewHtml = design
+            //         inputTokensForPreview = inputTokens;
+            //         outputTokensForPreview = outputTokens;
+            //         console.log("--- 4. HTML Preview Generated ---");
+            //     } catch (previewError) {
+            //         console.error("Could not generate HTML preview. This is a non-critical error.", previewError);
+            //         previewHtml = "<div style='padding: 20px; text-align: center; color: #666;'>Preview generation failed, but the design is ready.</div>";
+            //     }
+            // }
+
             let costBreakdown: CostBreakdown | null = null;
             const usage = completion.usage;
 
@@ -208,40 +218,19 @@ export class AiGenerateDesignService implements IAiDesignService {
             console.log("modelId", modelId);
             console.log("designSystemId", designSystemId);
 
-            // ========== IMAGE OPTIMIZATION: STRIP IMAGES ==========
-            console.log("🔧 Optimizing design: Stripping images...");
-            const originalSize = JSON.stringify(currentDesign).length;
-            
-            const stripResult: ImageStripResult = this.imageOptimizer.stripImages(currentDesign);
-            const { cleanedDesign, imageReferences } = stripResult;
-            
-            const optimizedSize = JSON.stringify(cleanedDesign).length;
-            const reduction = ((1 - optimizedSize / originalSize) * 100).toFixed(1);
-            
-            console.log(`📊 Size reduction: ${originalSize} → ${optimizedSize} chars (${reduction}% smaller)`);
-            console.log(`📸 Extracted ${imageReferences.length} images`);
-            // ====================================================
-
-            // Build messages with CLEANED design (no images)
-            const messages = this.buildEditConversationMessages(
-                userMessage, 
-                history, 
-                cleanedDesign,  // ← Using cleaned design instead of original
-                designSystemId
-            );
-            
+            const messages = this.buildEditConversationMessages(userMessage, history, currentDesign, designSystemId);
             const aiModel: AIModelConfig = getModelById(modelId);
 
-            console.log("--- 1. Sending Edit Request to GPT (without images) ---");
+            console.log("--- 1. Sending Edit Request to GPT ---");
             console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'default design system'}`);
-            console.log("Optimized design size:", optimizedSize, "characters");
+            console.log("Design size:", JSON.stringify(currentDesign).length, "characters");
 
             const openai = this.createOpenAIClient(aiModel);
 
             let completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
-                tools: iconTools,
+                tools: iconTools, // Add tools here
             });
 
             // Handle tool calls loop
@@ -251,14 +240,17 @@ export class AiGenerateDesignService implements IAiDesignService {
 
                 const toolResults = await this.handleToolCalls(toolCalls);
 
+                // Add assistant message with tool calls
                 messages.push({
                     role: 'assistant',
                     content: completion.choices[0].message.content || '',
                     tool_calls: toolCalls,
                 } as any);
 
+                // Add tool results
                 messages.push(...toolResults as any);
 
+                // Get next completion
                 completion = await openai.chat.completions.create({
                     model: aiModel.id,
                     messages: messages,
@@ -280,17 +272,12 @@ export class AiGenerateDesignService implements IAiDesignService {
                 throw new Error("Failed to extract valid design JSON from AI response.");
             }
 
-            // ========== IMAGE OPTIMIZATION: RESTORE IMAGES ==========
-            console.log("🔧 Restoring images to modified design...");
-            designData = this.imageOptimizer.restoreImages(designData, imageReferences);
-            console.log("✅ Images restored successfully");
-            // ======================================================
-
             const aiMessage = this.extractMessageFromResponse(responseText);
 
             let previewHtml: string | null = null;
             let inputTokensForPreview = 0;
             let outputTokensForPreview = 0;
+
             // if (designData) {
             //     try {
             //         console.log("--- 3. Requesting HTML preview for edited design ---");
@@ -323,7 +310,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 message: aiMessage,
-                design: designData,  // ← Now with images restored
+                design: designData,
                 previewHtml: previewHtml,
                 cost: costBreakdown
             };
@@ -479,6 +466,7 @@ INSTRUCTIONS:
 
         return messages;
     }
+
     // private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<{ design: string, inputTokens: number, outputTokens: number }> {
     //     const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
     //     const messages: AiMessage[] = [
@@ -630,15 +618,10 @@ ${isChanged ? `⚠️ The current design uses a different system - CONVERT EVERY
         return `INSTRUCTIONS:
 1. Understand the current design structure  
 2. Apply the user's requested changes
-3. **PRESERVE ALL EXISTING ELEMENTS** - do not remove any nodes, text, or components
-4. When changing themes/modes (light to dark, etc.):
-   - Keep ALL elements visible
-   - Adjust colors for visibility (e.g., white text → dark text on light bg, or vice versa)
-   - Maintain all status bars, logos, labels, and UI elements
-5. ${additionalInstruction}
-6. Return the COMPLETE design (not just changes)
-
-⚠️ CRITICAL: Do NOT remove elements just because colors change. Adapt them instead!`;
+3. **${action} using ${designSystemName.toUpperCase()} design system**
+4. ${additionalInstruction}
+5. Return the complete modified design as valid JSON array
+6. Start your response with a brief description, then the JSON`;
     }
 
     private detectDesignSystemFromHistory(history: ConversationMessage[]): string | null {
@@ -777,49 +760,3 @@ ${isChanged ? `⚠️ The current design uses a different system - CONVERT EVERY
         return results;
     }
 }
-
-
-    
-
-    // private async generateHtmlPreview(designJson: object, openai: OpenAI, aiModel: AIModelConfig): Promise<{ design: string, inputTokens: number, outputTokens: number }> {
-    //     const prompt = `${htmlPreviewPrompt} Here is the JSON data: ${JSON.stringify(designJson, null, 2)}`;
-    //     const messages: AiMessage[] = [
-    //         {
-    //             role: 'system',
-    //             content: "You are an expert at converting design JSON into a single, clean HTML block with inline CSS for preview purposes. You only output raw HTML code."
-    //         },
-    //         { role: 'user', content: prompt }
-    //     ]
-
-    //     const completion = await openai.chat.completions.create({
-    //         model: aiModel.id,
-    //         messages: messages,
-    //     });
-
-    //     const htmlContent = completion.choices[0]?.message?.content;
-    //     if (!htmlContent) {
-    //         throw new Error("Invalid or empty HTML preview response from GPT.");
-    //     }
-
-    //     let cleaned = htmlContent;
-    //     if (cleaned.startsWith('```html')) {
-    //         cleaned = cleaned.substring(7, cleaned.length - 3).trim();
-    //     } else if (cleaned.startsWith('```')) {
-    //         cleaned = cleaned.substring(3, cleaned.length - 3).trim();
-    //     }
-
-    //     let inputTokens: number = 0
-    //     let outputTokens: number = 0
-
-    //     const usage = completion.usage
-
-    //     if (usage) {
-    //         inputTokens = usage.prompt_tokens;
-    //         outputTokens = usage.completion_tokens;
-    //     } else {
-    //         inputTokens = this.costCalculator.estimateTokens(JSON.stringify(messages));
-    //         outputTokens = this.costCalculator.estimateTokens(htmlContent);
-    //     }
-
-    //     return { design: cleaned, inputTokens, outputTokens };
-    // }
