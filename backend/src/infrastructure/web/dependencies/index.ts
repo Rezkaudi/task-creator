@@ -59,7 +59,6 @@ export const setupDependencies = () => {
     const jsonToToonService = new JsonToToonService();
     const userRepository = new TypeORMUserRepository();
     const designVersionRepository = new TypeORMDesignVersionRepository();
-
     const clientErrorRepository = new TypeORMClientErrorRepository();
 
 
