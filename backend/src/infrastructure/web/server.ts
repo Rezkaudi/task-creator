@@ -13,6 +13,7 @@ import designRoutes from './routes/design.routes';
 import designVersionRoutes from './routes/design-version.routes';
 import aiModelsRoutes from './routes/ai-models.routes';
 import designSystemsRoutes from './routes/design-systems.routes';
+import clientErrorRoutes from './routes/client-error.routes';
 
 import { setupDependencies } from './dependencies';
 import { logger } from './middleware/logger.middleware';
@@ -65,8 +66,9 @@ export class Server {
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
     this.app.use('/api/design-versions', designVersionRoutes(this.container.designVersionController));
-    this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController)); // ← NEW
+    this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController));
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
+    this.app.use('/api/errors', clientErrorRoutes(this.container.clientErrorController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     // API documentation redirect
@@ -99,6 +101,7 @@ export class Server {
       console.log(`⚕️  Health Check: http://localhost:${this.port}/health`);
       console.log(`🤖 AI Models API: http://localhost:${this.port}/api/ai-models`);
       console.log(`🎨 Design Systems API: http://localhost:${this.port}/api/design-systems`);
+      console.log(`🐛 Client Errors API: http://localhost:${this.port}/api/errors`);
     });
   }
 

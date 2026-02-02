@@ -371,6 +371,10 @@ async function fetchDesignSystems() {
     } catch (error) {
         console.error('Failed to fetch design systems:', error);
         showDesignSystemStatus('⚠️ Using default system', 'warning');
+        UIErrorReporter.reportErrorAsync(error, {
+            componentName: 'DesignSystemSelection',
+            actionType: 'fetchDesignSystems'
+        });
     }
 }
 
@@ -863,6 +867,10 @@ function generateDefaultPreview(designData, isEditMode = false) {
         }
     } catch (error) {
         console.error('Error generating preview:', error);
+        UIErrorReporter.reportErrorAsync(error, {
+            componentName: 'DesignPreview',
+            actionType: 'generateDefaultPreview'
+        });
         return '<div style="padding: 20px; background: #fef2f2; color: #dc2626; border-radius: 8px;">Error generating preview</div>';
     }
 }
@@ -1034,7 +1042,10 @@ async function fetchAIModels() {
     } catch (error) {
         console.error('Failed to fetch AI models:', error);
         showModelStatus('⚠️ Using default models', 'warning');
-
+        UIErrorReporter.reportErrorAsync(error, {
+            componentName: 'ModelSelection',
+            actionType: 'fetchAIModels'
+        });
     }
 }
 
@@ -1127,6 +1138,10 @@ async function loadVersions() {
                 </div>
             `;
         }
+        UIErrorReporter.reportErrorAsync(error, {
+            componentName: 'VersionManagement',
+            actionType: 'loadVersions'
+        });
     } finally {
         if (refreshVersionsBtn) {
             refreshVersionsBtn.disabled = false;
@@ -1201,6 +1216,10 @@ async function saveVersionToDb(description, designJson) {
         }
     } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
+        UIErrorReporter.reportErrorAsync(error, {
+            componentName: 'VersionManagement',
+            actionType: 'saveVersionToDb'
+        });
     } finally {
         if (confirmSaveBtn) {
             confirmSaveBtn.disabled = false;
@@ -1239,6 +1258,10 @@ async function importVersionFromDb(id) {
             importVersionBtn.disabled = false;
             importVersionBtn.innerHTML = '📥 Import to Figma';
         }
+        UIErrorReporter.reportErrorAsync(error, {
+            componentName: 'VersionManagement',
+            actionType: 'importVersionFromDb'
+        });
     }
 }
 
@@ -1271,6 +1294,10 @@ async function deleteVersion(id) {
         loadVersions();
     } catch (error) {
         showStatus(`❌ ${error.message}`, 'error');
+        UIErrorReporter.reportErrorAsync(error, {
+            componentName: 'VersionManagement',
+            actionType: 'deleteVersion'
+        });
     } finally {
         if (deleteVersionBtn) {
             deleteVersionBtn.disabled = false;
@@ -1535,6 +1562,10 @@ if (importBtn) {
         } catch (error) {
             showStatus(`❌ ${error.message}`, 'error');
             resetButton();
+            UIErrorReporter.reportErrorAsync(error, {
+                componentName: 'ImportHandler',
+                actionType: `handle${activeTab}Import`
+            });
         }
     });
 }
@@ -1599,6 +1630,10 @@ window.onmessage = async (event) => {
             } catch (error) {
                 showStatus(`❌ AI Generation failed: ${error.message}`, 'error');
                 resetButton();
+                UIErrorReporter.reportErrorAsync(error, {
+                    componentName: 'PluginMessageHandler',
+                    actionType: 'call-backend-for-claude'
+                });
             }
             break;
 
@@ -1663,6 +1698,10 @@ window.onmessage = async (event) => {
             if (chatSendBtn) chatSendBtn.disabled = false;
             removeLoadingMessages();
             addMessage('assistant', `Error: ${msg.error}`);
+            UIErrorReporter.reportErrorAsync(new Error(msg.error), {
+                componentName: 'AIChat',
+                actionType: msg.type
+            });
             break;
 
         case 'import-success':
@@ -1699,7 +1738,10 @@ window.onmessage = async (event) => {
                 importVersionBtn.innerHTML = '📥 Import to Figma';
             }
             setTimeout(hideStatus, 3000);
-
+            UIErrorReporter.reportErrorAsync(new Error(msg.error), {
+                componentName: 'ImportHandler',
+                actionType: 'import-error'
+            });
             break;
 
         case 'selection-changed':
@@ -1716,6 +1758,10 @@ window.onmessage = async (event) => {
             showStatus(`❌ Export failed: ${msg.error}`, 'error');
             resetExportButtons();
             setTimeout(hideStatus, 3000);
+            UIErrorReporter.reportErrorAsync(new Error(msg.error), {
+                componentName: 'ExportHandler',
+                actionType: 'export-error'
+            });
             break;
 
         case 'layer-selected-for-reference':
@@ -1782,6 +1828,10 @@ window.onmessage = async (event) => {
             chatSendBtn.disabled = false;
             removeLoadingMessages();
             addMessage('assistant', `Error: ${msg.error}`);
+            UIErrorReporter.reportErrorAsync(new Error(msg.error), {
+                componentName: 'BasedOnExisting',
+                actionType: 'ai-based-on-existing-error'
+            });
             break;
     }
 };
@@ -1850,7 +1900,18 @@ window.onmessage = async (event) => {
 // }
 
 // ==================== INITIALIZATION ====================
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    // Setup global error handlers first
+    UIErrorReporter.setupGlobalHandlers();
+
+    // Initialize error reporter with headers
+    try {
+        const headers = await getHeaders();
+        UIErrorReporter.setHeaders(headers);
+    } catch (e) {
+        console.warn('Failed to initialize error reporter headers:', e);
+    }
+
     initModelSelection();
     initDesignSystemSelection();
     resetToModeSelection();
@@ -1889,30 +1950,169 @@ async function callBackendForClaude(userPrompt) {
         const result = await response.json();
         return result.design || result.data || result;
     } catch (error) {
+        UIErrorReporter.reportErrorAsync(error, {
+            componentName: 'BackendAPI',
+            actionType: 'callBackendForClaude'
+        });
         throw error;
     }
 }
 
 // ==================== WINDOW RESIZE ====================
 (function initResizeHandle() {
-  const corner = document.getElementById('resize-corner');
-  if (!corner) return;
+    const corner = document.getElementById('resize-corner');
+    if (!corner) return;
 
-  function resizeWindow(e) {
-    const size = {
-      w: Math.max(400, Math.floor(e.clientX + 5)),  // Min width: 400
-      h: Math.max(300, Math.floor(e.clientY + 5))   // Min height: 300
+    function resizeWindow(e) {
+        const size = {
+            w: Math.max(400, Math.floor(e.clientX + 5)),  // Min width: 400
+            h: Math.max(300, Math.floor(e.clientY + 5))   // Min height: 300
+        };
+        parent.postMessage({ pluginMessage: { type: 'resize-window', size: size } }, '*');
+    }
+
+    corner.onpointerdown = (e) => {
+        corner.onpointermove = resizeWindow;
+        corner.setPointerCapture(e.pointerId);
     };
-    parent.postMessage({ pluginMessage: { type: 'resize-window', size: size } }, '*');
-  }
 
-  corner.onpointerdown = (e) => {
-    corner.onpointermove = resizeWindow;
-    corner.setPointerCapture(e.pointerId);
-  };
+    corner.onpointerup = (e) => {
+        corner.onpointermove = null;
+        corner.releasePointerCapture(e.pointerId);
+    };
+})();
 
-  corner.onpointerup = (e) => {
-    corner.onpointermove = null;
-    corner.releasePointerCapture(e.pointerId);
-  };
+
+// ==================== ERROR REPORTER ====================
+const UIErrorReporter = (function () {
+    let headers = { 'Content-Type': 'application/json' };
+    let pendingErrors = [];
+    let isReporting = false;
+    const PLUGIN_VERSION = '2.0.0';
+
+    function setHeaders(newHeaders) {
+        headers = { ...newHeaders };
+    }
+
+    async function reportError(error, context = {}) {
+        const payload = buildPayload(error, context);
+        pendingErrors.push(payload);
+        await processQueue();
+    }
+
+    function reportErrorAsync(error, context = {}) {
+        const payload = buildPayload(error, context);
+        pendingErrors.push(payload);
+        processQueue().catch(console.error);
+    }
+
+    function buildPayload(error, context) {
+        const isErrorObject = error instanceof Error;
+        console.log('Reporting error:', error, 'Context:', context);
+        return {
+            errorMessage: isErrorObject ? error.message : String(error),
+            errorStack: isErrorObject ? error.stack : undefined,
+            errorCode: context.errorCode,
+            errorDetails: {
+                ...context.errorDetails,
+                errorName: isErrorObject ? error.name : 'Unknown',
+                url: window.location?.href,
+            },
+            pluginVersion: PLUGIN_VERSION,
+            platform: 'figma-plugin-ui',
+            browserInfo: getBrowserInfo(),
+            componentName: context.componentName || 'UI',
+            actionType: context.actionType,
+        };
+    }
+
+    function getBrowserInfo() {
+        try {
+            return navigator.userAgent;
+        } catch {
+            return 'unknown';
+        }
+    }
+
+    async function processQueue() {
+        if (isReporting || pendingErrors.length === 0) {
+            return;
+        }
+
+        isReporting = true;
+
+        while (pendingErrors.length > 0) {
+            const payload = pendingErrors.shift();
+            if (payload) {
+                try {
+                    await sendError(payload);
+                } catch (sendError) {
+                    console.error('Failed to send error report:', sendError);
+                }
+            }
+        }
+
+        isReporting = false;
+    }
+
+    async function sendError(payload) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/errors`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                console.warn('Error report submission failed:', data.message);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Network error while reporting error:', error);
+            return { success: false, message: 'Network error' };
+        }
+    }
+
+    function wrapAsync(fn, context) {
+        return async function (...args) {
+            try {
+                return await fn.apply(this, args);
+            } catch (error) {
+                reportErrorAsync(error, context);
+                throw error;
+            }
+        };
+    }
+
+    function setupGlobalHandlers() {
+        window.addEventListener('error', function (event) {
+            reportErrorAsync(event.error || event.message, {
+                componentName: 'GlobalErrorHandler',
+                actionType: 'unhandled-error',
+                errorDetails: {
+                    filename: event.filename,
+                    lineno: event.lineno,
+                    colno: event.colno,
+                }
+            });
+        });
+
+        window.addEventListener('unhandledrejection', function (event) {
+            reportErrorAsync(event.reason || 'Unhandled Promise Rejection', {
+                componentName: 'GlobalErrorHandler',
+                actionType: 'unhandled-rejection',
+            });
+        });
+    }
+
+    return {
+        setHeaders,
+        reportError,
+        reportErrorAsync,
+        wrapAsync,
+        setupGlobalHandlers,
+    };
 })();
