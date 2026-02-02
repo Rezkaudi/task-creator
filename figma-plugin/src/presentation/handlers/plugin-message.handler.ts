@@ -17,7 +17,7 @@ import { ImageOptimizerService, ImageReference } from '../../infrastructure/serv
 export class PluginMessageHandler {
   private conversationHistory: Array<{ role: string; content: string }> = [];
   private imageOptimizer = new ImageOptimizerService(); // ← NEW
-  
+
   // Storage for image references during AI operations
   private imageReferencesStore: Map<string, ImageReference[]> = new Map(); // ← NEW
 
@@ -175,19 +175,10 @@ export class PluginMessageHandler {
         throw new Error('Failed to export selected layer');
       }
 
-      // ========== NEW: STRIP IMAGES BEFORE SENDING ==========
-     const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(exportResult.nodes[0]);
-      
-      // Store image references with a unique key
-      const referenceKey = `reference_${Date.now()}`;
-      this.imageReferencesStore.set(referenceKey, imageReferences);
-      // =======================================================
-
       this.uiPort.postMessage({
         type: 'layer-selected-for-reference',
         layerName: selectedNode.name,
-        layerJson: cleanedDesign, // ← Send cleaned design
-        _imageReferenceKey: referenceKey // ← Send key to restore later
+        layerJson: exportResult.nodes[0]
       });
 
       this.notificationPort.notify(`✅ Reference layer "${selectedNode.name}" selected`);
@@ -228,25 +219,18 @@ export class PluginMessageHandler {
         throw new Error('Failed to export selected layer');
       }
 
-      // ========== NEW: STRIP IMAGES BEFORE SENDING ==========
-      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages([exportResult.nodes[0]]);
-      
-      // Store image references
-      const editKey = `edit_${Date.now()}`;
-      this.imageReferencesStore.set(editKey, imageReferences);
-      // =======================================================
-
       this.uiPort.postMessage({
         type: 'layer-selected-for-edit',
         layerName: selectedNode.name,
-        layerJson: cleanedDesign, // ← Send cleaned design
-        _imageReferenceKey: editKey // ← Send key to restore later
+        layerJson: exportResult.nodes[0]
       });
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to select layer';
       this.notificationPort.notifyError(errorMessage);
-      this.uiPort.postMessage({ type: 'no-layer-selected' });
+      this.uiPort.postMessage({
+        type: 'no-layer-selected'
+      });
 
       errorReporter.reportErrorAsync(error as Error, {
         componentName: 'PluginMessageHandler',
@@ -273,15 +257,15 @@ export class PluginMessageHandler {
       // ========== NEW: STRIP IMAGES BEFORE SENDING TO BACKEND ==========
       console.log('🔧 Plugin: Stripping images before sending to backend...');
       const originalSize = JSON.stringify(layerJson).length;
-      
+
       const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(layerJson);
 
       const optimizedSize = JSON.stringify(cleanedDesign).length;
       const reduction = ((1 - optimizedSize / originalSize) * 100).toFixed(1);
-      
+
       console.log(`📊 Plugin: Size reduction: ${originalSize} → ${optimizedSize} chars (${reduction}% smaller)`);
       console.log(`📸 Plugin: Extracted ${imageReferences.length} images`);
-      
+
       // Store image references for later restoration
       const requestKey = `edit_request_${Date.now()}`;
       this.imageReferencesStore.set(requestKey, imageReferences);
@@ -314,7 +298,7 @@ export class PluginMessageHandler {
       console.log('🔧 Plugin: Restoring images to AI response...');
       const restoredDesign = this.imageOptimizer.restoreImages(result.design, imageReferences);
       console.log('✅ Plugin: Images restored successfully');
-      
+
       // Clean up stored references
       this.imageReferencesStore.delete(requestKey);
       // ========================================================
@@ -496,7 +480,7 @@ export class PluginMessageHandler {
 
   // ==================== IMPORT HANDLERS (keep all as is) ====================
   // ... (keep all the import handlers exactly as they are)
-  
+
   private async handleImportDesignFromChat(designData: unknown, buttonId: any): Promise<void> {
     try {
       const result = await this.importAIDesignUseCase.execute(designData);
