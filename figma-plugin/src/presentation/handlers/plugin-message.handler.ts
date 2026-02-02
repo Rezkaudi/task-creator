@@ -9,12 +9,17 @@ import {
 import { ApiConfig } from '../../shared/constants';
 import { GetUserInfoUseCase } from '@application/use-cases/getUserInfoUseCase';
 import { errorReporter } from '../../infrastructure/services/error-reporter.service';
+import { ImageOptimizerService, ImageReference } from '../../infrastructure/services/plugin-image-optimizer.service'; // ← NEW
 
 /**
  * Handler for messages received from the UI
  */
 export class PluginMessageHandler {
   private conversationHistory: Array<{ role: string; content: string }> = [];
+  private imageOptimizer = new ImageOptimizerService(); // ← NEW
+  
+  // Storage for image references during AI operations
+  private imageReferencesStore: Map<string, ImageReference[]> = new Map(); // ← NEW
 
   constructor(
     private readonly uiPort: IUIPort,
@@ -26,10 +31,10 @@ export class PluginMessageHandler {
     private readonly getUserInfoUseCase: GetUserInfoUseCase
   ) { }
 
+  // ... (keep all other methods the same until handleAIEditDesign) ...
+
   initialize(): void {
     this.uiPort.onMessage((message: PluginMessage) => this.handleMessage(message));
-
-    // Initialize error reporter with headers
     this.initializeErrorReporter();
   }
 
@@ -44,7 +49,6 @@ export class PluginMessageHandler {
 
   private async handleMessage(message: PluginMessage): Promise<void> {
     console.log('📨 Plugin received:', message.type);
-
     console.log("Plugin Message with Data", message);
 
     try {
@@ -52,7 +56,6 @@ export class PluginMessageHandler {
         case 'resize-window':
           if ('size' in message) {
             figma.ui.resize(message.size.w, message.size.h);
-            // Save size for persistence
             figma.clientStorage.setAsync('pluginSize', message.size).catch(() => { });
           }
           break;
@@ -61,21 +64,17 @@ export class PluginMessageHandler {
             await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId);
           }
           break;
-
         case 'request-layer-selection-for-edit':
           await this.handleRequestLayerSelectionForEdit();
           break;
-
         case 'request-layer-selection-for-reference':
           await this.handleRequestLayerSelectionForReference();
           break;
-
         case 'ai-edit-design':
           if (message.message !== undefined && message.layerJson !== undefined) {
             await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model, message.designSystemId);
           }
           break;
-
         case 'ai-generate-based-on-existing':
           if (message.message !== undefined && message.referenceJson !== undefined) {
             console.log('🎨 Handling generate-based-on-existing request');
@@ -87,46 +86,35 @@ export class PluginMessageHandler {
             );
           }
           break;
-
         case 'import-design-from-chat':
           await this.handleImportDesignFromChat(message.designData, message.buttonId);
           break;
-
         case 'import-edited-design':
           await this.handleImportEditedDesign(message.designData, message.buttonId);
           break;
-
         case 'import-based-on-existing-design':
           await this.handleImportBasedOnExistingDesign(message.designData, message.buttonId);
           break;
-
         case 'design-generated-from-ai':
           await this.handleAIDesignImport(message.designData);
           break;
-
         case 'import-design':
           await this.handleImportDesign(message.designData);
           break;
-
         case 'export-selected':
           await this.handleExportSelected();
           break;
-
         case 'export-all':
           await this.handleExportAll();
           break;
-
         case 'get-selection-info':
           break;
-
         case 'cancel':
           this.uiPort.close();
           break;
-
         case 'import-version':
           await this.handleImportVersion(message.designJson);
           break;
-
         case 'GET_HEADERS':
           const headers = await this.getUserInfoUseCase.execute();
           figma.ui.postMessage({
@@ -134,16 +122,13 @@ export class PluginMessageHandler {
             headers: headers
           });
           break;
-
         case 'REPORT_ERROR':
           await this.handleReportError((message as any).errorData);
           break;
-
         default:
           console.warn('Unknown message type:', message.type);
       }
     } catch (error) {
-      // Report any unhandled errors in message handling
       errorReporter.reportErrorAsync(error as Error, {
         componentName: 'PluginMessageHandler',
         actionType: `handleMessage:${message.type}`,
@@ -172,17 +157,13 @@ export class PluginMessageHandler {
       const selection = figma.currentPage.selection;
 
       if (selection.length === 0) {
-        this.uiPort.postMessage({
-          type: 'no-layer-selected'
-        });
+        this.uiPort.postMessage({ type: 'no-layer-selected' });
         this.notificationPort.notify('⚠️ Please select a reference layer');
         return;
       }
 
       if (selection.length > 1) {
-        this.uiPort.postMessage({
-          type: 'no-layer-selected'
-        });
+        this.uiPort.postMessage({ type: 'no-layer-selected' });
         this.notificationPort.notify('⚠️ Please select only one reference layer');
         return;
       }
@@ -194,10 +175,19 @@ export class PluginMessageHandler {
         throw new Error('Failed to export selected layer');
       }
 
+      // ========== NEW: STRIP IMAGES BEFORE SENDING ==========
+     const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(exportResult.nodes[0]);
+      
+      // Store image references with a unique key
+      const referenceKey = `reference_${Date.now()}`;
+      this.imageReferencesStore.set(referenceKey, imageReferences);
+      // =======================================================
+
       this.uiPort.postMessage({
         type: 'layer-selected-for-reference',
         layerName: selectedNode.name,
-        layerJson: exportResult.nodes[0]
+        layerJson: cleanedDesign, // ← Send cleaned design
+        _imageReferenceKey: referenceKey // ← Send key to restore later
       });
 
       this.notificationPort.notify(`✅ Reference layer "${selectedNode.name}" selected`);
@@ -205,11 +195,8 @@ export class PluginMessageHandler {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to select layer';
       this.notificationPort.notifyError(errorMessage);
-      this.uiPort.postMessage({
-        type: 'no-layer-selected'
-      });
+      this.uiPort.postMessage({ type: 'no-layer-selected' });
 
-      // Report error
       errorReporter.reportErrorAsync(error as Error, {
         componentName: 'PluginMessageHandler',
         actionType: 'handleRequestLayerSelectionForReference',
@@ -223,17 +210,13 @@ export class PluginMessageHandler {
       const selection = figma.currentPage.selection;
 
       if (selection.length === 0) {
-        this.uiPort.postMessage({
-          type: 'no-layer-selected'
-        });
+        this.uiPort.postMessage({ type: 'no-layer-selected' });
         this.notificationPort.notify('⚠️ Please select a layer to edit');
         return;
       }
 
       if (selection.length > 1) {
-        this.uiPort.postMessage({
-          type: 'no-layer-selected'
-        });
+        this.uiPort.postMessage({ type: 'no-layer-selected' });
         this.notificationPort.notify('⚠️ Please select only one layer to edit');
         return;
       }
@@ -245,18 +228,25 @@ export class PluginMessageHandler {
         throw new Error('Failed to export selected layer');
       }
 
+      // ========== NEW: STRIP IMAGES BEFORE SENDING ==========
+      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages([exportResult.nodes[0]]);
+      
+      // Store image references
+      const editKey = `edit_${Date.now()}`;
+      this.imageReferencesStore.set(editKey, imageReferences);
+      // =======================================================
+
       this.uiPort.postMessage({
         type: 'layer-selected-for-edit',
         layerName: selectedNode.name,
-        layerJson: exportResult.nodes[0]
+        layerJson: cleanedDesign, // ← Send cleaned design
+        _imageReferenceKey: editKey // ← Send key to restore later
       });
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to select layer';
       this.notificationPort.notifyError(errorMessage);
-      this.uiPort.postMessage({
-        type: 'no-layer-selected'
-      });
+      this.uiPort.postMessage({ type: 'no-layer-selected' });
 
       errorReporter.reportErrorAsync(error as Error, {
         componentName: 'PluginMessageHandler',
@@ -265,7 +255,7 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== AI EDIT DESIGN ====================
+  // ==================== AI EDIT DESIGN (MODIFIED) ====================
   private async handleAIEditDesign(
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
@@ -280,13 +270,30 @@ export class PluginMessageHandler {
 
       const selectedModel = model || 'mistralai/devstral-2512:free';
 
+      // ========== NEW: STRIP IMAGES BEFORE SENDING TO BACKEND ==========
+      console.log('🔧 Plugin: Stripping images before sending to backend...');
+      const originalSize = JSON.stringify(layerJson).length;
+      
+      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(layerJson);
+
+      const optimizedSize = JSON.stringify(cleanedDesign).length;
+      const reduction = ((1 - optimizedSize / originalSize) * 100).toFixed(1);
+      
+      console.log(`📊 Plugin: Size reduction: ${originalSize} → ${optimizedSize} chars (${reduction}% smaller)`);
+      console.log(`📸 Plugin: Extracted ${imageReferences.length} images`);
+      
+      // Store image references for later restoration
+      const requestKey = `edit_request_${Date.now()}`;
+      this.imageReferencesStore.set(requestKey, imageReferences);
+      // ================================================================
+
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
         method: 'POST',
         headers: await this.getUserInfoUseCase.execute(),
         body: JSON.stringify({
           message: userMessage,
           history: this.conversationHistory,
-          currentDesign: layerJson,
+          currentDesign: cleanedDesign, // ← Send cleaned design (no images!)
           modelId: selectedModel,
           designSystemId: designSystemId
         })
@@ -303,10 +310,19 @@ export class PluginMessageHandler {
 
       const result = await response.json();
 
+      // ========== NEW: RESTORE IMAGES TO AI RESPONSE ==========
+      console.log('🔧 Plugin: Restoring images to AI response...');
+      const restoredDesign = this.imageOptimizer.restoreImages(result.design, imageReferences);
+      console.log('✅ Plugin: Images restored successfully');
+      
+      // Clean up stored references
+      this.imageReferencesStore.delete(requestKey);
+      // ========================================================
+
       this.uiPort.postMessage({
         type: 'ai-edit-response',
         message: result.message,
-        designData: result.design,
+        designData: restoredDesign, // ← Send design with images restored
         previewHtml: result.previewHtml,
         cost: result.cost ? {
           inputCost: result.cost.inputCost,
@@ -332,7 +348,7 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== GENERATE BASED ON EXISTING ====================
+  // ==================== GENERATE BASED ON EXISTING (MODIFIED) ====================
   private async handleGenerateBasedOnExisting(
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
@@ -348,6 +364,12 @@ export class PluginMessageHandler {
 
       const selectedModel = model || 'mistralai/devstral-2512:free';
 
+      // ========== NEW: STRIP IMAGES FROM REFERENCE ==========
+      console.log('🔧 Plugin: Stripping images from reference design...');
+      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(referenceJson);
+      console.log(`📸 Plugin: Extracted ${imageReferences.length} images from reference`);
+      // ======================================================
+
       console.log("🎨 Generating design based on existing reference");
       console.log("📍 Endpoint: /api/designs/generate-based-on-existing");
 
@@ -357,7 +379,7 @@ export class PluginMessageHandler {
         body: JSON.stringify({
           message: userMessage,
           history: conversationHistory,
-          referenceDesign: referenceJson,
+          referenceDesign: cleanedDesign, // ← Send cleaned reference (no images!)
           modelId: selectedModel
         })
       });
@@ -374,6 +396,8 @@ export class PluginMessageHandler {
       const result = await response.json();
 
       console.log("✅ Received response from generate-based-on-existing");
+
+      // Note: New design won't have old images, so no restoration needed here
 
       this.uiPort.postMessage({
         type: 'ai-based-on-existing-response',
@@ -405,7 +429,7 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== AI CHAT FUNCTIONS ====================
+  // ==================== AI CHAT FUNCTIONS (keep as is) ====================
   private async handleAIChatMessage(
     userMessage: string,
     history?: Array<{ role: string; content: string }>,
@@ -470,7 +494,9 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== IMPORT HANDLERS ====================
+  // ==================== IMPORT HANDLERS (keep all as is) ====================
+  // ... (keep all the import handlers exactly as they are)
+  
   private async handleImportDesignFromChat(designData: unknown, buttonId: any): Promise<void> {
     try {
       const result = await this.importAIDesignUseCase.execute(designData);
@@ -504,7 +530,6 @@ export class PluginMessageHandler {
 
       if (result.success) {
         this.notificationPort.notify('✅ Edited design imported successfully!');
-
         this.uiPort.postMessage({ type: 'import-success', buttonId: buttonId });
 
         try {
@@ -607,7 +632,6 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== EXPORT HANDLERS ====================
   private async handleExportSelected(): Promise<void> {
     try {
       const result = await this.exportSelectedUseCase.execute();

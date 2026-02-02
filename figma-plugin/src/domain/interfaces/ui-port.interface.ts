@@ -47,8 +47,8 @@ export type UIMessage =
   | { type: 'version-load-error'; error: string }
   | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo }
   | { type: 'ai-chat-error'; error: string }
-  | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any }
-  | { type: 'layer-selected-for-reference'; layerName: string; layerJson: any } // ✨ NEW
+  | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any; _imageReferenceKey?: string }
+  | { type: 'layer-selected-for-reference'; layerName: string; layerJson: any; _imageReferenceKey?: string }
   | { type: 'no-layer-selected' }
   | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo }
   | { type: 'ai-edit-error'; error: string }
