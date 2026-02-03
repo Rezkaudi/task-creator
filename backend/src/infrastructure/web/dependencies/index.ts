@@ -6,6 +6,14 @@ import { AiExtractTasksService } from "../../services/ai-extract-tasks.service";
 import { AiGenerateDesignService } from "../../services/ai-generate-design.service";
 import { PromptBuilderService } from "../../services/prompt-builder.service";
 import { AiCostCalculatorService } from "../../services/ai-cost.calculator.service";
+import { IconService } from "../../services/icon.service";
+import { OpenAIClientFactory } from "../../services/openai-client.factory";
+import { Timer } from "../../services/timer.service";
+import { JsonToToonService } from "../../services/json-to-toon.service";
+import { ToolCallHandlerService } from "../../services/tool-call-handler.service";
+import { MessageBuilderService } from "../../services/message-builder.service";
+import { ResponseParserService } from "../../services/response-parser.service";
+
 
 // Repositories
 import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-version.repository";
@@ -19,7 +27,6 @@ import { AddTasksToTrelloUseCase } from "../../../application/use-cases/add-task
 
 // Use Cases - Design
 import { GenerateDesignUseCase } from "../../../application/use-cases/generate-design.use-case";
-import { GenerateDesignFromTextUseCase } from "../../../application/use-cases/generate-design-from-text.use-case";
 import { GenerateDesignFromConversationUseCase } from "../../../application/use-cases/generate-design-from-conversation.use-case";
 import { EditDesignWithAIUseCase } from "../../../application/use-cases/edit-design-with-ai.use-case";
 
@@ -44,7 +51,7 @@ import { ClientErrorController } from "../controllers/client-error.controller";
 import { UserMiddleware } from "../middleware/user.middleware";
 import { GenerateDesignBasedOnExistingUseCase } from "../../../application/use-cases/generate-design-based-on-existing.use-case";
 
-import { JsonToToonService } from "../../services/json-to-toon.service";
+
 
 export const setupDependencies = () => {
 
@@ -55,13 +62,28 @@ export const setupDependencies = () => {
     const clientErrorRepository = new TypeORMClientErrorRepository();
 
 
-
     // Services
     const trelloService = new TrelloService();
     const promptBuilderService = new PromptBuilderService();
     const aiCostCalculatorService = new AiCostCalculatorService()
+    const iconService = new IconService();
+    const clientFactory = new OpenAIClientFactory();
+    const toolCallHandler = new ToolCallHandlerService(iconService);
+    const timer = new Timer('AI Design Generation');
+    const responseParser = new ResponseParserService();
+    const messageBuilder = new MessageBuilderService(promptBuilderService);
+
     const aiExtractTasksService = new AiExtractTasksService(aiCostCalculatorService);
-    const defaultAiDesignService = new AiGenerateDesignService(promptBuilderService, aiCostCalculatorService);
+    const defaultAiDesignService = new AiGenerateDesignService(
+        promptBuilderService,
+        aiCostCalculatorService,
+        iconService,
+        clientFactory,
+        toolCallHandler,
+        responseParser,
+        messageBuilder,
+        timer,
+    );
 
     // Use Cases - Tasks
     const getBoardListsUseCase = new GetBoardListsUseCase(trelloService);
@@ -69,7 +91,6 @@ export const setupDependencies = () => {
     const addTasksToTrelloUseCase = new AddTasksToTrelloUseCase(trelloService);
     const generateDesignUseCase = new GenerateDesignUseCase(aiExtractTasksService);
 
-    const generateDesignFromTextUseCase = new GenerateDesignFromTextUseCase(defaultAiDesignService);
     const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(defaultAiDesignService);
     const editDesignWithAIUseCase = new EditDesignWithAIUseCase(defaultAiDesignService);
     const generateDesignBasedOnExistingUseCase = new GenerateDesignBasedOnExistingUseCase(
@@ -94,7 +115,6 @@ export const setupDependencies = () => {
     const userMiddleware = new UserMiddleware(userRepository);
 
     const designController = new DesignController(
-        generateDesignFromTextUseCase,
         generateDesignFromConversationUseCase,
         editDesignWithAIUseCase,
         generateDesignBasedOnExistingUseCase

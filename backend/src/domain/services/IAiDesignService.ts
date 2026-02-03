@@ -16,8 +16,6 @@ export interface DesignGenerationResult {
 }
 
 export interface IAiDesignService {
-    generateDesign(prompt: string, modelId: string, designSystemId: string): Promise<any>;
-    
     generateDesignFromConversation(
         userMessage: string,
         history: ConversationMessage[],
