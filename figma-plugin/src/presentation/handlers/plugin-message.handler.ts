@@ -1,5 +1,6 @@
 import { PluginMessage, IUIPort } from '../../domain/interfaces/ui-port.interface';
 import { INotificationPort } from '../../domain/interfaces/notification-port.interface';
+import { FrameInfo, PrototypeConnection } from '../../domain/entities/prototype-connection.entity';
 import {
   ImportDesignUseCase,
   ImportAIDesignUseCase,
@@ -48,8 +49,10 @@ export class PluginMessageHandler {
   }
 
   private async handleMessage(message: PluginMessage): Promise<void> {
-    console.log('📨 Plugin received:', message.type);
-    console.log("Plugin Message with Data", message);
+    if (message.type !== 'resize-window') {
+      console.log('📨 Plugin received:', message.type);
+      console.log('Full message data:', message);
+    }
 
     try {
       switch (message.type) {
@@ -125,6 +128,20 @@ export class PluginMessageHandler {
         case 'REPORT_ERROR':
           await this.handleReportError((message as any).errorData);
           break;
+        // ==================== PROTOTYPE HANDLERS ====================
+        case 'get-frames-for-prototype':
+          await this.handleGetFramesForPrototype();
+          break;
+        case 'generate-prototype-connections':
+          if (message.frames) {
+            await this.handleGeneratePrototypeConnections(message.frames, message.modelId);
+          }
+          break;
+        case 'apply-prototype-connections':
+          if (message.connections) {
+            await this.handleApplyPrototypeConnections(message.connections);
+          }
+          break;
         default:
           console.warn('Unknown message type:', message.type);
       }
@@ -134,6 +151,114 @@ export class PluginMessageHandler {
         actionType: `handleMessage:${message.type}`,
       });
       throw error;
+    }
+  }
+
+  // ==================== PROTOTYPE HANDLERS ====================
+
+  private async handleGetFramesForPrototype(): Promise<void> {
+    try {
+      const nodeRepository = new (await import('../../infrastructure/figma/figma-node.repository')).FigmaNodeRepository();
+      const frames = await nodeRepository.getFramesWithInteractiveElements();
+
+      this.uiPort.postMessage({
+        type: 'frames-loaded',
+        frames
+      });
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load frames';
+      this.uiPort.postMessage({
+        type: 'frames-load-error',
+        error: errorMessage
+      });
+
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleGetFramesForPrototype'
+      });
+    }
+  }
+
+  private async handleGeneratePrototypeConnections(
+    frames: FrameInfo[],
+    modelId?: string
+  ): Promise<void> {
+    try {
+      const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-prototype`, {
+        method: 'POST',
+        headers: await this.getUserInfoUseCase.execute(),
+        body: JSON.stringify({
+          frames,
+          modelId: modelId || 'mistralai/devstral-2512:free'
+        })
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Server error: ${response.status}`;
+        try {
+          const errorResult = await response.json();
+          errorMessage = errorResult.message || errorResult.error || errorMessage;
+        } catch (e) { }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+
+      this.uiPort.postMessage({
+        type: 'prototype-connections-generated',
+        connections: result.connections,
+        reasoning: result.reasoning,
+        cost: result.cost ? {
+          inputCost: result.cost.inputCost,
+          outputCost: result.cost.outputCost,
+          totalCost: result.cost.totalCost,
+          inputTokens: result.cost.inputTokens,
+          outputTokens: result.cost.outputTokens
+        } : undefined
+      });
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate connections';
+      this.uiPort.postMessage({
+        type: 'prototype-connections-error',
+        error: errorMessage
+      });
+
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleGeneratePrototypeConnections'
+      });
+    }
+  }
+
+  private async handleApplyPrototypeConnections(connections: PrototypeConnection[]): Promise<void> {
+    try {
+      const nodeRepository = new (await import('../../infrastructure/figma/figma-node.repository')).FigmaNodeRepository();
+      const result = await nodeRepository.applyPrototypeConnections(connections);
+
+      if (result.errors.length > 0) {
+        console.warn('Some connections had errors:', result.errors);
+      }
+
+      this.uiPort.postMessage({
+        type: 'prototype-applied',
+        appliedCount: result.appliedCount
+      });
+
+      this.notificationPort.notify(`✅ Applied ${result.appliedCount} prototype connections!`);
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to apply connections';
+      this.uiPort.postMessage({
+        type: 'prototype-apply-error',
+        error: errorMessage
+      });
+
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleApplyPrototypeConnections'
+      });
     }
   }
 
@@ -239,7 +364,7 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== AI EDIT DESIGN (MODIFIED) ====================
+  // ==================== AI EDIT DESIGN ====================
   private async handleAIEditDesign(
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
@@ -254,7 +379,7 @@ export class PluginMessageHandler {
 
       const selectedModel = model || 'mistralai/devstral-2512:free';
 
-      // ========== NEW: STRIP IMAGES BEFORE SENDING TO BACKEND ==========
+      // Strip images before sending to backend
       console.log('🔧 Plugin: Stripping images before sending to backend...');
       const originalSize = JSON.stringify(layerJson).length;
 
@@ -269,7 +394,6 @@ export class PluginMessageHandler {
       // Store image references for later restoration
       const requestKey = `edit_request_${Date.now()}`;
       this.imageReferencesStore.set(requestKey, imageReferences);
-      // ================================================================
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
         method: 'POST',
@@ -277,7 +401,7 @@ export class PluginMessageHandler {
         body: JSON.stringify({
           message: userMessage,
           history: this.conversationHistory,
-          currentDesign: cleanedDesign, // ← Send cleaned design (no images!)
+          currentDesign: cleanedDesign,
           modelId: selectedModel,
           designSystemId: designSystemId
         })
@@ -294,19 +418,18 @@ export class PluginMessageHandler {
 
       const result = await response.json();
 
-      // ========== NEW: RESTORE IMAGES TO AI RESPONSE ==========
+      // Restore images to AI response
       console.log('🔧 Plugin: Restoring images to AI response...');
       const restoredDesign = this.imageOptimizer.restoreImages(result.design, imageReferences);
       console.log('✅ Plugin: Images restored successfully');
 
       // Clean up stored references
       this.imageReferencesStore.delete(requestKey);
-      // ========================================================
 
       this.uiPort.postMessage({
         type: 'ai-edit-response',
         message: result.message,
-        designData: restoredDesign, // ← Send design with images restored
+        designData: restoredDesign,
         previewHtml: result.previewHtml,
         cost: result.cost ? {
           inputCost: result.cost.inputCost,
@@ -332,7 +455,7 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== GENERATE BASED ON EXISTING (MODIFIED) ====================
+  // ==================== GENERATE BASED ON EXISTING ====================
   private async handleGenerateBasedOnExisting(
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
@@ -348,11 +471,10 @@ export class PluginMessageHandler {
 
       const selectedModel = model || 'mistralai/devstral-2512:free';
 
-      // ========== NEW: STRIP IMAGES FROM REFERENCE ==========
+      // Strip images from reference
       console.log('🔧 Plugin: Stripping images from reference design...');
       const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(referenceJson);
       console.log(`📸 Plugin: Extracted ${imageReferences.length} images from reference`);
-      // ======================================================
 
       console.log("🎨 Generating design based on existing reference");
       console.log("📍 Endpoint: /api/designs/generate-based-on-existing");
@@ -363,7 +485,7 @@ export class PluginMessageHandler {
         body: JSON.stringify({
           message: userMessage,
           history: conversationHistory,
-          referenceDesign: cleanedDesign, // ← Send cleaned reference (no images!)
+          referenceDesign: cleanedDesign,
           modelId: selectedModel
         })
       });
@@ -380,8 +502,6 @@ export class PluginMessageHandler {
       const result = await response.json();
 
       console.log("✅ Received response from generate-based-on-existing");
-
-      // Note: New design won't have old images, so no restoration needed here
 
       this.uiPort.postMessage({
         type: 'ai-based-on-existing-response',
@@ -413,7 +533,7 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== AI CHAT FUNCTIONS (keep as is) ====================
+  // ==================== AI CHAT FUNCTIONS ====================
   private async handleAIChatMessage(
     userMessage: string,
     history?: Array<{ role: string; content: string }>,
@@ -478,8 +598,7 @@ export class PluginMessageHandler {
     }
   }
 
-  // ==================== IMPORT HANDLERS (keep all as is) ====================
-  // ... (keep all the import handlers exactly as they are)
+  // ==================== IMPORT HANDLERS ====================
 
   private async handleImportDesignFromChat(designData: unknown, buttonId: any): Promise<void> {
     try {

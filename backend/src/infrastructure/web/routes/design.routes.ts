@@ -3,7 +3,7 @@
 import { Router, Request, Response } from 'express';
 import { DesignController } from '../controllers/design.controller';
 import { validateRequest } from '../middleware/validation.middleware';
-import { generateFromConversationValidation, editWithAIValidation, generateBasedOnExistingValidation } from '../validation';
+import { generateFromConversationValidation, editWithAIValidation, generateBasedOnExistingValidation, generatePrototypeValidation } from '../validation';
 
 
 const designRoutes = (designController: DesignController): Router => {
@@ -26,6 +26,12 @@ const designRoutes = (designController: DesignController): Router => {
         generateBasedOnExistingValidation,
         validateRequest,
         (req: Request, res: Response) => designController.generateBasedOnExisting(req, res)
+    );
+
+    router.post('/generate-prototype',
+        generatePrototypeValidation,
+        validateRequest,
+        (req: Request, res: Response) => designController.generatePrototype(req, res)
     );
 
     return router;

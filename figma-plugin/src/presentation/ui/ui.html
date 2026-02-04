@@ -22,7 +22,7 @@
       <div id="mode-selection-screen">
         <div class="mode-selection-header">
           <h2>Choose Your Action</h2>
-          <p class="mode-subtitle">Create new, edit existing, or design based on reference</p>
+          <p class="mode-subtitle">Create new, edit existing, design based on reference, or create prototype</p>
         </div>
         <div class="mode-options">
           <div class="mode-card" id="create-mode-btn">
@@ -39,6 +39,70 @@
             <div class="mode-icon">🎨</div>
             <h3>Based on Existing</h3>
             <p>Create new design using existing style</p>
+          </div>
+          <div class="mode-card" id="prototype-mode-btn">
+            <div class="mode-icon">🔗</div>
+            <h3>Create Prototype</h3>
+            <p>Auto-generate prototype connections</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prototype Mode Panel -->
+      <div id="prototype-panel" style="display: none;">
+        <div id="prototype-header">
+          <button id="back-to-mode-from-prototype" class="back-btn">← Back to Mode Selection</button>
+          <div class="prototype-mode-info">
+            <span class="prototype-mode-label">🔗 Prototype Mode</span>
+            <span id="selected-frames-count" class="selected-layer-name">0 frames selected</span>
+          </div>
+        </div>
+
+        <!-- Frame Selection Panel -->
+        <div id="frame-selection-panel">
+          <div class="frame-selection-header">
+            <h3>📋 Select Frames</h3>
+            <button id="refresh-frames-btn" class="btn-secondary btn-small">🔄 Refresh</button>
+          </div>
+          <div id="frames-list" class="frames-list">
+            <div class="loading-state">
+              <div class="loading-spinner"></div>
+              <span>Loading frames...</span>
+            </div>
+          </div>
+          <div class="frame-selection-actions">
+            <button id="select-all-frames-btn" class="btn-secondary btn-small">Select All</button>
+            <button id="deselect-all-frames-btn" class="btn-secondary btn-small">Deselect All</button>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="prototype-generate-section">
+          <div id="model-selector-prototype" class="model-floating-btn">
+            <div class="model-btn-icon">🤖</div>
+            <span class="model-btn-text">Devstral-2512</span>
+          </div>
+          <button id="generate-connections-btn" class="btn-primary" disabled>
+            🤖 Generate Connections with AI
+          </button>
+        </div>
+
+        <!-- Connections Preview -->
+        <div id="connections-preview" style="display: none;">
+          <div class="connections-header">
+            <h3>🔗 Generated Connections</h3>
+            <span id="connections-count" class="connections-count">0 connections</span>
+          </div>
+          <div id="connections-reasoning" class="connections-reasoning" style="display: none;"></div>
+          <div id="connections-list" class="connections-list"></div>
+          <div id="connections-cost" class="cost-breakdown" style="display: none;"></div>
+          <div class="connections-actions">
+            <button id="apply-connections-btn" class="btn-success" disabled>
+              ✅ Apply Prototype
+            </button>
+            <button id="regenerate-connections-btn" class="btn-secondary">
+              🔄 Regenerate
+            </button>
           </div>
         </div>
       </div>

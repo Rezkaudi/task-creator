@@ -50,6 +50,8 @@ import { ClientErrorController } from "../controllers/client-error.controller";
 
 import { UserMiddleware } from "../middleware/user.middleware";
 import { GenerateDesignBasedOnExistingUseCase } from "../../../application/use-cases/generate-design-based-on-existing.use-case";
+import { GeneratePrototypeConnectionsUseCase } from "../../../application/use-cases/generate-prototype-connections.use-case";
+import { PrototypeService } from "../../services/prototype.service";
 
 
 
@@ -72,7 +74,10 @@ export const setupDependencies = () => {
     const timer = new Timer('AI Design Generation');
     const responseParser = new ResponseParserService();
     const messageBuilder = new MessageBuilderService(promptBuilderService);
-
+    const prototypeService = new PrototypeService(
+        clientFactory,
+        aiCostCalculatorService,
+    );
     const aiExtractTasksService = new AiExtractTasksService(aiCostCalculatorService);
     const defaultAiDesignService = new AiGenerateDesignService(
         promptBuilderService,
@@ -98,6 +103,10 @@ export const setupDependencies = () => {
         jsonToToonService
     );
 
+    const generatePrototypeConnectionsUseCase = new GeneratePrototypeConnectionsUseCase(
+        prototypeService
+    );
+
 
 
     const saveDesignVersionUseCase = new SaveDesignVersionUseCase(designVersionRepository);
@@ -117,7 +126,8 @@ export const setupDependencies = () => {
     const designController = new DesignController(
         generateDesignFromConversationUseCase,
         editDesignWithAIUseCase,
-        generateDesignBasedOnExistingUseCase
+        generateDesignBasedOnExistingUseCase,
+        generatePrototypeConnectionsUseCase
     );
 
     const designVersionController = new DesignVersionController(

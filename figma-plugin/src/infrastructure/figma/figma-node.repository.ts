@@ -1,4 +1,5 @@
 import { DesignNode, hasChildren, isTextNode } from '../../domain/entities/design-node';
+import { FrameInfo, InteractiveElement, PrototypeConnection, ApplyPrototypeResult } from '../../domain/entities/prototype-connection.entity';
 import { INodeRepository, SelectionInfo, ComponentRegistry as IComponentRegistry } from '../../domain/interfaces/node-repository.interface';
 import { NodeTypeMapper } from '../mappers/node-type.mapper';
 import {
@@ -146,6 +147,237 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
    */
   clearComponentRegistry(): void {
     this.componentRegistry.clear();
+  }
+
+  /**
+   * Get all frames from current page with their interactive elements
+   */
+  async getFramesWithInteractiveElements(): Promise<FrameInfo[]> {
+    const frames: FrameInfo[] = [];
+    const page = figma.currentPage;
+
+    for (const node of page.children) {
+      if (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') {
+        const frameInfo = await this.extractFrameInfo(node as FrameNode);
+        frames.push(frameInfo);
+      }
+    }
+
+    return frames;
+  }
+
+  /**
+   * Extract frame info with interactive elements
+   */
+  private async extractFrameInfo(frame: FrameNode | ComponentNode | ComponentSetNode): Promise<FrameInfo> {
+    const interactiveElements: InteractiveElement[] = [];
+
+    const findInteractiveElements = (node: SceneNode, parentFrameId: string, parentFrameName: string) => {
+      // Check if this node could be interactive (buttons, links, icons, etc.)
+      const isInteractive = this.isInteractiveElement(node);
+
+      if (isInteractive) {
+        interactiveElements.push({
+          nodeId: node.id,
+          name: node.name,
+          type: node.type,
+          parentFrameId,
+          parentFrameName
+        });
+      }
+
+      // Recursively search children
+      if ('children' in node) {
+        for (const child of node.children) {
+          findInteractiveElements(child, parentFrameId, parentFrameName);
+        }
+      }
+    };
+
+    // Search for interactive elements in this frame
+    if ('children' in frame) {
+      for (const child of frame.children) {
+        findInteractiveElements(child, frame.id, frame.name);
+      }
+    }
+
+    return {
+      id: frame.id,
+      name: frame.name,
+      width: frame.width,
+      height: frame.height,
+      interactiveElements
+    };
+  }
+
+  /**
+   * Check if a node is likely to be interactive
+   */
+  private isInteractiveElement(node: SceneNode): boolean {
+    const name = node.name.toLowerCase();
+
+    // Check by name patterns
+    const interactivePatterns = [
+      'button', 'btn', 'cta', 'link', 'nav', 'menu', 'tab',
+      'icon', 'arrow', 'close', 'back', 'next', 'prev',
+      'submit', 'cancel', 'confirm', 'delete', 'edit',
+      'login', 'signup', 'sign up', 'sign in', 'logout',
+      'card', 'item', 'option', 'select', 'dropdown',
+      'toggle', 'switch', 'checkbox', 'radio',
+      'input', 'field', 'search', 'filter'
+    ];
+
+    for (const pattern of interactivePatterns) {
+      if (name.includes(pattern)) {
+        return true;
+      }
+    }
+
+    // Check by node type
+    if (node.type === 'INSTANCE' || node.type === 'COMPONENT') {
+      return true;
+    }
+
+    // Check if it's a small-ish clickable area (likely a button/icon)
+    if ('width' in node && 'height' in node) {
+      const isSmallEnough = node.width < 400 && node.height < 200;
+      const isNotTooSmall = node.width > 20 && node.height > 20;
+      if (isSmallEnough && isNotTooSmall && (node.type === 'FRAME' || node.type === 'GROUP')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Apply prototype connections to Figma nodes
+   */
+  async applyPrototypeConnections(connections: PrototypeConnection[]): Promise<ApplyPrototypeResult> {
+    const errors: string[] = [];
+    let appliedCount = 0;
+
+    for (const connection of connections) {
+      try {
+        // Get source node
+        const sourceNode = await figma.getNodeByIdAsync(connection.sourceNodeId);
+        if (!sourceNode) {
+          errors.push(`Source node not found: ${connection.sourceNodeId} (${connection.sourceNodeName})`);
+          continue;
+        }
+
+        // Get target frame
+        const targetNode = await figma.getNodeByIdAsync(connection.targetFrameId);
+        if (!targetNode) {
+          errors.push(`Target frame not found: ${connection.targetFrameId} (${connection.targetFrameName})`);
+          continue;
+        }
+
+        // Check if source node supports reactions
+        if (!('reactions' in sourceNode)) {
+          errors.push(`Source node doesn't support reactions: ${connection.sourceNodeName}`);
+          continue;
+        }
+
+        // Build the reaction
+        const reaction = this.buildReaction(connection, targetNode as FrameNode);
+
+        // Apply the reaction using async method
+        const reactionsNode = sourceNode as ReactionMixin;
+        const existingReactions = [...(reactionsNode.reactions || [])];
+
+        // Check if similar reaction already exists
+        const hasExisting = existingReactions.some(r =>
+          r.trigger?.type === reaction.trigger?.type &&
+          r.actions?.[0]?.type === 'NODE' &&
+          (r.actions[0] as any).destinationId === connection.targetFrameId
+        );
+
+        if (!hasExisting) {
+          await reactionsNode.setReactionsAsync([...existingReactions, reaction]);
+          appliedCount++;
+          console.log(`✅ Applied connection: ${connection.sourceNodeName} → ${connection.targetFrameName}`);
+        } else {
+          console.log(`⏭️ Skipped (already exists): ${connection.sourceNodeName} → ${connection.targetFrameName}`);
+        }
+
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        errors.push(`Error applying ${connection.sourceNodeName} → ${connection.targetFrameName}: ${errorMsg}`);
+        console.error('Error applying connection:', error);
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      appliedCount,
+      errors
+    };
+  }
+  /**
+   * Build a Figma reaction from connection data
+   */
+  private buildReaction(connection: PrototypeConnection, targetNode: FrameNode): Reaction {
+    // Map trigger type
+    const triggerMap: Record<string, Trigger> = {
+      'ON_CLICK': { type: 'ON_CLICK' },
+      'ON_HOVER': { type: 'ON_HOVER' },
+      'ON_PRESS': { type: 'ON_PRESS' },
+      'ON_DRAG': { type: 'ON_DRAG' }
+    };
+
+    // TODO: Re-enable animation support in future
+    // Animation implementation commented out - uncomment to restore
+    /*
+    // Map animation type
+    const transitionMap: Record<string, Transition | null> = {
+      'INSTANT': null,
+      'DISSOLVE': { type: 'DISSOLVE', easing: { type: 'EASE_OUT' }, duration: connection.animation.duration || 300 },
+      'SMART_ANIMATE': { type: 'SMART_ANIMATE', easing: { type: 'EASE_OUT' }, duration: connection.animation.duration || 300 },
+      'MOVE_IN': { type: 'MOVE_IN', direction: connection.animation.direction || 'LEFT', easing: { type: 'EASE_OUT' }, duration: connection.animation.duration || 300, matchLayers: false },
+      'MOVE_OUT': { type: 'MOVE_OUT', direction: connection.animation.direction || 'LEFT', easing: { type: 'EASE_OUT' }, duration: connection.animation.duration || 300, matchLayers: false },
+      'PUSH': { type: 'PUSH', direction: connection.animation.direction || 'LEFT', easing: { type: 'EASE_OUT' }, duration: connection.animation.duration || 300, matchLayers: false },
+      'SLIDE_IN': { type: 'SLIDE_IN', direction: connection.animation.direction || 'LEFT', easing: { type: 'EASE_OUT' }, duration: connection.animation.duration || 300, matchLayers: false },
+      'SLIDE_OUT': { type: 'SLIDE_OUT', direction: connection.animation.direction || 'LEFT', easing: { type: 'EASE_OUT' }, duration: connection.animation.duration || 300, matchLayers: false }
+    };
+
+    // Map easing
+    const easingMap: Record<string, Easing> = {
+      'LINEAR': { type: 'EASE_IN_AND_OUT' },
+      'EASE_IN': { type: 'EASE_IN' },
+      'EASE_OUT': { type: 'EASE_OUT' },
+      'EASE_IN_AND_OUT': { type: 'EASE_IN_AND_OUT' },
+      'EASE_IN_BACK': { type: 'EASE_IN_BACK' },
+      'EASE_OUT_BACK': { type: 'EASE_OUT_BACK' },
+      'EASE_IN_AND_OUT_BACK': { type: 'EASE_IN_AND_OUT_BACK' }
+    };
+
+    let transition = transitionMap[connection.animation.type] || null;
+
+    // Apply custom easing if transition exists
+    if (transition && connection.animation.easing) {
+      transition = {
+        ...transition,
+        easing: easingMap[connection.animation.easing] || { type: 'EASE_OUT' }
+      };
+    }
+    */
+
+    // No animation - instant transition
+    const transition = null;
+
+    const action: Action = {
+      type: 'NODE',
+      destinationId: targetNode.id,
+      navigation: 'NAVIGATE',
+      transition,
+      preserveScrollPosition: false
+    };
+
+    return {
+      trigger: triggerMap[connection.trigger] || { type: 'ON_CLICK' },
+      actions: [action]
+    };
   }
 
   /**
@@ -370,61 +602,61 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
   }
 
   async getHeaders(): Promise<Record<string, string>> {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
 
-      const user = figma.currentUser;
+    const user = figma.currentUser;
 
-      if (user) {
-        // Safely handle null values
-        if (user.id) {
-          headers['x-figma-user-id'] = user.id;
-        }
-        if (user.name) {
-          headers['x-figma-user-name'] = this.encodeHeaderValue(user.name);
-        }
-
-        try {
-          const storageUser = await figma.clientStorage.getAsync(`figment:traits:${user.id}`);
-
-          if (storageUser) {
-            if (storageUser.name) {
-              headers['x-figma-user-name'] = this.encodeHeaderValue(String(storageUser.name));
-            }
-            if (storageUser.email) {
-              headers['x-figma-user-email'] = this.encodeHeaderValue(String(storageUser.email));
-            }
-          }
-        } catch (storageError) {
-          console.warn('Failed to read client storage:', storageError);
-        }
+    if (user) {
+      // Safely handle null values
+      if (user.id) {
+        headers['x-figma-user-id'] = user.id;
       }
-      
-      return headers;
+      if (user.name) {
+        headers['x-figma-user-name'] = this.encodeHeaderValue(user.name);
+      }
+
+      try {
+        const storageUser = await figma.clientStorage.getAsync(`figment:traits:${user.id}`);
+
+        if (storageUser) {
+          if (storageUser.name) {
+            headers['x-figma-user-name'] = this.encodeHeaderValue(String(storageUser.name));
+          }
+          if (storageUser.email) {
+            headers['x-figma-user-email'] = this.encodeHeaderValue(String(storageUser.email));
+          }
+        }
+      } catch (storageError) {
+        console.warn('Failed to read client storage:', storageError);
+      }
+    }
+
+    return headers;
   }
 
   /**
    * Encode a string to be safe for HTTP headers (ISO-8859-1 compatible)
    */
   private encodeHeaderValue(value: string | null | undefined): string {
-      // Handle null/undefined
-      if (value == null) return '';
-      
-      // Ensure it's a string
-      const strValue = String(value);
-      if (!strValue) return '';
+    // Handle null/undefined
+    if (value == null) return '';
 
-      try {
-        // Check if the string contains non-ASCII characters
-        if (/[^\x00-\x7F]/.test(strValue)) {
-          return encodeURIComponent(strValue);
-        }
-        return strValue;
-      } catch (error) {
-        console.warn('Error encoding header value:', error);
-        // Fallback: remove non-ASCII characters entirely
-        return strValue.replace(/[^\x00-\x7F]/g, '');
+    // Ensure it's a string
+    const strValue = String(value);
+    if (!strValue) return '';
+
+    try {
+      // Check if the string contains non-ASCII characters
+      if (/[^\x00-\x7F]/.test(strValue)) {
+        return encodeURIComponent(strValue);
       }
+      return strValue;
+    } catch (error) {
+      console.warn('Error encoding header value:', error);
+      // Fallback: remove non-ASCII characters entirely
+      return strValue.replace(/[^\x00-\x7F]/g, '');
+    }
   }
 }
