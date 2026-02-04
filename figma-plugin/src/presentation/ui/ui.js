@@ -60,7 +60,7 @@ const modelFloatingBtn = document.getElementById('model-floating-btn');
 const modelPanel = document.getElementById('model-panel');
 const modelPanelBackdrop = document.getElementById('model-panel-backdrop');
 const closeModelPanel = document.getElementById('close-model-panel');
-const modelBtnText = document.querySelector('.model-btn-text');
+const modelBtnText = document.querySelectorAll('.model-btn-text');
 const selectedModelInfo = document.getElementById('selected-model-info');
 const currentModelNameEl = document.getElementById('current-model-name');
 
@@ -245,16 +245,6 @@ function initModelSelection() {
             modelsLoaded = true;
         }
     });
-
-    // Load saved model from localStorage
-    try {
-        const savedModel = localStorage.getItem('figma-ai-model');
-        if (savedModel) {
-            currentModel = savedModel;
-        }
-    } catch (e) {
-        console.log('LocalStorage load error:', e);
-    }
 }
 
 function toggleModelPanel() {
@@ -293,18 +283,20 @@ function selectModel(modelId, showNotification = true) {
         item.querySelector('.model-item-check').textContent = isActive ? '✓' : '';
     });
 
-    // Store in localStorage
-    try {
-        localStorage.setItem('figma-ai-model', modelId);
-    } catch (e) {
-        console.log('LocalStorage save error:', e);
-    }
+    // // Store in localStorage
+    // try {
+    //     localStorage.setItem('figma-ai-model', modelId);
+    // } catch (e) {
+    //     console.log('LocalStorage save error:', e);
+    // }
 }
 
 function updateModelUI(model, showNotification = true) {
     // Update floating button text
-    if (modelBtnText) {
-        modelBtnText.textContent = model.name;
+    if (modelBtnText && modelBtnText.length > 0) {
+        modelBtnText.forEach(el => {
+            el.textContent = model.name;
+        });
     }
 
     // Update selected model info
@@ -348,16 +340,6 @@ function initDesignSystemSelection() {
             systemsLoaded = true;
         }
     });
-
-    // Load saved design system from localStorage
-    try {
-        const savedSystem = localStorage.getItem('figma-design-system');
-        if (savedSystem) {
-            currentDesignSystem = savedSystem;
-        }
-    } catch (e) {
-        console.log('LocalStorage load error:', e);
-    }
 }
 
 function toggleDesignSystemPanel() {
@@ -437,18 +419,6 @@ async function fetchDesignSystems() {
         availableDesignSystems = data.systems;
         renderDesignSystemList(availableDesignSystems);
         showDesignSystemStatus(`✅ Loaded ${data.count} design systems`, 'success');
-
-        // Load saved design system
-        try {
-            const savedSystem = localStorage.getItem('figma-design-system');
-            if (savedSystem) {
-                selectDesignSystem(savedSystem, false);
-            } else if (availableDesignSystems.length > 0) {
-                selectDesignSystem(currentDesignSystem, false);
-            }
-        } catch (e) {
-            console.log('LocalStorage error:', e);
-        }
 
         setTimeout(() => hideDesignSystemStatus(), 2000);
     } catch (error) {
@@ -576,7 +546,7 @@ function showChatInterface() {
     if (currentMode === 'edit') {
         welcomeMessage = `I'll help you edit <strong>"${selectedLayerForEdit}"</strong> using ${modelName} and ${systemName}. What changes would you like to make?`;
     } else {
-        welcomeMessage = `Hi! I'll create your design using ${modelName} and ${systemName}. Describe what you want. 🎨`;
+        welcomeMessage = `Hi! I'll create your design. Describe what you want. 🎨`;
     }
 
     if (chatMessagesEl) {
@@ -1116,18 +1086,6 @@ async function fetchAIModels() {
         renderModelList(availableModels);
         showModelStatus(`✅ Loaded ${data.count} models`, 'success');
 
-        // Load saved model
-        try {
-            const savedModel = localStorage.getItem('figma-ai-model');
-            if (savedModel) {
-                selectModel(savedModel, false);
-            } else if (availableModels.length > 0) {
-                selectModel(currentModel, false);
-            }
-        } catch (e) {
-            console.log('LocalStorage error:', e);
-        }
-
         setTimeout(() => hideModelStatus(), 2000);
     } catch (error) {
         console.error('Failed to fetch AI models:', error);
@@ -1176,8 +1134,10 @@ function renderModelList(models) {
 }
 
 function updateModelButton(model) {
-    if (modelBtnText) {
-        modelBtnText.textContent = model.name;
+    if (modelBtnText && modelBtnText.length > 0) {
+        modelBtnText.forEach(el => {
+            el.textContent = model.name;
+        });
     }
 }
 

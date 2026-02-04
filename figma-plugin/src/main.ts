@@ -27,7 +27,7 @@ import {
   ExportAllUseCase,
   DesignDataParser,
   NodeCounter,
-  AccessControlService, 
+  AccessControlService,
 } from './application';
 
 // Presentation
@@ -122,7 +122,6 @@ class PluginApplication {
    */
   run(): void {
     console.log('==================');
-    console.log('🔐 Checking Access...');
     console.log('Your User ID:', figma.currentUser?.id);
     console.log('Your Name:', figma.currentUser?.name);
     console.log('==================');
@@ -130,10 +129,8 @@ class PluginApplication {
     if (!AccessControlService.checkAccess()) {
       console.log('❌ Access Denied - Plugin closing');
       figma.closePlugin();
-      return; 
+      return;
     }
-
-    console.log('✅ Access Granted - Loading plugin');
 
     this.uiPort.show({
       width: PluginConfig.UI_WIDTH,
@@ -146,7 +143,7 @@ class PluginApplication {
     this.selectionChangeHandler.initialize();
 
     // Log startup
-    console.log('Task Creator Plugin initialized with Clean Architecture');
+    console.log('Rio Plugin initialized  successfully');
   }
 }
 

@@ -645,7 +645,7 @@ button:disabled:not(.design-preview button) {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    min-height: 300px;
+    min-height: 400px;
     max-height: calc(100vh - 300px);
 }
 
