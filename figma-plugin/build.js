@@ -2,93 +2,80 @@ const esbuild = require("esbuild");
 const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
-const chokidar = require("chokidar");
 
-// 1. Runtime Configuration (Arguments Parsing)
+// ── Args & Environment ──────────────────────────────────────────────
 const isProd = process.argv.includes("--prod");
 const isWatch = process.argv.includes("--watch");
 
-// 2. Load the appropriate environment file
 const envFile = isProd ? ".env.production" : ".env";
 const envPath = path.join(__dirname, envFile);
-
-// Ensure the file exists
 if (!fs.existsSync(envPath)) {
-  console.error(`❌ Error: Environment file ${envFile} not found!`);
+  console.error(`❌ Environment file ${envFile} not found!`);
   process.exit(1);
 }
 
-const envConfig = dotenv.config({ path: envPath }).parsed;
-const BACKEND_URL = envConfig.BACKEND_URL;
+const { BACKEND_URL } = dotenv.config({ path: envPath }).parsed;
+console.log(`🔧 ${isProd ? "Production 🚀" : "Development 🛠️"}  · API: ${BACKEND_URL}`);
 
-console.log(`🔧 Mode: ${isProd ? "Production 🚀" : "Development 🛠️"}`);
-console.log(`🔌 API URL: ${BACKEND_URL}`);
+const define = { "process.env.BACKEND_URL": JSON.stringify(BACKEND_URL) };
 
-// 3. UI Build Function
+// ── UI Build (inline CSS + JS into a single HTML file) ──────────────
+const UI_SRC = path.join(__dirname, "src/presentation/ui");
+const DIST = path.join(__dirname, "dist");
+
 function buildUI() {
   try {
-    const srcDir = path.join(__dirname, "src/presentation/ui");
-    const distDir = path.join(__dirname, "dist");
+    const html = fs.readFileSync(path.join(UI_SRC, "ui.html"), "utf8");
+    const css = fs.readFileSync(path.join(UI_SRC, "ui.css"), "utf8");
+    let js = fs.readFileSync(path.join(UI_SRC, "ui.js"), "utf8");
 
-    const html = fs.readFileSync(path.join(srcDir, "ui.html"), "utf8");
-    const css = fs.readFileSync(path.join(srcDir, "ui.css"), "utf8");
-    let js = fs.readFileSync(path.join(srcDir, "ui.js"), "utf8");
+    // Inject env vars the same way esbuild's `define` would
+    js = js.replace(/process\.env\.BACKEND_URL/g, JSON.stringify(BACKEND_URL))
+           .replace(/"PROCESS_ENV_BACKEND_URL"/g, JSON.stringify(BACKEND_URL));
 
-    // Replace the URL inside JS
-    js = js
-      .replace(/process\.env\.BACKEND_URL/g, `"${BACKEND_URL}"`)
-      .replace(/"PROCESS_ENV_BACKEND_URL"/g, `"${BACKEND_URL}"`);
-
-    // Merge files (Inlining)
-    let output = html
-      .replace(
-        '<link rel="stylesheet" href="./ui.css">',
-        `<style>\n${css}\n</style>`,
-      )
+    const output = html
+      .replace('<link rel="stylesheet" href="./ui.css">', `<style>\n${css}\n</style>`)
       .replace('<script src="./ui.js"></script>', `<script>\n${js}\n</script>`);
 
-    if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true });
-    fs.writeFileSync(path.join(distDir, "ui.html"), output);
-
-    console.log("✅ UI Built successfully");
-  } catch (error) {
-    console.error("❌ UI Build failed:", error);
+    fs.mkdirSync(DIST, { recursive: true });
+    fs.writeFileSync(path.join(DIST, "ui.html"), output);
+    console.log("✅ UI built");
+  } catch (err) {
+    console.error("❌ UI build failed:", err);
   }
 }
 
-// 4. esbuild Configuration
-const buildOptions = {
+// ── Code Build (esbuild for plugin sandbox) ─────────────────────────
+const codeBuildOptions = {
   entryPoints: ["src/main.ts"],
   bundle: true,
   outfile: "dist/code.js",
   target: "es2017",
-  minify: isProd, // Minify code only in production
+  minify: isProd,
   sourcemap: !isProd,
-  define: {
-    "process.env.BACKEND_URL": JSON.stringify(BACKEND_URL),
-  },
+  define,
+  logLevel: "info",
 };
 
-// 5. Main Execution
+// ── Run ─────────────────────────────────────────────────────────────
 async function run() {
-  // Run UI build once
   buildUI();
 
   if (isWatch) {
-    // Watch Mode
-    const ctx = await esbuild.context(buildOptions);
+    const ctx = await esbuild.context(codeBuildOptions);
     await ctx.watch();
-    console.log("👀 Watching code changes...");
+    console.log("👀 Watching code changes…");
 
-    // Watch UI files using chokidar
-    chokidar.watch("src/presentation/ui/**/*").on("change", () => {
-      console.log("🎨 UI changed, rebuilding...");
-      buildUI();
+    // Watch UI source files with Node's built-in fs.watch (no chokidar needed)
+    fs.watch(UI_SRC, { recursive: true }, (_event, filename) => {
+      if (filename) {
+        console.log(`🎨 UI changed (${filename}), rebuilding…`);
+        buildUI();
+      }
     });
   } else {
-    // Single Build Mode
-    await esbuild.build(buildOptions);
-    console.log("✅ Code Bundle built successfully");
+    await esbuild.build(codeBuildOptions);
+    console.log("✅ Code bundle built");
   }
 }
 
