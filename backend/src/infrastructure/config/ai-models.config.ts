@@ -40,6 +40,17 @@ export const AI_MODELS: AIModelConfig[] = [
     outputPricePerMillion: 0.00
   },
   // paid
+    {
+    id: 'devstral-latest',
+    name: 'Devstral Latest',
+    description: 'Latest Mistral coding model',
+    icon: 'DL',
+    maxTokens: 262144,
+    apiKey: ENV_CONFIG.MISTRAL_API_KEY,
+    baseURL: "https://api.mistral.ai/v1",
+    inputPricePerMillion: 0.40,
+    outputPricePerMillion: 2.00
+  },
   {
     id: 'gpt-5.2',
     name: 'GPT-5.2',
