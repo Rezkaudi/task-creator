@@ -546,7 +546,7 @@ function showChatInterface() {
     if (currentMode === 'edit') {
         welcomeMessage = `I'll help you edit <strong>"${selectedLayerForEdit}"</strong> using ${modelName} and ${systemName}. What changes would you like to make?`;
     } else {
-        welcomeMessage = `Hi! I'll create your design. Describe what you want. 🎨`;
+        welcomeMessage = `Hi! I'll create your design using ${modelName} and ${systemName}. Describe what you want. 🎨`;
     }
 
     if (chatMessagesEl) {
