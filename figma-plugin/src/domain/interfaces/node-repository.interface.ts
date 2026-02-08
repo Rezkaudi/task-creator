@@ -1,4 +1,5 @@
 import { DesignNode } from '../entities/design-node';
+import { FrameInfo, PrototypeConnection, ApplyPrototypeResult } from '../entities/prototype-connection.entity';
 
 /**
  * Selection info returned from the canvas
@@ -83,4 +84,14 @@ export interface INodeRepository {
   clearComponentRegistry(): void;
 
   getHeaders(): Promise<HeadersInit>;
+
+  /**
+   * Get all frames from current page with their interactive elements
+   */
+  getFramesWithInteractiveElements(): Promise<FrameInfo[]>;
+
+  /**
+   * Apply prototype connections to Figma nodes
+   */
+  applyPrototypeConnections(connections: PrototypeConnection[]): Promise<ApplyPrototypeResult>;
 }

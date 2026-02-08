@@ -24,6 +24,11 @@ let isBasedOnExistingMode = false;
 let referenceDesignJson = null;
 let referenceLayerName = '';
 
+// Prototype mode state
+let prototypeFrames = [];
+let selectedFrameIds = new Set();
+let generatedConnections = [];
+let isGeneratingConnections = false;
 
 // ==================== ELEMENTS ====================
 // These might be null if commented out in HTML
@@ -55,7 +60,7 @@ const modelFloatingBtn = document.getElementById('model-floating-btn');
 const modelPanel = document.getElementById('model-panel');
 const modelPanelBackdrop = document.getElementById('model-panel-backdrop');
 const closeModelPanel = document.getElementById('close-model-panel');
-const modelBtnText = document.querySelector('.model-btn-text');
+const modelBtnText = document.querySelectorAll('.model-btn-text');
 const selectedModelInfo = document.getElementById('selected-model-info');
 const currentModelNameEl = document.getElementById('current-model-name');
 
@@ -94,6 +99,24 @@ const backToModeFromBasedBtn = document.getElementById('back-to-mode-selection-f
 const basedOnExistingModeHeader = document.getElementById('based-on-existing-mode-header');
 const referenceLayerNameEl = document.getElementById('reference-layer-name');
 
+// Prototype elements
+const prototypeModeBtn = document.getElementById('prototype-mode-btn');
+const prototypePanel = document.getElementById('prototype-panel');
+const backToModeFromPrototypeBtn = document.getElementById('back-to-mode-from-prototype');
+const framesListEl = document.getElementById('frames-list');
+const refreshFramesBtn = document.getElementById('refresh-frames-btn');
+const selectAllFramesBtn = document.getElementById('select-all-frames-btn');
+const deselectAllFramesBtn = document.getElementById('deselect-all-frames-btn');
+const generateConnectionsBtn = document.getElementById('generate-connections-btn');
+const connectionsPreview = document.getElementById('connections-preview');
+const connectionsList = document.getElementById('connections-list');
+const connectionsCount = document.getElementById('connections-count');
+const connectionsReasoning = document.getElementById('connections-reasoning');
+const connectionsCost = document.getElementById('connections-cost');
+const applyConnectionsBtn = document.getElementById('apply-connections-btn');
+const regenerateConnectionsBtn = document.getElementById('regenerate-connections-btn');
+const selectedFramesCount = document.getElementById('selected-frames-count');
+const modelSelectorPrototype = document.getElementById('model-selector-prototype');
 
 basedOnExistingModeBtn.addEventListener('click', () => {
     // showStatus('📍 Please select a reference layer...', 'info');
@@ -101,6 +124,66 @@ basedOnExistingModeBtn.addEventListener('click', () => {
         pluginMessage: { type: 'request-layer-selection-for-reference' }
     }, '*');
 });
+
+// Prototype mode button
+if (prototypeModeBtn) {
+    prototypeModeBtn.addEventListener('click', () => {
+        currentMode = 'prototype';
+        showPrototypeInterface();
+    });
+}
+
+if (backToModeFromPrototypeBtn) {
+    backToModeFromPrototypeBtn.addEventListener('click', () => {
+        resetToModeSelection();
+    });
+}
+
+if (refreshFramesBtn) {
+    refreshFramesBtn.addEventListener('click', () => {
+        loadFramesForPrototype();
+    });
+}
+
+if (selectAllFramesBtn) {
+    selectAllFramesBtn.addEventListener('click', () => {
+        prototypeFrames.forEach(frame => selectedFrameIds.add(frame.id));
+        renderFramesList();
+        updateGenerateButton();
+    });
+}
+
+if (deselectAllFramesBtn) {
+    deselectAllFramesBtn.addEventListener('click', () => {
+        selectedFrameIds.clear();
+        renderFramesList();
+        updateGenerateButton();
+    });
+}
+
+if (generateConnectionsBtn) {
+    generateConnectionsBtn.addEventListener('click', () => {
+        generatePrototypeConnections();
+    });
+}
+
+if (applyConnectionsBtn) {
+    applyConnectionsBtn.addEventListener('click', () => {
+        applyPrototypeConnections();
+    });
+}
+
+if (regenerateConnectionsBtn) {
+    regenerateConnectionsBtn.addEventListener('click', () => {
+        generatePrototypeConnections();
+    });
+}
+
+if (modelSelectorPrototype) {
+    modelSelectorPrototype.addEventListener('click', () => {
+        openModelPanel();
+    });
+}
 
 backToModeFromBasedBtn.addEventListener('click', () => {
     resetToModeSelection();
@@ -162,16 +245,6 @@ function initModelSelection() {
             modelsLoaded = true;
         }
     });
-
-    // Load saved model from localStorage
-    try {
-        const savedModel = localStorage.getItem('figma-ai-model');
-        if (savedModel) {
-            currentModel = savedModel;
-        }
-    } catch (e) {
-        console.log('LocalStorage load error:', e);
-    }
 }
 
 function toggleModelPanel() {
@@ -210,18 +283,20 @@ function selectModel(modelId, showNotification = true) {
         item.querySelector('.model-item-check').textContent = isActive ? '✓' : '';
     });
 
-    // Store in localStorage
-    try {
-        localStorage.setItem('figma-ai-model', modelId);
-    } catch (e) {
-        console.log('LocalStorage save error:', e);
-    }
+    // // Store in localStorage
+    // try {
+    //     localStorage.setItem('figma-ai-model', modelId);
+    // } catch (e) {
+    //     console.log('LocalStorage save error:', e);
+    // }
 }
 
 function updateModelUI(model, showNotification = true) {
     // Update floating button text
-    if (modelBtnText) {
-        modelBtnText.textContent = model.name;
+    if (modelBtnText && modelBtnText.length > 0) {
+        modelBtnText.forEach(el => {
+            el.textContent = model.name;
+        });
     }
 
     // Update selected model info
@@ -265,16 +340,6 @@ function initDesignSystemSelection() {
             systemsLoaded = true;
         }
     });
-
-    // Load saved design system from localStorage
-    try {
-        const savedSystem = localStorage.getItem('figma-design-system');
-        if (savedSystem) {
-            currentDesignSystem = savedSystem;
-        }
-    } catch (e) {
-        console.log('LocalStorage load error:', e);
-    }
 }
 
 function toggleDesignSystemPanel() {
@@ -354,18 +419,6 @@ async function fetchDesignSystems() {
         availableDesignSystems = data.systems;
         renderDesignSystemList(availableDesignSystems);
         showDesignSystemStatus(`✅ Loaded ${data.count} design systems`, 'success');
-
-        // Load saved design system
-        try {
-            const savedSystem = localStorage.getItem('figma-design-system');
-            if (savedSystem) {
-                selectDesignSystem(savedSystem, false);
-            } else if (availableDesignSystems.length > 0) {
-                selectDesignSystem(currentDesignSystem, false);
-            }
-        } catch (e) {
-            console.log('LocalStorage error:', e);
-        }
 
         setTimeout(() => hideDesignSystemStatus(), 2000);
     } catch (error) {
@@ -553,12 +606,19 @@ function resetToModeSelection() {
     referenceDesignJson = null;
     referenceLayerName = '';
 
+    // Reset prototype state
+    selectedFrameIds.clear();
+    generatedConnections = [];
+
     modeSelectionScreen.style.display = 'flex';
     aiChatContainer.style.display = 'none';
     aiChatContainer.classList.remove('show-chat');
     editModeHeader.style.display = 'none';
     editModeHeader.classList.remove('show-header');
     basedOnExistingModeHeader.style.display = 'none';
+
+    // Hide prototype panel
+    if (prototypePanel) prototypePanel.style.display = 'none';
 
     chatInput.value = '';
 
@@ -1026,18 +1086,6 @@ async function fetchAIModels() {
         renderModelList(availableModels);
         showModelStatus(`✅ Loaded ${data.count} models`, 'success');
 
-        // Load saved model
-        try {
-            const savedModel = localStorage.getItem('figma-ai-model');
-            if (savedModel) {
-                selectModel(savedModel, false);
-            } else if (availableModels.length > 0) {
-                selectModel(currentModel, false);
-            }
-        } catch (e) {
-            console.log('LocalStorage error:', e);
-        }
-
         setTimeout(() => hideModelStatus(), 2000);
     } catch (error) {
         console.error('Failed to fetch AI models:', error);
@@ -1086,8 +1134,10 @@ function renderModelList(models) {
 }
 
 function updateModelButton(model) {
-    if (modelBtnText) {
-        modelBtnText.textContent = model.name;
+    if (modelBtnText && modelBtnText.length > 0) {
+        modelBtnText.forEach(el => {
+            el.textContent = model.name;
+        });
     }
 }
 
@@ -1616,6 +1666,195 @@ if (cancelBtn) {
     });
 }
 
+// ==================== PROTOTYPE FUNCTIONS ====================
+
+function showPrototypeInterface() {
+    modeSelectionScreen.style.display = 'none';
+    aiChatContainer.style.display = 'none';
+    prototypePanel.style.display = 'block';
+
+    // Reset state
+    selectedFrameIds.clear();
+    generatedConnections = [];
+    connectionsPreview.style.display = 'none';
+
+    // Load frames
+    loadFramesForPrototype();
+}
+
+function loadFramesForPrototype() {
+    framesListEl.innerHTML = `
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <span>Loading frames...</span>
+        </div>
+    `;
+
+    parent.postMessage({
+        pluginMessage: { type: 'get-frames-for-prototype' }
+    }, '*');
+}
+
+function renderFramesList() {
+    if (!prototypeFrames || prototypeFrames.length === 0) {
+        framesListEl.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🖼️</div>
+                <div class="empty-state-text">No frames found on this page.<br>Create some frames first.</div>
+            </div>
+        `;
+        return;
+    }
+
+    framesListEl.innerHTML = prototypeFrames.map(frame => `
+        <div class="frame-item ${selectedFrameIds.has(frame.id) ? 'selected' : ''}" data-frame-id="${frame.id}">
+            <label class="frame-checkbox">
+                <input type="checkbox" ${selectedFrameIds.has(frame.id) ? 'checked' : ''} />
+                <span class="checkmark"></span>
+            </label>
+            <div class="frame-info">
+                <div class="frame-name">${escapeHtml(frame.name)}</div>
+                <div class="frame-details">
+                    <span class="frame-size">${Math.round(frame.width)}×${Math.round(frame.height)}</span>
+                    <span class="frame-elements">${frame.interactiveElements.length} interactive elements</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    // Add click handlers
+    document.querySelectorAll('.frame-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.type === 'checkbox') return;
+
+            const frameId = item.dataset.frameId;
+            const checkbox = item.querySelector('input[type="checkbox"]');
+
+            if (selectedFrameIds.has(frameId)) {
+                selectedFrameIds.delete(frameId);
+                checkbox.checked = false;
+                item.classList.remove('selected');
+            } else {
+                selectedFrameIds.add(frameId);
+                checkbox.checked = true;
+                item.classList.add('selected');
+            }
+
+            updateGenerateButton();
+        });
+
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', (e) => {
+            const frameId = item.dataset.frameId;
+            if (e.target.checked) {
+                selectedFrameIds.add(frameId);
+                item.classList.add('selected');
+            } else {
+                selectedFrameIds.delete(frameId);
+                item.classList.remove('selected');
+            }
+            updateGenerateButton();
+        });
+    });
+
+    updateGenerateButton();
+}
+
+function updateGenerateButton() {
+    const count = selectedFrameIds.size;
+    selectedFramesCount.textContent = `${count} frame${count !== 1 ? 's' : ''} selected`;
+    generateConnectionsBtn.disabled = count < 2;
+
+    if (count < 2) {
+        generateConnectionsBtn.title = 'Select at least 2 frames';
+    } else {
+        generateConnectionsBtn.title = '';
+    }
+}
+
+function generatePrototypeConnections() {
+    if (selectedFrameIds.size < 2) {
+        showStatus('⚠️ Please select at least 2 frames', 'warning');
+        return;
+    }
+
+    isGeneratingConnections = true;
+    generateConnectionsBtn.disabled = true;
+    generateConnectionsBtn.innerHTML = '<span class="loading"></span> Generating...';
+    connectionsPreview.style.display = 'none';
+
+    // Get selected frames data
+    const selectedFrames = prototypeFrames.filter(f => selectedFrameIds.has(f.id));
+
+    parent.postMessage({
+        pluginMessage: {
+            type: 'generate-prototype-connections',
+            frames: selectedFrames,
+            modelId: currentModel
+        }
+    }, '*');
+}
+
+function renderConnectionsPreview() {
+    if (!generatedConnections || generatedConnections.length === 0) {
+        connectionsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔗</div>
+                <div class="empty-state-text">No connections generated</div>
+            </div>
+        `;
+        applyConnectionsBtn.disabled = true;
+        return;
+    }
+
+    connectionsCount.textContent = `${generatedConnections.length} connection${generatedConnections.length !== 1 ? 's' : ''}`;
+
+    connectionsList.innerHTML = generatedConnections.map((conn, index) => `
+        <div class="connection-item" data-index="${index}">
+            <div class="connection-flow">
+                <span class="connection-source">${escapeHtml(conn.sourceNodeName)}</span>
+                <span class="connection-arrow">→</span>
+                <span class="connection-target">${escapeHtml(conn.targetFrameName)}</span>
+            </div>
+            <div class="connection-details">
+                <span class="connection-trigger">${conn.trigger.replace('_', ' ')}</span>
+                <span class="connection-animation">${conn.animation.type.replace('_', ' ')}</span>
+            </div>
+            ${conn.reasoning ? `<div class="connection-reasoning">${escapeHtml(conn.reasoning)}</div>` : ''}
+            <button class="connection-remove" data-index="${index}" title="Remove this connection">×</button>
+        </div>
+    `).join('');
+
+    // Add remove handlers
+    document.querySelectorAll('.connection-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const index = parseInt(btn.dataset.index);
+            generatedConnections.splice(index, 1);
+            renderConnectionsPreview();
+        });
+    });
+
+    applyConnectionsBtn.disabled = generatedConnections.length === 0;
+}
+
+function applyPrototypeConnections() {
+    if (generatedConnections.length === 0) {
+        showStatus('⚠️ No connections to apply', 'warning');
+        return;
+    }
+
+    applyConnectionsBtn.disabled = true;
+    applyConnectionsBtn.innerHTML = '<span class="loading"></span> Applying...';
+
+    parent.postMessage({
+        pluginMessage: {
+            type: 'apply-prototype-connections',
+            connections: generatedConnections
+        }
+    }, '*');
+}
+
 
 // ==================== PLUGIN MESSAGES ====================
 window.onmessage = async (event) => {
@@ -1623,20 +1862,6 @@ window.onmessage = async (event) => {
     if (!msg) return;
 
     switch (msg.type) {
-        case 'call-backend-for-claude':
-            try {
-                const designData = await callBackendForClaude(msg.prompt);
-                parent.postMessage({ pluginMessage: { type: 'design-generated-from-ai', designData } }, '*');
-            } catch (error) {
-                showStatus(`❌ AI Generation failed: ${error.message}`, 'error');
-                resetButton();
-                UIErrorReporter.reportErrorAsync(error, {
-                    componentName: 'PluginMessageHandler',
-                    actionType: 'call-backend-for-claude'
-                });
-            }
-            break;
-
         case 'layer-selected-for-edit':
             currentMode = 'edit';
             selectedLayerForEdit = msg.layerName;
@@ -1833,71 +2058,90 @@ window.onmessage = async (event) => {
                 actionType: 'ai-based-on-existing-error'
             });
             break;
+
+        case 'frames-loaded':
+            prototypeFrames = msg.frames || [];
+            renderFramesList();
+            break;
+
+        case 'frames-load-error':
+            framesListEl.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <div class="empty-state-text">Failed to load frames: ${escapeHtml(msg.error)}</div>
+                </div>
+            `;
+            UIErrorReporter.reportErrorAsync(new Error(msg.error), {
+                componentName: 'PrototypeMode',
+                actionType: 'frames-load-error'
+            });
+            break;
+
+        case 'prototype-connections-generated':
+            isGeneratingConnections = false;
+            generateConnectionsBtn.disabled = false;
+            generateConnectionsBtn.innerHTML = '🤖 Generate Connections with AI';
+
+            generatedConnections = msg.connections || [];
+            connectionsPreview.style.display = 'block';
+
+            if (msg.reasoning) {
+                connectionsReasoning.style.display = 'block';
+                connectionsReasoning.innerHTML = `<strong>AI Reasoning:</strong> ${escapeHtml(msg.reasoning)}`;
+            } else {
+                connectionsReasoning.style.display = 'none';
+            }
+
+            if (msg.cost) {
+                connectionsCost.style.display = 'block';
+                connectionsCost.innerHTML = `
+                    <div class="cost-header">💰 Cost</div>
+                    <div class="cost-row">
+                        <span class="cost-label">Total:</span>
+                        <span class="cost-value">${msg.cost.totalCost}</span>
+                    </div>
+                `;
+            } else {
+                connectionsCost.style.display = 'none';
+            }
+
+            renderConnectionsPreview();
+            showStatus(`✅ Generated ${generatedConnections.length} connections`, 'success');
+            setTimeout(hideStatus, 3000);
+            break;
+
+        case 'prototype-connections-error':
+            isGeneratingConnections = false;
+            generateConnectionsBtn.disabled = selectedFrameIds.size < 2;
+            generateConnectionsBtn.innerHTML = '🤖 Generate Connections with AI';
+            showStatus(`❌ ${msg.error}`, 'error');
+            UIErrorReporter.reportErrorAsync(new Error(msg.error), {
+                componentName: 'PrototypeMode',
+                actionType: 'prototype-connections-error'
+            });
+            break;
+
+        case 'prototype-applied':
+            applyConnectionsBtn.disabled = false;
+            applyConnectionsBtn.innerHTML = '✅ Apply Prototype';
+            showStatus(`✅ Applied ${msg.appliedCount} prototype connections!`, 'success');
+            setTimeout(() => {
+                resetToModeSelection();
+                hideStatus();
+            }, 2000);
+            break;
+
+        case 'prototype-apply-error':
+            applyConnectionsBtn.disabled = false;
+            applyConnectionsBtn.innerHTML = '✅ Apply Prototype';
+            showStatus(`❌ ${msg.error}`, 'error');
+            UIErrorReporter.reportErrorAsync(new Error(msg.error), {
+                componentName: 'PrototypeMode',
+                actionType: 'prototype-apply-error'
+            });
+            break;
     }
 };
-// ==================== RESIZE TEXTAREA FROM TOP ====================
-// function setupTextareaResize() {
-//     const textarea = document.getElementById('chat-input');
-//     if (!textarea) {
-//         console.warn('⚠️ chatInput not found');
-//         return;
-//     }
-
-//     console.log('✅ Resize initialized');
-
-//     let isResizing = false;
-//     let startY = 0;
-//     let startHeight = 0;
-
-//     textarea.addEventListener('mousedown', function (e) {
-//         const rect = textarea.getBoundingClientRect();
-//         const isTopEdge = e.clientY - rect.top < 10;
-
-//         if (isTopEdge) {
-//             isResizing = true;
-//             startY = e.clientY;
-//             startHeight = parseInt(getComputedStyle(textarea).height);
-//             e.preventDefault();
-
-//             document.body.style.cursor = 'ns-resize';
-//             document.body.style.userSelect = 'none';
-
-//             console.log('🎯 Started resize from:', startHeight);
-//         }
-//     });
-
-//     document.addEventListener('mousemove', function (e) {
-//         // Change cursor on hover
-//         if (!isResizing) {
-//             const rect = textarea.getBoundingClientRect();
-//             const isTopEdge = e.clientY - rect.top < 10 &&
-//                 e.clientX >= rect.left &&
-//                 e.clientX <= rect.right &&
-//                 e.clientY >= rect.top;
-
-//             textarea.style.cursor = isTopEdge ? 'ns-resize' : 'text';
-//             return;
-//         }
-
-//         // Resize
-//         const deltaY = startY - e.clientY;
-//         const newHeight = Math.max(44, Math.min(140, startHeight + deltaY));
-
-//         textarea.style.setProperty('height', newHeight + 'px', 'important');
-
-//         console.log('📏 Resizing to:', newHeight);
-//     });
-
-//     document.addEventListener('mouseup', function () {
-//         if (isResizing) {
-//             isResizing = false;
-//             document.body.style.cursor = '';
-//             document.body.style.userSelect = '';
-
-//             console.log('✋ Resize stopped at:', textarea.style.height);
-//         }
-//     });
-// }
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async function () {
@@ -1924,39 +2168,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         parent.postMessage({ pluginMessage: { type: 'get-selection-info' } }, '*');
     }, 100);
 });
-
-// Helper function (keep existing)
-async function callBackendForClaude(userPrompt) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/designs/generate-from-text`, {
-            method: 'POST',
-            headers: await getHeaders(),
-            body: JSON.stringify({
-                prompt: userPrompt,
-                modelId: currentModel,
-                designSystemId: currentDesignSystem
-            })
-        });
-
-        if (!response.ok) {
-            let errorMessage = `Server error: ${response.status}`;
-            try {
-                const err = await response.json();
-                errorMessage = err.message || err.error || errorMessage;
-            } catch (e) { }
-            throw new Error(errorMessage);
-        }
-
-        const result = await response.json();
-        return result.design || result.data || result;
-    } catch (error) {
-        UIErrorReporter.reportErrorAsync(error, {
-            componentName: 'BackendAPI',
-            actionType: 'callBackendForClaude'
-        });
-        throw error;
-    }
-}
 
 // ==================== WINDOW RESIZE ====================
 (function initResizeHandle() {

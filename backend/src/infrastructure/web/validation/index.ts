@@ -196,3 +196,14 @@ export const reportClientErrorValidation = [
         .isLength({ max: 255 })
         .withMessage('Action type must be less than 255 characters'),
 ];
+
+export const generatePrototypeValidation = [
+    body('frames')
+        .notEmpty().withMessage('Frames array is required')
+        .isArray({ min: 2 }).withMessage('At least 2 frames are required'),
+
+    body('modelId')
+        .optional()
+        .isString().withMessage('Model ID must be a string')
+        .isIn(AI_MODELS.map(model => model.id)).withMessage('Invalid model'),
+];

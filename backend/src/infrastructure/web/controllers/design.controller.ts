@@ -3,12 +3,15 @@ import { GenerateDesignFromConversationUseCase } from '../../../application/use-
 import { EditDesignWithAIUseCase } from '../../../application/use-cases/edit-design-with-ai.use-case';
 import { GenerateDesignBasedOnExistingUseCase } from '../../../application/use-cases/generate-design-based-on-existing.use-case';
 import { DesignGenerationResult } from '../../../domain/services/IAiDesignService';
+import { GeneratePrototypeConnectionsUseCase } from '../../../application/use-cases/generate-prototype-connections.use-case';
 
 export class DesignController {
     constructor(
         private readonly generateDesignFromConversationUseCase: GenerateDesignFromConversationUseCase,
         private readonly editDesignWithAIUseCase: EditDesignWithAIUseCase,
-        private readonly generateDesignBasedOnExistingUseCase: GenerateDesignBasedOnExistingUseCase
+        private readonly generateDesignBasedOnExistingUseCase: GenerateDesignBasedOnExistingUseCase,
+        private readonly generatePrototypeConnectionsUseCase: GeneratePrototypeConnectionsUseCase
+
     ) { }
 
     // Generate design from conversation with history
@@ -88,7 +91,7 @@ export class DesignController {
         }
     }
 
-    // ✨ NEW METHOD - Generate design based on existing design's style
+    // Generate design based on existing design's style
     async generateBasedOnExisting(req: Request, res: Response): Promise<void> {
         const { message, history, referenceDesign, modelId } = req.body;
 
@@ -133,4 +136,39 @@ export class DesignController {
             });
         }
     }
+
+    async generatePrototype(req: Request, res: Response): Promise<void> {
+        try {
+            const { frames, modelId } = req.body;
+
+            // Execute use case
+            const result = await this.generatePrototypeConnectionsUseCase.execute(
+                frames,
+                modelId
+            );
+
+            const response = {
+                success: true,
+                connections: result.connections,
+                message: result.message,
+                reasoning: result.reasoning,
+                cost: result.cost
+            };
+
+            res.status(200).json(response);
+
+        } catch (error) {
+            console.error('Error in generatePrototype:', error);
+
+            const response = {
+                success: false,
+                connections: [],
+                message: error instanceof Error ? error.message : 'An unexpected error occurred'
+            };
+
+            res.status(500).json(response);
+        }
+    }
+
+
 }

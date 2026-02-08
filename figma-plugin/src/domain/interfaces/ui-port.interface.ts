@@ -1,5 +1,6 @@
 import { SelectionInfo } from './node-repository.interface';
 import { DesignNode } from '../entities/design-node';
+import { FrameInfo, PrototypeConnection } from '../entities/prototype-connection.entity';
 
 /**
  * Design version info from backend
@@ -55,7 +56,14 @@ export type UIMessage =
   | { type: 'ai-based-on-existing-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo } // ✨ NEW
   | { type: 'ai-based-on-existing-error'; error: string } // ✨ NEW
   | { type: 'design-updated'; layerJson: any; buttonId?: string }
-  | { type: 'HEADERS_RESPONSE'; headers: any };
+  | { type: 'HEADERS_RESPONSE'; headers: any }
+  // Add to UIMessage type union (after existing types):
+  | { type: 'frames-loaded'; frames: FrameInfo[] }
+  | { type: 'frames-load-error'; error: string }
+  | { type: 'prototype-connections-generated'; connections: PrototypeConnection[]; reasoning?: string; cost?: CostInfo }
+  | { type: 'prototype-connections-error'; error: string }
+  | { type: 'prototype-applied'; appliedCount: number }
+  | { type: 'prototype-apply-error'; error: string }
 
 /**
  * Messages received from the UI (PluginMessage)
@@ -83,7 +91,7 @@ export type PluginMessage =
     isEditMode?: boolean;
   }
   | { type: 'request-layer-selection-for-edit' }
-  | { type: 'request-layer-selection-for-reference' } // ✨ NEW
+  | { type: 'request-layer-selection-for-reference' }
   | {
     type: 'ai-edit-design';
     message: string;
@@ -93,7 +101,7 @@ export type PluginMessage =
     designSystemId?: string;
   }
   | {
-    type: 'ai-generate-based-on-existing'; // ✨ NEW
+    type: 'ai-generate-based-on-existing';
     message: string;
     history?: Array<{ role: string; content: string }>;
     referenceJson: any;
@@ -108,7 +116,7 @@ export type PluginMessage =
     layerId?: string;
   }
   | {
-    type: 'import-based-on-existing-design'; // ✨ NEW
+    type: 'import-based-on-existing-design';
     designData: unknown;
     buttonId?: string;
   }
@@ -122,7 +130,11 @@ export type PluginMessage =
   | { type: 'load-version'; id: number }
   | { type: 'delete-version'; id: number }
   | { type: 'import-version'; designJson: any }
-  | { type: 'GET_HEADERS' };
+  | { type: 'GET_HEADERS' }
+  // Add to PluginMessage type union (after existing types):
+  | { type: 'get-frames-for-prototype' }
+  | { type: 'generate-prototype-connections'; frames: FrameInfo[]; modelId?: string }
+  | { type: 'apply-prototype-connections'; connections: PrototypeConnection[] }
 
 /**
  * UI Port interface
