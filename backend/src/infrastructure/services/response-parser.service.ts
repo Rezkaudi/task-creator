@@ -1,6 +1,56 @@
 // src/infrastructure/services/response-parser.service.ts
 
+import { PrototypeConnection } from '../../domain/entities/prototype-connection.entity';
+
 export class ResponseParserService {
+
+    /**
+     * Combined method: extracts both message and design from AI response
+     */
+    parseAIResponseForDesign(response: string): { message: string; design: any } {
+        return {
+            message: this.extractMessageFromResponse(response),
+            design: this.extractDesignFromResponse(response)
+        };
+    }
+
+    /**
+     * Parse AI response for prototype connections
+     */
+    parseAIResponseForPrototype(response: string): {
+        connections: PrototypeConnection[];
+        reasoning?: string;
+    } {
+        try {
+            let cleaned = response.trim();
+
+            // Extract JSON from code blocks
+            if (cleaned.includes('```json')) {
+                cleaned = cleaned.split('```json')[1].split('```')[0].trim();
+            } else if (cleaned.includes('```')) {
+                cleaned = cleaned.split('```')[1].split('```')[0].trim();
+            }
+
+            // Try to find JSON object
+            const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('No JSON object found in response');
+            }
+
+            const parsed = JSON.parse(jsonMatch[0]);
+
+            return {
+                connections: parsed.connections || [],
+                reasoning: parsed.reasoning
+            };
+
+        } catch (error) {
+            console.error('Failed to parse AI response for prototype:', error);
+            console.error('Raw response:', response.substring(0, 500));
+            throw new Error('Failed to parse AI response as JSON');
+        }
+    }
+
     extractDesignFromResponse(response: string): any {
         try {
             let cleaned = response.trim();
@@ -43,14 +93,14 @@ export class ResponseParserService {
 
             for (const line of lines) {
                 const trimmed = line.trim();
-                
+
                 // Stop at JSON content
-                if (trimmed.startsWith('[') || 
-                    trimmed.startsWith('{') || 
+                if (trimmed.startsWith('[') ||
+                    trimmed.startsWith('{') ||
                     trimmed.includes('```')) {
                     break;
                 }
-                
+
                 if (trimmed) {
                     messageLines.push(trimmed);
                 }

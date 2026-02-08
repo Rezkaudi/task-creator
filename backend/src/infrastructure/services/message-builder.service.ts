@@ -1,8 +1,17 @@
 // src/infrastructure/services/message-builder.service.ts
 
 import { ConversationMessage } from '../../domain/services/IAiDesignService';
-import { PromptBuilderService } from './prompt-builder.service';
-import { designSystemChangeWarningPrompt } from '../config/prompt.config';
+import { getDesignSystemById } from '../config/design-systems.config';
+import { FrameInfo } from '../../domain/entities/prototype-connection.entity';
+
+import {
+    basedOnExistingSystemPrompt,
+    designSystemChangeWarningPrompt,
+    iconInstructionsPrompt,
+    prototypeConnectionsPrompt,
+    textToDesignSystemPrompt
+} from '../config/prompt.config';
+
 
 export interface AiMessage {
     role: 'system' | 'user' | 'assistant';
@@ -10,28 +19,58 @@ export interface AiMessage {
 }
 
 export class MessageBuilderService {
-    constructor(private readonly promptBuilder: PromptBuilderService) { }
 
     buildConversationMessages(
         currentMessage: string,
         history: ConversationMessage[],
         designSystemId: string
     ): AiMessage[] {
-        const systemPrompt = this.promptBuilder.buildConversationSystemPrompt(designSystemId);
+
+        const basePrompt = this.buildPromptAccourdingDesignSystem(designSystemId);
+        const systemPrompt = `${basePrompt} ${iconInstructionsPrompt}
+
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        📋 RESPONSE FORMAT
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        When replying, follow this structure:
+
+        1. **Brief Description**: One sentence explaining what was created/modified
+        2. **JSON Design**: Complete design array in JSON format
+
+        Example:
+
+        Created a login page with email and password fields following Ant Design System Guidelines.
+
+        \`\`\`json
+        [
+        {
+            "name": "Login Page",
+            "type": "FRAME",
+            "x": 0,
+            "y": 0,
+            "width": 400,
+            "height": 600,
+            "fills": [...],
+            "children": [...]
+        }
+        ]
+        \`\`\`
+
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        `;
 
         const messages: AiMessage[] = [
             { role: 'system', content: systemPrompt }
         ];
 
-        // Add history
-        for (const msg of history) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // for (const msg of history) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
 
-        // // Add current message
         messages.push({
             role: 'user',
             content: currentMessage
@@ -46,8 +85,8 @@ export class MessageBuilderService {
         currentDesign: any,
         designSystemId: string
     ): AiMessage[] {
-        const systemPrompt = this.promptBuilder.buildEditSystemPrompt(designSystemId);
-        const designSystemName = this.promptBuilder.getDesignSystemDisplayName(designSystemId);
+        const systemPrompt = this.buildEditSystemPrompt(designSystemId);
+        const designSystemName = this.getDesignSystemDisplayName(designSystemId);
 
         const messages: AiMessage[] = [
             { role: 'system', content: systemPrompt }
@@ -56,7 +95,6 @@ export class MessageBuilderService {
         const previousDesignSystem = this.detectDesignSystemFromHistory(history);
         const isDesignSystemChanged = Boolean(previousDesignSystem && previousDesignSystem !== designSystemId);
 
-        // Add design system warning if applicable
         if (designSystemId && designSystemName !== 'Default design system') {
             messages.push({
                 role: 'system',
@@ -64,16 +102,14 @@ export class MessageBuilderService {
             });
         }
 
-        // Add history (skip if design system changed)
-        const historyToInclude = isDesignSystemChanged ? [] : history.slice(-5);
-        for (const msg of historyToInclude) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // const historyToInclude = isDesignSystemChanged ? [] : history.slice(-5);
+        // for (const msg of historyToInclude) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
 
-        // Add edit request
         messages.push({
             role: 'user',
             content: this.buildEditRequest(currentMessage, currentDesign, designSystemName, isDesignSystemChanged)
@@ -87,28 +123,151 @@ export class MessageBuilderService {
         history: ConversationMessage[],
         referenceToon: string
     ): AiMessage[] {
-        const systemPrompt = this.promptBuilder.buildBasedOnExistingSystemPrompt();
+        const systemPrompt = `${textToDesignSystemPrompt} ${iconInstructionsPrompt} ${basedOnExistingSystemPrompt}`;
 
         const messages: AiMessage[] = [
             { role: 'system', content: systemPrompt }
         ];
 
-        // Add recent history
-        const recentHistory = history.slice(-3);
-        for (const msg of recentHistory) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // const recentHistory = history.slice(-3);
+        // for (const msg of recentHistory) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
 
-        // Add request with reference design
         messages.push({
             role: 'user',
             content: this.buildBasedOnExistingRequest(currentMessage, referenceToon)
         });
 
         return messages;
+    }
+
+    buildPrototypeMessages(frames: FrameInfo[]): AiMessage[] {
+        let userMessage = `## FRAMES DATA\n\`\`\`json\n${JSON.stringify(frames)}\n\`\`\``;
+        userMessage += `\n\n## TASK\nAnalyze these frames and generate intelligent prototype connections. Return ONLY valid JSON with no additional text.`;
+
+        return [
+            { role: 'system', content: prototypeConnectionsPrompt },
+            { role: 'user', content: userMessage }
+        ];
+    }
+
+    getDesignSystemDisplayName(designSystemId: string): string {
+        if (!designSystemId) {
+            return 'Default design system';
+        }
+        const designSystem = getDesignSystemById(designSystemId);
+        return designSystem?.name ?? 'Default design system';
+    }
+
+
+
+    private buildEditSystemPrompt(designSystemId: string): string {
+        const basePrompt = this.buildPromptAccourdingDesignSystem(designSystemId);
+        const designSystemName = this.getDesignSystemDisplayName(designSystemId);
+
+        const designSystemMaintainNote = designSystemName && designSystemName !== 'Default design system'
+            ? `- **CONVERT ALL ELEMENTS TO ${designSystemName.toUpperCase()} DESIGN SYSTEM** (colors, spacing, components, borders, shadows)`
+            : '';
+
+        const designSystemNewElementsNote = designSystemName && designSystemName !== 'Default design system'
+            ? `- **EVERY ELEMENT must be redesigned using ${designSystemName.toUpperCase()} specifications**`
+            : '';
+
+        const designSystemNote = this.getDesignSystemNote(designSystemId);
+
+        const designSystemWarning = designSystemName && designSystemName !== 'Default design system'
+            ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 MANDATORY DESIGN SYSTEM: ${designSystemName.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ YOU MUST CONVERT THE ENTIRE DESIGN TO ${designSystemName.toUpperCase()}
+⚠️ DO NOT KEEP OLD DESIGN SYSTEM STYLES
+⚠️ REDESIGN EVERYTHING TO MATCH ${designSystemName.toUpperCase()} PATTERNS
+⚠️ Change colors, spacing, borders, shadows, typography to ${designSystemName.toUpperCase()} standards
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`
+            : '';
+
+        return `${basePrompt}
+
+${designSystemWarning}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✏️ EDITING MODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You will receive:
+1. **Current Design**: JSON structure of existing design
+2. **User's Edit Request**: Specific changes to apply
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 YOUR TASK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Understand the current design structure
+2. Apply the user's requested changes
+3. ${designSystemName && designSystemName !== 'Default design system' ? `**CONVERT THE ENTIRE DESIGN TO ${designSystemName.toUpperCase()} DESIGN SYSTEM**` : 'Keep the current style'}
+4. Keep the layout structure unchanged (unless requested)
+5. Return the COMPLETE design (not just changes)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ CRITICAL RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Maintain exact structure and hierarchy
+- Use same node types unless explicitly asked to change
+- Colors MUST be in 0-1 range (NOT 0-255)
+- For TEXT nodes: include all required properties (characters, fontSize, fontName, textAlignHorizontal, textAlignVertical, lineHeight)
+${designSystemMaintainNote}
+${designSystemNewElementsNote}
+${designSystemName && designSystemName !== 'Default design system' ? `- **REDESIGN all visual properties (colors, borders, shadows, spacing) to match ${designSystemName.toUpperCase()}**` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Brief description + complete JSON array
+
+Example:
+
+Changed background to blue${designSystemNote}.
+
+\`\`\`json
+[
+  {
+    "name": "Design",
+    "type": "FRAME",
+    ...
+  }
+]
+\`\`\`
+
+${designSystemName && designSystemName !== 'Default design system' ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 FINAL REMINDER: CONVERT EVERYTHING TO ${designSystemName.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+` : ''}`;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private: Helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private getDesignSystemNote(designSystemId: string): string {
+        if (!designSystemId) {
+            return '';
+        }
+        const displayName = this.getDesignSystemDisplayName(designSystemId);
+        if (displayName === 'Default design system') {
+            return '';
+        }
+        return ` following ${displayName} guidelines`;
     }
 
     private detectDesignSystemFromHistory(history: ConversationMessage[]): string | null {
@@ -122,7 +281,6 @@ export class MessageBuilderService {
 
         for (const msg of recentHistory) {
             const content = msg.content.toLowerCase();
-
             for (const [systemId, pattern] of Object.entries(designSystemPatterns)) {
                 if (new RegExp(pattern).test(content)) {
                     return systemId;
@@ -211,5 +369,11 @@ export class MessageBuilderService {
             4. The new design should feel like it belongs to the same project
             5. Return the complete new design as a valid Figma JSON array (NOT TOON - return proper JSON!)
             6. Start your response with a brief description, then the JSON`;
+    }
+
+
+    private buildPromptAccourdingDesignSystem(designSystemId: string): string {
+        const designSystem = getDesignSystemById(designSystemId);
+        return `${textToDesignSystemPrompt} ${designSystem.promptTemplate}`;
     }
 }
