@@ -151,6 +151,13 @@ export class FillMapper {
 
     if (isGradientFill(fill)) {
       const stops = fill.gradientStops ?? [];
+
+      // Provide default gradient transform if missing
+      const defaultTransform: Transform = [
+        [1, 0, 0.5],
+        [0, 1, 0.5]
+      ];
+
       const gradientPaint: any = {
         type: fill.type,
         visible: fill.visible !== false,
@@ -165,14 +172,12 @@ export class FillMapper {
             a: stop.color.a ?? 1,
           },
         })),
-      };
-
-      if (fill.gradientTransform) {
-        gradientPaint.gradientTransform = [
+        // Use provided transform or default
+        gradientTransform: fill.gradientTransform ? [
           [fill.gradientTransform[0][0], fill.gradientTransform[0][1], fill.gradientTransform[0][2]],
           [fill.gradientTransform[1][0], fill.gradientTransform[1][1], fill.gradientTransform[1][2]],
-        ];
-      }
+        ] : defaultTransform
+      };
 
       return gradientPaint as GradientPaint;
     }
