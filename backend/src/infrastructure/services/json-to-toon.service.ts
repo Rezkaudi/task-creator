@@ -58,11 +58,7 @@ export class JsonToToonService {
         const val = value[key];
         const compactVal = this.compress(val, depth + 1);
 
-        if (compactVal.length < 60 && !compactVal.includes('\n')) {
-          result += `\n${indent}${key}:${compactVal}`;
-        } else {
-          result += `\n${indent}${key}:${compactVal}`;
-        }
+        result += `\n${indent}${key}:${compactVal}`;
       });
 
       return result;
@@ -93,7 +89,15 @@ export class JsonToToonService {
       'counterAxisSizingMode',
       'primaryAxisAlignItems',
       'counterAxisAlignItems',
-      'clipsContent'
+      'clipsContent',
+      'vectorPaths',
+      // 'imageHash',
+      'imageData',
+      // 'imageUrl',
+      'scaleMode',
+      'imageTransform',
+      'filters',
+      'scalingFactor',
     ]);
 
     const alwaysKeep = new Set([
@@ -116,30 +120,12 @@ export class JsonToToonService {
       'paddingBottom',
       'paddingLeft',
       'textAlignHorizontal',
-      'lineHeight'
+      'lineHeight',
     ]);
 
     return keys.filter(key => {
       if (alwaysKeep.has(key)) return true;
       if (skipKeys.has(key)) return false;
-
-      // ✅ معالجة الصور والأيقونات
-      if (key === 'imageHash') {
-        // أيقونة: حجم صغير أو اسم فيه "icon"
-        const isIcon = (obj.width <= 32 && obj.height <= 32) ||
-          (obj.name && obj.name.toLowerCase().includes('icon'));
-        return isIcon; // نحتفظ بالأيقونات فقط
-      }
-
-      // خصائص الصور: نحتفظ فيها للأيقونات بس
-      if (['scaleMode', 'imageTransform', 'filters', 'scalingFactor'].includes(key)) {
-        if (obj.imageHash) {
-          const isIcon = (obj.width <= 32 && obj.height <= 32) ||
-            (obj.name && obj.name.toLowerCase().includes('icon'));
-          return isIcon;
-        }
-        return false;
-      }
 
       if (key === 'opacity' && obj[key] !== 1) return true;
 
