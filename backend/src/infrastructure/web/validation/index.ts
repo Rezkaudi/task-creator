@@ -101,7 +101,6 @@ export const generateBasedOnExistingValidation = [
         .isArray().withMessage('History must be an array'),
 
     body('modelId')
-        .optional()
         .isString().withMessage('Model ID must be a string')
         .isIn(AI_MODELS.map(model => model.id)).withMessage('Invalid model'),
 
@@ -203,7 +202,6 @@ export const generatePrototypeValidation = [
         .isArray({ min: 2 }).withMessage('At least 2 frames are required'),
 
     body('modelId')
-        .optional()
         .isString().withMessage('Model ID must be a string')
         .isIn(AI_MODELS.map(model => model.id)).withMessage('Invalid model'),
 ];

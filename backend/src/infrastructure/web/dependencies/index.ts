@@ -1,7 +1,6 @@
 // src/infrastructure/web/dependencies/index.ts
 
 // Services
-import { Timer } from "../../services/timer.service";
 import { IconService } from "../../services/icon.service";
 import { TrelloService } from "../../services/trello.service";
 import { JsonToToonService } from "../../services/json-to-toon.service";

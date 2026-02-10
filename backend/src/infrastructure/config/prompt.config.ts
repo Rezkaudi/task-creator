@@ -36,8 +36,8 @@ export const htmlPreviewPrompt = fs.readFileSync(
     'utf-8'
 ).trim();
 
-export const designSystemChangeWarningPrompt = fs.readFileSync(
-    path.join(__dirname, '../../../public/prompt/design-system-change-warning.txt'),
+export const editDesignSystemPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/edit-design-system-prompt.txt'),
     'utf-8'
 ).trim();
 

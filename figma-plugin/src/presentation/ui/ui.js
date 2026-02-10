@@ -10,7 +10,9 @@ let selectedVersionId = null;
 let versionsCache = [];
 
 // Model & Design System state
-let currentModel = 'mistralai/devstral-2512:free';
+let currentModelId = 'devstral-latest';
+let currentModelName = 'Devstral Latest';
+
 let availableModels = [];
 let currentDesignSystem = 'Default design system';
 let availableDesignSystems = [];
@@ -271,7 +273,7 @@ function selectModel(modelId, showNotification = true) {
     if (!model) return;
 
     // Update current model
-    currentModel = modelId;
+    currentModelId = modelId;
 
     // Update UI
     updateModelUI(model, false);
@@ -537,9 +539,9 @@ function showChatInterface() {
     conversationHistory = [];
 
     // Welcome message
-    const model = availableModels.find(m => m.id === currentModel);
+    const model = availableModels.find(m => m.id === currentModelId);
     const system = availableDesignSystems.find(s => s.id === currentDesignSystem);
-    const modelName = model?.name || 'Devstral-2512';
+    const modelName = model?.name || currentModelName;
     const systemName = system?.name || 'Default design system';
 
     let welcomeMessage;
@@ -713,8 +715,8 @@ function sendChatMessage() {
 
     conversationHistory.push({ role: 'user', content: message });
 
-    const model = availableModels.find(m => m.id === currentModel);
-    const modelName = model?.name || 'Devstral-2512';
+    const model = availableModels.find(m => m.id === currentModelId);
+    const modelName = model?.name || currentModelName;
 
     if (isBasedOnExistingMode) {
         // ✨ BASED ON EXISTING MODE
@@ -726,7 +728,7 @@ function sendChatMessage() {
                 message: message,
                 history: conversationHistory,
                 referenceJson: referenceDesignJson,
-                model: currentModel
+                model: currentModelId
             }
         }, '*');
 
@@ -740,7 +742,7 @@ function sendChatMessage() {
                 message: message,
                 history: conversationHistory,
                 layerJson: selectedLayerJson,
-                model: currentModel,
+                model: currentModelId,
                 designSystemId: currentDesignSystem
             }
         }, '*');
@@ -754,7 +756,7 @@ function sendChatMessage() {
                 type: 'ai-chat-message',
                 message: message,
                 history: conversationHistory,
-                model: currentModel,
+                model: currentModelId,
                 designSystemId: currentDesignSystem
             }
         }, '*');
@@ -1112,14 +1114,14 @@ function renderModelList(models) {
     }
 
     modelListEl.innerHTML = models.map(model => `
-        <div class="model-item ${currentModel === model.id ? 'active' : ''}" 
+        <div class="model-item ${currentModelId === model.id ? 'active' : ''}" 
              data-model="${model.id}">
             <div class="model-item-icon">${model.icon}</div>
             <div class="model-item-info">
                 <div class="model-item-name">${escapeHtml(model.name)}</div>
                 <div class="model-item-desc">${escapeHtml(model.description)}</div>
             </div>
-            <div class="model-item-check">${currentModel === model.id ? '✓' : ''}</div>
+            <div class="model-item-check">${currentModelId === model.id ? '✓' : ''}</div>
         </div>
     `).join('');
 
@@ -1790,7 +1792,7 @@ function generatePrototypeConnections() {
         pluginMessage: {
             type: 'generate-prototype-connections',
             frames: selectedFrames,
-            modelId: currentModel
+            modelId: currentModelId
         }
     }, '*');
 }
@@ -2005,8 +2007,8 @@ window.onmessage = async (event) => {
             referenceLayerNameEl.textContent = `"${referenceLayerName}"`;
 
             // Update welcome message
-            const model = availableModels.find(m => m.id === currentModel);
-            const modelName = model?.name || 'Devstral-2512';
+            const model = availableModels.find(m => m.id === currentModelId);
+            const modelName = model?.name || currentModelName;
 
             chatMessagesEl.innerHTML = `
         <div class="message assistant">

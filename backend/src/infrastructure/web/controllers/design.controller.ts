@@ -108,7 +108,7 @@ export class DesignController {
                 message,
                 history || [],
                 referenceDesign,
-                modelId || 'mistralai/devstral-2512:free'
+                modelId
             );
 
             res.status(200).json({
@@ -118,7 +118,7 @@ export class DesignController {
                 previewHtml: result.previewHtml,
                 cost: result.cost,
                 metadata: {
-                    model: modelId || 'mistralai/devstral-2512:free',
+                    model: modelId,
                     mode: 'based-on-existing'
                 }
             });

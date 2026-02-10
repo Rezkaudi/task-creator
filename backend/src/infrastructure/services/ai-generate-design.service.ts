@@ -194,13 +194,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             };
 
         } catch (error) {
-            // Provide more specific error for timeouts
-            if (error instanceof Error && error.message.includes('timed out')) {
-                throw new Error(
-                    'Request timed out. The reference design may be too complex. ' +
-                    'Try using a simpler design as reference or break it into smaller parts.'
-                );
-            }
             this.handleError(error, 'generateDesignBasedOnExisting');
         }
     }
@@ -253,10 +246,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             };
 
         } catch (error) {
-            console.error('Error generating prototype connections:', error);
-            throw new Error(
-                `Failed to generate prototype connections: ${error instanceof Error ? error.message : String(error)}`
-            );
+            this.handleError(error, 'generateConnections');
         }
     }
 

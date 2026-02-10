@@ -1,7 +1,6 @@
 // src/infrastructure/services/response-parser.service.ts
 
 import { PrototypeConnection } from '../../domain/entities/prototype-connection.entity';
-
 export class ResponseParserService {
 
     /**
@@ -44,10 +43,10 @@ export class ResponseParserService {
                 reasoning: parsed.reasoning
             };
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to parse AI response for prototype:', error);
-            console.error('Raw response:', response.substring(0, 500));
-            throw new Error('Failed to parse AI response as JSON');
+            console.error('Raw response:', response);
+            throw new Error('Failed to parse AI response as JSON: ' + error);
         }
     }
 
@@ -62,17 +61,17 @@ export class ResponseParserService {
                 cleaned = cleaned.split('```')[1].split('```')[0].trim();
             }
 
-            // Try to match array first (most common for designs)
-            const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
-            if (arrayMatch) {
-                return JSON.parse(arrayMatch[0]);
-            }
-
-            // Try to match object
-            const objectMatch = cleaned.match(/\{[\s\S]*\}/);
+            // Try to match top-level object first
+            const objectMatch = cleaned.match(/^\s*\{[\s\S]*\}\s*$/);
             if (objectMatch) {
                 const parsed = JSON.parse(objectMatch[0]);
                 return Array.isArray(parsed) ? parsed : [parsed];
+            }
+
+            // Then try top-level array
+            const arrayMatch = cleaned.match(/^\s*\[[\s\S]*\]\s*$/);
+            if (arrayMatch) {
+                return JSON.parse(arrayMatch[0]);
             }
 
             // Try direct parse
@@ -81,8 +80,8 @@ export class ResponseParserService {
 
         } catch (error) {
             console.error('Failed to extract design JSON:', error);
-            console.error('Response preview:', response.substring(0, 500) + '...');
-            return null;
+            console.error('Response preview:', response);
+            throw new Error('Failed to parse AI response as JSON: ' + error);
         }
     }
 
@@ -109,8 +108,8 @@ export class ResponseParserService {
             const message = messageLines.join(' ').trim();
             return message || 'Design modified successfully';
 
-        } catch {
-            return 'Design modified successfully';
+        } catch (error: any) {
+            throw new Error('Failed to parse AI response as JSON: ' + error);
         }
     }
 }
