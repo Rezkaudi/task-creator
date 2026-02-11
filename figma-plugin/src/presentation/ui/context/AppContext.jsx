@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import { defaultModel, defaultDesignSystem } from '../../../shared/constants/plugin-config.js';
 
 const AppContext = createContext(null);
 
@@ -7,11 +8,11 @@ const initialState = {
     status: { message: '', type: '' },
 
     // Models
-    currentModel: 'mistralai/devstral-2512:free',
+    currentModelId: defaultModel.id,
     availableModels: [],
 
     // Design Systems
-    currentDesignSystem: 'Default design system',
+    currentDesignSystemId: defaultDesignSystem.id,
     availableDesignSystems: [],
 
     // Panels
@@ -34,12 +35,12 @@ function appReducer(state, action) {
             return { ...state, status: { message: '', type: '' } };
 
         case 'SET_MODEL':
-            return { ...state, currentModel: action.modelId };
+            return { ...state, currentModelId: action.modelId };
         case 'SET_AVAILABLE_MODELS':
             return { ...state, availableModels: action.models };
 
         case 'SET_DESIGN_SYSTEM':
-            return { ...state, currentDesignSystem: action.systemId };
+            return { ...state, currentDesignSystemId: action.systemId };
         case 'SET_AVAILABLE_DESIGN_SYSTEMS':
             return { ...state, availableDesignSystems: action.systems };
 

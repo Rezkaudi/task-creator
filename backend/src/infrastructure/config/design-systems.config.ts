@@ -10,12 +10,12 @@ export interface DesignSystemConfig {
   promptTemplate: string;
 }
 
-export const DEFAULT_DESIGN_SYSTEM_ID = 'Default design system'; // default design system
+export const DEFAULT_DESIGN_SYSTEM_ID = 'default-design-system'; // default design system
 
 export const DESIGN_SYSTEMS: DesignSystemConfig[] = [
   {
-    id: 'Default design system',
-    name: 'Default design system',
+    id: 'default-design-system',
+    name: 'Default Design System',
     description: 'Use default styling',
     icon: '⚡',
     promptTemplate: ''
@@ -41,7 +41,7 @@ export const DESIGN_SYSTEMS: DesignSystemConfig[] = [
     icon: 'A',
     promptTemplate: antDesignPrompt
   }
-  
+
 ];
 
 export function getDesignSystems() {

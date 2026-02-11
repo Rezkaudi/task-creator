@@ -40,4 +40,12 @@ export const PageArrangement = {
   SPACING: 200,
 } as const;
 
-export const defaultModelId = 'devstral-latest'; // default model ID for the plugin 
+export const defaultModel = {
+  id: 'devstral-latest',
+  name: 'Devstral Latest',
+}
+
+export const defaultDesignSystem = {
+  id: 'default-design-system',
+  name: 'Default Design System',
+}

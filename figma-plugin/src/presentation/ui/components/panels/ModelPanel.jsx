@@ -4,10 +4,11 @@ import { useApiClient } from '../../hooks/useApiClient.js';
 import { escapeHtml } from '../../utils.js';
 import { reportErrorAsync } from '../../errorReporter.js';
 import '../../styles/ModelPanel.css';
+import { defaultModel } from '../../../../shared/constants/plugin-config.js';
 
 export default function ModelPanel() {
     const { state, dispatch } = useAppContext();
-    const { modelPanelOpen, currentModel, availableModels } = state;
+    const { modelPanelOpen, currentModelId, availableModels } = state;
     const { apiGet } = useApiClient();
 
     const [statusMsg, setStatusMsg] = useState('');
@@ -58,7 +59,7 @@ export default function ModelPanel() {
 
     if (!modelPanelOpen) return null;
 
-    const selectedModel = availableModels.find(m => m.id === currentModel);
+    const selectedModel = availableModels.find(m => m.id === currentModelId);
 
     return (
         <>
@@ -84,7 +85,7 @@ export default function ModelPanel() {
                         availableModels.map(model => (
                             <div
                                 key={model.id}
-                                className={`model-item ${currentModel === model.id ? 'active' : ''}`}
+                                className={`model-item ${currentModelId === model.id ? 'active' : ''}`}
                                 data-model={model.id}
                                 onClick={() => handleSelect(model.id)}
                             >
@@ -94,7 +95,7 @@ export default function ModelPanel() {
                                     <div className="model-item-desc">{escapeHtml(model.description)}</div>
                                 </div>
                                 <div className="model-item-check">
-                                    {currentModel === model.id ? '✓' : ''}
+                                    {currentModelId === model.id ? '✓' : ''}
                                 </div>
                             </div>
                         ))
@@ -104,7 +105,7 @@ export default function ModelPanel() {
                 <div className="model-panel-footer">
                     <span id="selected-model-info">
                         Currently using: <span id="current-model-name">
-                            {selectedModel?.name || 'Devstral-2512'}
+                            {selectedModel?.name || defaultModel.name}
                         </span>
                     </span>
                     {statusMsg && (
