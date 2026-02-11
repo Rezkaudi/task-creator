@@ -1,0 +1,43 @@
+/* === TabBar === */
+.tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #e5e7eb;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.tab {
+    flex: auto;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.3s;
+    margin-bottom: -2px;
+}
+
+.tab:hover {
+    color: #6366f1;
+}
+
+.tab.active {
+    color: #6366f1;
+    border-bottom-color: #6366f1;
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tab-content.active {
+    display: flex;
+}

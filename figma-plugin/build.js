@@ -19,27 +19,47 @@ console.log(`🔧 ${isProd ? "Production 🚀" : "Development 🛠️"}  · API:
 
 const define = { "process.env.BACKEND_URL": JSON.stringify(BACKEND_URL) };
 
-// ── UI Build (inline CSS + JS into a single HTML file) ──────────────
+// ── UI Build (esbuild JSX → inline CSS + JS into a single HTML file) ─
 const UI_SRC = path.join(__dirname, "src/presentation/ui");
 const DIST = path.join(__dirname, "dist");
 
-function buildUI() {
+async function buildUI() {
   try {
+    // 1. Bundle React JSX + CSS imports with esbuild
+    const result = await esbuild.build({
+      entryPoints: [path.join(UI_SRC, "index.jsx")],
+      bundle: true,
+      write: false,
+      outdir: DIST,
+      format: "iife",
+      target: "es2020",
+      minify: isProd,
+      define,
+      jsx: "automatic",
+      loader: { ".jsx": "jsx", ".js": "js", ".css": "css" },
+      logLevel: "info",
+    });
+
+    // 2. Extract JS and CSS from esbuild output
+    const jsFile = result.outputFiles.find((f) => f.path.endsWith(".js"));
+    const cssFile = result.outputFiles.find((f) => f.path.endsWith(".css"));
+
+    // Escape </script> sequences so they don't break inline <script> tags
+    const js = jsFile.text.replace(/<\/script/gi, "<\\/script");
+    const css = cssFile ? cssFile.text : "";
+
+    // 3. Read HTML template and inline CSS + JS
     const html = fs.readFileSync(path.join(UI_SRC, "ui.html"), "utf8");
-    const css = fs.readFileSync(path.join(UI_SRC, "ui.css"), "utf8");
-    let js = fs.readFileSync(path.join(UI_SRC, "ui.js"), "utf8");
 
-    // Inject env vars the same way esbuild's `define` would
-    js = js.replace(/process\.env\.BACKEND_URL/g, JSON.stringify(BACKEND_URL))
-           .replace(/"PROCESS_ENV_BACKEND_URL"/g, JSON.stringify(BACKEND_URL));
-
+    // IMPORTANT: Use function replacers to avoid $& / $' / $` substitution
+    // issues — the bundled React source contains these patterns.
     const output = html
-      .replace('<link rel="stylesheet" href="./ui.css">', `<style>\n${css}\n</style>`)
-      .replace('<script src="./ui.js"></script>', `<script>\n${js}\n</script>`);
+      .replace('<link rel="stylesheet" href="./ui.css">', () => `<style>\n${css}\n</style>`)
+      .replace('<script src="./ui.js"></script>', () => `<script>\n${js}\n</script>`);
 
     fs.mkdirSync(DIST, { recursive: true });
     fs.writeFileSync(path.join(DIST, "ui.html"), output);
-    console.log("✅ UI built");
+    console.log("✅ UI built (React)");
   } catch (err) {
     console.error("❌ UI build failed:", err);
   }
@@ -59,7 +79,7 @@ const codeBuildOptions = {
 
 // ── Run ─────────────────────────────────────────────────────────────
 async function run() {
-  buildUI();
+  await buildUI();
 
   if (isWatch) {
     const ctx = await esbuild.context(codeBuildOptions);
