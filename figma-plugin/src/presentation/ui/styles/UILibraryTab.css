@@ -1,0 +1,500 @@
+/* ═══════════════════════════════════════════
+   UILibraryTab — Redesigned
+   ═══════════════════════════════════════════ */
+
+/* ── Projects View ── */
+
+.uil-projects-view {
+    padding: 20px 24px;
+}
+
+.uil-projects-header {
+    margin-bottom: 20px;
+}
+
+.uil-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #3b5bdb;
+    margin: 0 0 6px;
+}
+
+.uil-create-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: #3b5bdb;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity 0.15s;
+}
+
+.uil-create-link:hover {
+    opacity: 0.75;
+}
+
+.uil-projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.uil-project-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.uil-project-card:hover {
+    border-color: #c7d2fe;
+    box-shadow: 0 2px 12px rgba(59, 91, 219, 0.08);
+    transform: translateY(-1px);
+}
+
+.uil-project-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2ff;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.uil-project-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.uil-project-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.uil-project-meta {
+    font-size: 12px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.uil-project-meta span+span::before {
+    content: '•';
+    margin-right: 6px;
+}
+
+.uil-project-chevron {
+    flex-shrink: 0;
+    color: #c7d2fe;
+}
+
+
+/* ── Components View ── */
+
+.uil-components-view {
+    padding: 16px 24px;
+}
+
+.uil-components-topbar {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.uil-back-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    margin-top: 2px;
+}
+
+.uil-back-btn:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.uil-components-title-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.uil-components-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.uil-components-subtitle {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.uil-delete-project-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.uil-delete-project-btn:hover {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.uil-components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.uil-component-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.uil-component-card:hover {
+    border-color: #c7d2fe;
+    box-shadow: 0 4px 16px rgba(59, 91, 219, 0.08);
+    transform: translateY(-2px);
+}
+
+.uil-component-preview-wrap {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.uil-component-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.uil-component-info {
+    padding: 12px 14px 0;
+}
+
+.uil-component-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.uil-component-desc {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+
+/* ── Component Card Actions (always visible) ── */
+
+.uil-component-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px 14px;
+    margin-top: auto;
+}
+
+.uil-btn-import {
+    flex: 1;
+    padding: 7px 12px;
+    background: #3b5bdb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.uil-btn-import:hover {
+    background: #2b4bc8;
+}
+
+.uil-btn-delete-icon {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.uil-btn-delete-icon:hover {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+
+/* ── Shared States ── */
+
+.uil-loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 48px 16px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.uil-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 16px;
+    text-align: center;
+}
+
+.uil-empty-icon {
+    margin-bottom: 12px;
+}
+
+.uil-empty-state p {
+    color: #94a3b8;
+    font-size: 13px;
+    margin: 0;
+    max-width: 260px;
+    line-height: 1.5;
+}
+
+
+/* ── Modal (shared) ── */
+
+.uil-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.uil-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+}
+
+.uil-modal h4 {
+    margin: 0 0 16px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.uil-modal label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.uil-modal input {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+
+.uil-modal input:focus {
+    border-color: #3b5bdb;
+    box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12);
+}
+
+.uil-modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.uil-modal-actions button {
+    flex: 1;
+}
+
+
+/* ── Delete Confirmation Modal ── */
+
+.uil-delete-modal {
+    text-align: center;
+}
+
+.uil-delete-modal h4 {
+    text-align: center;
+}
+
+.uil-delete-modal-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef2f2;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+}
+
+.uil-delete-modal-text {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0 0 20px;
+}
+
+.uil-delete-modal-text strong {
+    color: #1e293b;
+}
+
+
+/* ── Buttons ── */
+
+.uil-btn-primary {
+    padding: 10px 16px;
+    background: #3b5bdb;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.uil-btn-primary:hover {
+    background: #2b4bc8;
+}
+
+.uil-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.uil-btn-secondary {
+    padding: 10px 16px;
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.uil-btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+.uil-btn-danger {
+    padding: 10px 16px;
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.uil-btn-danger:hover {
+    background: #dc2626;
+}
+
+.uil-btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* ── Responsive ── */
+
+@media (max-width: 640px) {
+
+    .uil-projects-view,
+    .uil-components-view {
+        padding: 16px;
+    }
+
+    .uil-components-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+}

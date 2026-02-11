@@ -8,7 +8,7 @@ import TabBar from './TabBar.jsx';
 import AiTab from './tabs/AiTab.jsx';
 import PasteJsonTab from './tabs/PasteJsonTab.jsx';
 import ExportTab from './tabs/ExportTab.jsx';
-import VersionsTab from './tabs/VersionsTab.jsx';
+import UILibraryTab from './tabs/UILibraryTab.jsx';
 import ModelPanel from './panels/ModelPanel.jsx';
 import DesignSystemPanel from './panels/DesignSystemPanel.jsx';
 import SaveModal from './SaveModal.jsx';
@@ -168,8 +168,8 @@ function AppContent() {
                 <ExportTab sendMessage={sendMessage} />
             )}
 
-            {activeTab === 'versions' && (
-                <VersionsTab sendMessage={sendMessage} />
+            {activeTab === 'ui-library' && (
+                <UILibraryTab sendMessage={sendMessage} />
             )}
 
             {/* Button group for manual tab */}

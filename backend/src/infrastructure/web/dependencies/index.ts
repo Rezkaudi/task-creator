@@ -16,7 +16,7 @@ import { AiCostCalculatorService } from "../../services/ai-cost.calculator.servi
 // Repositories
 import { TypeORMUserRepository } from "../../repository/typeorm-user.repository";
 import { TypeORMClientErrorRepository } from "../../repository/typeorm-client-error.repository";
-import { TypeORMDesignVersionRepository } from "../../repository/typeorm-design-version.repository";
+import { TypeORMUILibraryRepository } from "../../repository/typeorm-ui-library.repository";
 
 
 // Use Cases - Tasks
@@ -31,11 +31,12 @@ import { GeneratePrototypeConnectionsUseCase } from "../../../application/use-ca
 import { GenerateDesignBasedOnExistingUseCase } from "../../../application/use-cases/generate-design-based-on-existing.use-case";
 import { GenerateDesignFromConversationUseCase } from "../../../application/use-cases/generate-design-from-conversation.use-case";
 
-// Use Cases - Design Versions
-import { SaveDesignVersionUseCase } from "../../../application/use-cases/save-design-version.use-case";
-import { DeleteDesignVersionUseCase } from "../../../application/use-cases/delete-design-version.use-case";
-import { GetAllDesignVersionsUseCase } from "../../../application/use-cases/get-all-design-versions.use-case";
-import { GetDesignVersionByIdUseCase } from "../../../application/use-cases/get-design-version-by-id.use-case";
+import { CreateUILibraryProjectUseCase } from "../../../application/use-cases/create-ui-library-project.use-case";
+import { GetUILibraryProjectsUseCase } from "../../../application/use-cases/get-ui-library-projects.use-case";
+import { DeleteUILibraryProjectUseCase } from "../../../application/use-cases/delete-ui-library-project.use-case";
+import { CreateUILibraryComponentUseCase } from "../../../application/use-cases/create-ui-library-component.use-case";
+import { GetUILibraryComponentsByProjectUseCase } from "../../../application/use-cases/get-ui-library-components-by-project.use-case";
+import { DeleteUILibraryComponentUseCase } from "../../../application/use-cases/delete-ui-library-component.use-case";
 
 // Use Cases - Client Errors
 import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
@@ -46,8 +47,8 @@ import { TrelloController } from "../controllers/trello.controller";
 import { DesignController } from "../controllers/design.controller";
 import { AIModelsController } from "../controllers/ai-models.controller";
 import { ClientErrorController } from "../controllers/client-error.controller";
-import { DesignVersionController } from "../controllers/design-version.controller";
 import { DesignSystemsController } from "../controllers/design-systems.controller";
+import { UILibraryController } from "../controllers/ui-library.controller";
 
 import { UserMiddleware } from "../middleware/user.middleware";
 
@@ -59,7 +60,7 @@ export const setupDependencies = () => {
     // Repositories
     const jsonToToonService = new JsonToToonService();
     const userRepository = new TypeORMUserRepository();
-    const designVersionRepository = new TypeORMDesignVersionRepository();
+    const uiLibraryRepository = new TypeORMUILibraryRepository();
     const clientErrorRepository = new TypeORMClientErrorRepository();
 
 
@@ -99,10 +100,12 @@ export const setupDependencies = () => {
         defaultAiDesignService
     );
 
-    const saveDesignVersionUseCase = new SaveDesignVersionUseCase(designVersionRepository);
-    const getAllDesignVersionsUseCase = new GetAllDesignVersionsUseCase(designVersionRepository);
-    const getDesignVersionByIdUseCase = new GetDesignVersionByIdUseCase(designVersionRepository);
-    const deleteDesignVersionUseCase = new DeleteDesignVersionUseCase(designVersionRepository);
+    const createUILibraryProjectUseCase = new CreateUILibraryProjectUseCase(uiLibraryRepository);
+    const getUILibraryProjectsUseCase = new GetUILibraryProjectsUseCase(uiLibraryRepository);
+    const deleteUILibraryProjectUseCase = new DeleteUILibraryProjectUseCase(uiLibraryRepository);
+    const createUILibraryComponentUseCase = new CreateUILibraryComponentUseCase(uiLibraryRepository);
+    const getUILibraryComponentsByProjectUseCase = new GetUILibraryComponentsByProjectUseCase(uiLibraryRepository);
+    const deleteUILibraryComponentUseCase = new DeleteUILibraryComponentUseCase(uiLibraryRepository);
 
     // Use Cases - Client Errors
     const reportClientErrorUseCase = new ReportClientErrorUseCase(clientErrorRepository);
@@ -120,11 +123,13 @@ export const setupDependencies = () => {
         generatePrototypeConnectionsUseCase
     );
 
-    const designVersionController = new DesignVersionController(
-        saveDesignVersionUseCase,
-        getAllDesignVersionsUseCase,
-        getDesignVersionByIdUseCase,
-        deleteDesignVersionUseCase
+    const uiLibraryController = new UILibraryController(
+        createUILibraryProjectUseCase,
+        getUILibraryProjectsUseCase,
+        deleteUILibraryProjectUseCase,
+        createUILibraryComponentUseCase,
+        getUILibraryComponentsByProjectUseCase,
+        deleteUILibraryComponentUseCase
     );
 
     // AI Models Controller
@@ -140,7 +145,7 @@ export const setupDependencies = () => {
         taskController,
         trelloController,
         designController,
-        designVersionController,
+        uiLibraryController,
         aiModelsController,
         designSystemsController,
         clientErrorController,

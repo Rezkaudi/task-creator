@@ -2,30 +2,12 @@ import { SelectionInfo } from './node-repository.interface';
 import { DesignNode } from '../entities/design-node';
 import { FrameInfo, PrototypeConnection } from '../entities/prototype-connection.entity';
 
-/**
- * Design version info from backend
- */
-export interface DesignVersionInfo {
-  id: number;
-  version: number;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface CostInfo {
   inputCost: string;
   outputCost: string;
   totalCost: string;
   inputTokens: number;
   outputTokens: number;
-}
-
-/**
- * Full design version with JSON
- */
-export interface DesignVersionFull extends DesignVersionInfo {
-  designJson: any;
 }
 
 /**
@@ -38,14 +20,6 @@ export type UIMessage =
   | { type: 'export-success'; data: DesignNode[]; nodeCount: number }
   | { type: 'export-error'; error: string }
   | { type: 'call-backend-for-claude'; prompt: string }
-  | { type: 'versions-loaded'; versions: DesignVersionInfo[] }
-  | { type: 'versions-load-error'; error: string }
-  | { type: 'version-saved'; version: DesignVersionInfo }
-  | { type: 'version-save-error'; error: string }
-  | { type: 'version-deleted'; id: number }
-  | { type: 'version-delete-error'; error: string }
-  | { type: 'version-loaded'; version: DesignVersionFull }
-  | { type: 'version-load-error'; error: string }
   | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo }
   | { type: 'ai-chat-error'; error: string }
   | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any; _imageReferenceKey?: string }
@@ -124,12 +98,7 @@ export type PluginMessage =
     type: 'REPORT_ERROR';
     error: any;
   }
-  // Version management messages
-  | { type: 'load-versions' }
-  | { type: 'save-version'; description: string; designJson: any }
-  | { type: 'load-version'; id: number }
-  | { type: 'delete-version'; id: number }
-  | { type: 'import-version'; designJson: any }
+  | { type: 'import-ui-library-component'; designJson: any }
   | { type: 'GET_HEADERS' }
   // Add to PluginMessage type union (after existing types):
   | { type: 'get-frames-for-prototype' }

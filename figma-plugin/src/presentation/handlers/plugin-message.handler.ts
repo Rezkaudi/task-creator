@@ -115,8 +115,8 @@ export class PluginMessageHandler {
         case 'cancel':
           this.uiPort.close();
           break;
-        case 'import-version':
-          await this.handleImportVersion(message.designJson);
+        case 'import-ui-library-component':
+          await this.handleImportUILibraryComponent(message.designJson);
           break;
         case 'GET_HEADERS':
           const headers = await this.getUserInfoUseCase.execute();
@@ -787,12 +787,12 @@ export class PluginMessageHandler {
     }
   }
 
-  private async handleImportVersion(designJson: unknown): Promise<void> {
+  private async handleImportUILibraryComponent(designJson: unknown): Promise<void> {
     try {
       const result = await this.importDesignUseCase.execute(designJson);
 
       if (result.success) {
-        this.notificationPort.notify('✅ Version imported successfully!');
+        this.notificationPort.notify('✅ Component imported successfully!');
         this.uiPort.postMessage({ type: 'import-success' });
       } else {
         this.notificationPort.notifyError(result.error || 'Import failed');
@@ -804,7 +804,7 @@ export class PluginMessageHandler {
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
         componentName: 'PluginMessageHandler',
-        actionType: 'handleImportVersion',
+        actionType: 'handleImportUILibraryComponent',
       });
       throw error;
     }
