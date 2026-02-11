@@ -10,10 +10,10 @@ import swaggerUi from 'swagger-ui-express';
 import taskRoutes from './routes/task.routes';
 import trelloRoutes from './routes/trello.routes';
 import designRoutes from './routes/design.routes';
-import designVersionRoutes from './routes/design-version.routes';
 import aiModelsRoutes from './routes/ai-models.routes';
 import designSystemsRoutes from './routes/design-systems.routes';
 import clientErrorRoutes from './routes/client-error.routes';
+import uiLibraryRoutes from './routes/ui-library.routes';
 
 import { setupDependencies } from './dependencies';
 import { logger } from './middleware/logger.middleware';
@@ -65,10 +65,10 @@ export class Server {
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
-    this.app.use('/api/design-versions', designVersionRoutes(this.container.designVersionController));
     this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController));
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
     this.app.use('/api/errors', clientErrorRoutes(this.container.clientErrorController));
+    this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     // API documentation redirect

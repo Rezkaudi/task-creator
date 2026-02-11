@@ -9,6 +9,8 @@ import {
     OneToMany,
 } from "typeorm";
 import { DesignVersionEntity } from "./design-version.entity";
+import { UILibraryProjectEntity } from "./ui-library-project.entity";
+import { UILibraryComponentEntity } from "./ui-library-component.entity";
 
 @Entity("users")
 export class UserEntity {
@@ -32,4 +34,10 @@ export class UserEntity {
 
     @OneToMany(() => DesignVersionEntity, (version) => version.user)
     designVersions!: DesignVersionEntity[];
+
+    @OneToMany(() => UILibraryProjectEntity, (project) => project.user)
+    uiLibraryProjects!: UILibraryProjectEntity[];
+
+    @OneToMany(() => UILibraryComponentEntity, (component) => component.user)
+    uiLibraryComponents!: UILibraryComponentEntity[];
 }
