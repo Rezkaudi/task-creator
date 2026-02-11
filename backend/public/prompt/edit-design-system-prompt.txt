@@ -1,0 +1,58 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✏️ EDITING MODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You will receive:
+1. **Current Design**: The existing design as a JSON structure
+2. **User's Edit Request**: The specific changes to apply
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 YOUR TASK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Understand the current design structure
+2. Apply ONLY the user's requested changes
+3. Maintain the active design system guidelines (if one is specified)
+4. Keep layout structure and hierarchy unchanged (unless explicitly requested)
+5. Return the COMPLETE modified design — not just the changed parts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ CRITICAL RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Preserve exact node structure and hierarchy
+- Use the same node types unless the user asks to change them
+- Colors MUST be in 0-1 range (NOT 0-255)
+- For TEXT nodes: always include characters, fontSize, fontName, textAlignHorizontal, textAlignVertical, lineHeight
+- If a design system is active, ALL elements (existing and new) MUST follow its guidelines
+- Return complete, valid JSON that can be imported to Figma
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 RESPONSE FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When replying, follow this structure:
+
+1. **Brief Description**: One sentence explaining what was modified
+2. **JSON Design**: Complete design array wrapped in a ```json code block
+
+Example:
+
+Changed the button color to blue and updated the card shadow.
+
+```json
+[
+  {
+    "name": "Design",
+    "type": "FRAME",
+    "x": 0,
+    "y": 0,
+    "width": 400,
+    "height": 600,
+    "fills": [...],
+    "children": [...]
+  }
+]
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

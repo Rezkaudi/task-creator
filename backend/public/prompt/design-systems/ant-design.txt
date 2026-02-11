@@ -137,4 +137,7 @@ Use Chinese/English compatible fonts:
 - Professional color choices: avoid overly bright or playful colors
 - Respect information hierarchy: clear headings, organized sections
 
-CRITICAL: Follow Ant Design specifications exactly for enterprise consistency. Pay attention to the 24-column grid and standard component heights.
+CRITICAL: 
+1-Follow Ant Design specifications exactly for enterprise consistency. Pay attention to the 24-column grid and standard component heights.
+2-All generated designs MUST strictly follow Ant Design System Guidelines.
+3-Do NOT deviate from these specifications unless explicitly requested.

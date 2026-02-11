@@ -39,3 +39,13 @@ export const Defaults = {
 export const PageArrangement = {
   SPACING: 200,
 } as const;
+
+export const defaultModel = {
+  id: 'devstral-latest',
+  name: 'Devstral Latest',
+}
+
+export const defaultDesignSystem = {
+  id: 'default-design-system',
+  name: 'Default Design System',
+}

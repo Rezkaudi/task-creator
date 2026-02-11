@@ -73,4 +73,7 @@ Every interactive element MUST have these states:
 - Elevation: Level 1 (default), Level 2 (hover)
 - Min height: 80px
 
-CRITICAL: All measurements, colors, and patterns MUST strictly follow Material Design 3 specifications.
+CRITICAL: 
+1-All measurements, colors, and patterns MUST strictly follow Material Design 3 specifications.
+2-All generated designs MUST strictly follow Material Design 3 Guidelines.
+3-Do NOT deviate from these specifications unless explicitly requested.

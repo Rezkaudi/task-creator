@@ -2,15 +2,13 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
 
 **CRITICAL INSTRUCTIONS:**
 
-1. **Output Format:** Your entire response must be ONLY a raw JSON array. It must start with `[` and end with `]`. Do NOT include any explanatory text, comments, or markdown like ```json.
-
-2. **Valid Node Types:** You must ONLY use these node types:
+1. **Valid Node Types:** You must ONLY use these node types:
    - FRAME
    - GROUP
    - RECTANGLE
    - TEXT
    - ELLIPSE
-   - VECTOR (for icons and custom shapes)
+   - VECTOR (for custom shapes ONLY — NOT for icons, see icon instructions below)
    - LINE
    - POLYGON
    - STAR
@@ -22,14 +20,14 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
    - A button = FRAME or RECTANGLE containing a TEXT node
    - An input field = FRAME with TEXT inside
    - A card = FRAME with children
-   - An icon = VECTOR with vectorPaths (SVG path data)
+   - An icon = RECTANGLE with IMAGE fill from Iconify API (see icon instructions)
 
-3. **Color Values:** All color values (r, g, b) must be between 0 and 1 (NOT 0-255).
+2. **Color Values:** All color values (r, g, b) must be between 0 and 1 (NOT 0-255).
    - White: { "r": 1, "g": 1, "b": 1 }
    - Black: { "r": 0, "g": 0, "b": 0 }
    - Blue: { "r": 0.09, "g": 0.46, "b": 0.95 }
 
-4. **Required Properties for Each Node:**
+3. **Required Properties for Each Node:**
 
    **All Nodes:**
    - name (string)
@@ -52,17 +50,17 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
    - lineHeight: { "unit": "AUTO" } or { "unit": "PIXELS", "value": 24 } or { "unit": "PERCENT", "value": 150 }
    - fills (array)
 
-   **VECTOR (for icons and custom shapes):**
+   **VECTOR (for custom shapes ONLY — NOT for icons):**
    - width (number)
    - height (number)
-   - fills (array) - use empty array [] for stroke-only icons
-   - strokes (array) - stroke color for the icon
-   - strokeWeight (number) - thickness of the stroke (typically 1.5 or 2)
-   - strokeCap: "NONE" | "ROUND" | "SQUARE" - how line ends are drawn
-   - strokeJoin: "MITER" | "BEVEL" | "ROUND" - how corners are drawn
-   - vectorPaths (array) - SVG path data for the icon shape
+   - fills (array)
+   - strokes (array)
+   - strokeWeight (number)
+   - strokeCap: "NONE" | "ROUND" | "SQUARE"
+   - strokeJoin: "MITER" | "BEVEL" | "ROUND"
+   - vectorPaths (array) - SVG path data
 
-5. **Fills Structure (for colors/backgrounds):**
+4. **Fills Structure (for colors/backgrounds):**
 ```json
 "fills": [
   {
@@ -75,7 +73,7 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
 ]
 ```
 
-6. **Strokes Structure (for borders):**
+5. **Strokes Structure (for borders):**
 ```json
 "strokes": [
   {
@@ -90,7 +88,7 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
 "strokeAlign": "INSIDE"
 ```
 
-7. **Corner Radius:**
+6. **Corner Radius:**
    - Single value: "cornerRadius": 8
    - Individual corners:
      "topLeftRadius": 8,
@@ -98,7 +96,7 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
      "bottomLeftRadius": 0,
      "bottomRightRadius": 0
 
-8. **Auto-Layout (for FRAME nodes):**
+7. **Auto-Layout (for FRAME nodes):**
 ```json
 "layoutMode": "VERTICAL",
 "primaryAxisSizingMode": "AUTO",
@@ -119,7 +117,7 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
    - primaryAxisAlignItems: "MIN" | "CENTER" | "MAX" | "SPACE_BETWEEN"
    - counterAxisAlignItems: "MIN" | "CENTER" | "MAX"
 
-9. **Effects (shadows, blurs):**
+8. **Effects (shadows):**
 ```json
 "effects": [
   {
@@ -134,15 +132,16 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
 ]
 ```
 
-   Valid effect types: "DROP_SHADOW" | "INNER_SHADOW" | "LAYER_BLUR" | "BACKGROUND_BLUR"
+   Valid effect types: "DROP_SHADOW" | "INNER_SHADOW"  | "BACKGROUND_BLUR"
 
-10. **Font Families:** Use commonly available fonts:
+9. **Font Families:** Use only these fonts that exist in Figma:
     - "Inter" (styles: "Regular", "Medium", "Semi Bold", "Bold")
-    - "Poppins" (styles: "Regular", "Medium", "SemiBold", "Bold")
-    - "Montserrat" (styles: "Regular", "Medium", "SemiBold", "Bold")
+    - "Roboto" (styles: "Regular", "Medium", "Bold")
+    - "SF Pro" (styles: "Regular", "Medium", "Semibold", "Bold")
     - "Arial" (styles: "Regular", "Bold")
+    Do NOT use fonts like "Poppins" unless explicitly available.
 
-11. **Multiple Pages:** Return an array with multiple FRAME objects. Each top-level FRAME represents a page/screen:
+10. **Multiple Pages:** Return an array with multiple FRAME objects. Each top-level FRAME represents a page/screen:
 ```json
 [
   {
@@ -166,128 +165,33 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
 ]
 ```
 
-12. **Common Screen Sizes:**
+11. **Common Screen Sizes:**
     - Desktop: 1920 x 1080 or 1440 x 900
     - Mobile: 390 x 844 (iPhone 14/15)
     - Tablet: 820 x 1180
 
 ---
 
-## 13. **ICONS - VECTOR NODES WITH PATH DATA**
+## 12. **ICONS — USE ICONIFY API**
 
-Icons MUST be created using VECTOR nodes with `vectorPaths`. This is the proper way to create scalable icons in Figma.
+When you need an icon in the design, use the `searchIcons` and `getIconUrl` tools, then place the icon as a RECTANGLE with an IMAGE fill. See the separate icon instructions for full details.
 
-### ⚠️ CRITICAL: SVG Path Syntax Rules
+**⚠️ Do NOT use VECTOR nodes with vectorPaths for icons.**
 
-**IMPORTANT: Path data MUST have spaces between commands and numbers!**
-
-✅ CORRECT: `"M 5 12 L 19 12"` (spaces after M, L and between numbers)
-❌ WRONG: `"M5 12 L19 12"` (missing space after M and L)
-❌ WRONG: `"M5,12 L19,12"` (avoid commas, use spaces)
-
-**Path Command Format:**
-- Every command letter (M, L, Q, C, Z Only) MUST be followed by a space
-- Numbers MUST be separated by spaces
-- Use spaces, NOT commas, between coordinates
-- Dont use this letter (V, H, A)
-
-### Vector Path Structure:
+Quick example:
 ```json
 {
-  "name": "Icon Name",
-  "type": "VECTOR",
+  "name": "Home Icon",
+  "type": "RECTANGLE",
   "x": 0,
   "y": 0,
   "width": 24,
   "height": 24,
-  "fills": [],
-  "strokes": [
+  "fills": [
     {
-      "type": "SOLID",
-      "visible": true,
-      "opacity": 1,
-      "blendMode": "NORMAL",
-      "color": { "r": 0.2, "g": 0.2, "b": 0.2 }
-    }
-  ],
-  "strokeWeight": 2,
-  "strokeCap": "ROUND",
-  "strokeJoin": "ROUND",
-  "vectorPaths": [
-    {
-      "windingRule": "NONZERO",
-      "data": "M 5 12 L 19 12"
-    }
-  ]
-}
-```
-
-### SVG Path Commands Reference (use only this):
-- **M x y** - Move to point (start new path) - Example: `M 5 12`
-- **L x y** - Line to point - Example: `L 19 12`
-- **C x1 y1 x2 y2 x y** - Cubic bezier curve - Example: `C 10 5 15 5 20 12`
-- **Q x1 y1 x y** - Quadratic bezier curve - Example: `Q 12 5 19 12`
-- **Z** - Close path (connect back to start)
-
-### Common Icon Examples (24x24 size):
-
-**Arrow Right:**
-```json
-{
-  "name": "Icon / Arrow Right",
-  "type": "VECTOR",
-  "x": 0,
-  "y": 0,
-  "width": 24,
-  "height": 24,
-  "fills": [],
-  "strokes": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 0.2, "g": 0.2, "b": 0.2 } }],
-  "strokeWeight": 2,
-  "strokeCap": "ROUND",
-  "strokeJoin": "ROUND",
-  "vectorPaths": [{ "windingRule": "NONZERO", "data": "M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" }]
-}
-```
-
-### Icon Usage Tips:
-1. **Standard size**: Use 24x24 for most icons, 16x16 for small, 32x32 or 48x48 for large
-2. **Stroke weight**: Use 1.5-2 for 24px icons, adjust proportionally for other sizes
-3. **Color**: Use stroke color for outline icons, fills for solid icons
-4. **strokeCap and strokeJoin**: Use "ROUND" for friendlier icons, "SQUARE"/"MITER" for sharper look
-5. **Scaling**: To scale icons, multiply all coordinates and dimensions by the scale factor
-6. **Filled icons**: Use fills instead of strokes and adjust vectorPaths accordingly
-
-### Icon Container Pattern:
-Wrap icons in a FRAME for better positioning and hover states:
-```json
-{
-  "name": "Icon Button",
-  "type": "FRAME",
-  "x": 0,
-  "y": 0,
-  "width": 40,
-  "height": 40,
-  "fills": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 0.95, "g": 0.95, "b": 0.95 } }],
-  "cornerRadius": 8,
-  "layoutMode": "HORIZONTAL",
-  "primaryAxisSizingMode": "FIXED",
-  "counterAxisSizingMode": "FIXED",
-  "primaryAxisAlignItems": "CENTER",
-  "counterAxisAlignItems": "CENTER",
-  "children": [
-    {
-      "name": "Icon / Plus",
-      "type": "VECTOR",
-      "x": 0,
-      "y": 0,
-      "width": 24,
-      "height": 24,
-      "fills": [],
-      "strokes": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 0.2, "g": 0.2, "b": 0.2 } }],
-      "strokeWeight": 2,
-      "strokeCap": "ROUND",
-      "strokeJoin": "ROUND",
-      "vectorPaths": [{ "windingRule": "NONZERO", "data": "M 12 5 L 12 19 M 5 12 L 19 12" }]
+      "type": "IMAGE",
+      "scaleMode": "FILL",
+      "imageUrl": "https://api.iconify.design/solar/home-bold.svg"
     }
   ]
 }
@@ -408,7 +312,7 @@ Wrap icons in a FRAME for better positioning and hover states:
                 ],
                 "characters": "BrandName",
                 "fontSize": 24,
-                "fontName": { "family": "Poppins", "style": "SemiBold" },
+                "fontName": { "family": "Inter", "style": "Semi Bold" },
                 "textAlignHorizontal": "LEFT",
                 "textAlignVertical": "CENTER",
                 "lineHeight": { "unit": "AUTO" }
@@ -549,18 +453,19 @@ Wrap icons in a FRAME for better positioning and hover states:
                 "lineHeight": { "unit": "AUTO" }
               },
               {
-                "name": "Icon / Arrow Right",
-                "type": "VECTOR",
+                "name": "Arrow Icon",
+                "type": "RECTANGLE",
                 "x": 0,
                 "y": 0,
                 "width": 20,
                 "height": 20,
-                "fills": [],
-                "strokes": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 1, "g": 1, "b": 1 } }],
-                "strokeWeight": 2,
-                "strokeCap": "ROUND",
-                "strokeJoin": "ROUND",
-                "vectorPaths": [{ "windingRule": "NONZERO", "data": "M 4 10 L 16 10 M 11 5 L 16 10 L 11 15" }]
+                "fills": [
+                  {
+                    "type": "IMAGE",
+                    "scaleMode": "FILL",
+                    "imageUrl": "https://api.iconify.design/solar/arrow-right-linear.svg?color=white"
+                  }
+                ]
               }
             ]
           }
@@ -609,7 +514,7 @@ Wrap icons in a FRAME for better positioning and hover states:
             ],
             "characters": "Build Amazing Products\nFaster Than Ever",
             "fontSize": 56,
-            "fontName": { "family": "Poppins", "style": "Bold" },
+            "fontName": { "family": "Inter", "style": "Bold" },
             "textAlignHorizontal": "CENTER",
             "textAlignVertical": "TOP",
             "lineHeight": { "unit": "PERCENT", "value": 120 }
@@ -645,29 +550,46 @@ Wrap icons in a FRAME for better positioning and hover states:
 ```
 
 ---
-Use only these fonts that exist in Figma:
-- "Inter" (styles: "Regular", "Medium", "Semi Bold", "Bold")
-- "Roboto" (styles: "Regular", "Medium", "Bold")
-- "SF Pro" (styles: "Regular", "Medium", "Semibold", "Bold")
-- "Arial" (styles: "Regular", "Bold")
-Do NOT use fonts like "Poppins" unless explicitly available.
 
 **VALIDATION CHECKLIST:**
 Before outputting, verify:
-- [ ] Response starts with `[` and ends with `]`
-- [ ] No markdown code blocks (no ```json)
 - [ ] All node types are valid (FRAME, TEXT, RECTANGLE, ELLIPSE, GROUP, VECTOR, LINE, POLYGON, STAR, COMPONENT, INSTANCE, BOOLEAN_OPERATION)
 - [ ] All colors use 0-1 range (not 0-255)
 - [ ] All TEXT nodes have `characters` property with actual text content
 - [ ] All TEXT nodes have `fontSize`, `fontName`, `textAlignHorizontal`, `textAlignVertical`, `lineHeight`
-- [ ] All VECTOR nodes for icons have `vectorPaths` with valid SVG path data
-- [ ] All VECTOR path data has SPACES between commands and numbers (e.g., "M 5 12" NOT "M5 12")
-- [ ] All VECTOR nodes have `strokes` or `fills` defined
-- [ ] All VECTOR nodes have `strokeWeight`, `strokeCap`, `strokeJoin` when using strokes
+- [ ] All icons use RECTANGLE with IMAGE fill from Iconify API (NOT VECTOR with vectorPaths)
 - [ ] All fills are arrays with proper structure
 - [ ] All dimensions (width, height) are positive numbers
 - [ ] All positions (x, y) are numbers
 - [ ] No invented properties or node types
-- [ ] Conforms to **Valid Node Types:** **Raw JSON Only:** The entire response should be a JSON array of objects only. It must start with [ and end with ].
+- [ ] VECTOR nodes are used ONLY for custom shapes, never for icons
 
-**REMEMBER:** Output ONLY the raw JSON array. No explanations. No markdown. Just valid JSON.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 RESPONSE FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When replying, follow this structure:
+
+1. **Brief Description**: One sentence explaining what was created
+2. **JSON Design**: Complete design array wrapped in a ```json code block
+
+Example:
+
+Created a landing page with navigation bar and hero section.
+
+```json
+[
+  {
+    "name": "Landing Page",
+    "type": "FRAME",
+    "x": 0,
+    "y": 0,
+    "width": 1920,
+    "height": 1080,
+    "fills": [...],
+    "children": [...]
+  }
+]
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

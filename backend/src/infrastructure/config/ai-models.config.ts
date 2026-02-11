@@ -13,7 +13,7 @@ export interface AIModelConfig {
   outputPricePerMillion: number;
 }
 
-export const DEFAULT_MODEL_ID = 'mistralai/devstral-2512:free'; // default model
+export const DEFAULT_MODEL_ID = 'devstral-latest'; // default model
 
 export const AI_MODELS: AIModelConfig[] = [
   // free
@@ -28,19 +28,8 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 0.00,
     outputPricePerMillion: 0.00
   },
-  {
-    id: 'mistralai/devstral-2512:free',
-    name: 'Devstral-2512',
-    description: 'Fast & efficient',
-    icon: 'DS',
-    maxTokens: 65536,
-    apiKey: ENV_CONFIG.OPEN_ROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
-  },
   // paid
-    {
+  {
     id: 'devstral-latest',
     name: 'Devstral Latest',
     description: 'Latest Mistral coding model',

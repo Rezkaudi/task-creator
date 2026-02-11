@@ -4,6 +4,7 @@ import { escapeHtml } from '../../utils.js';
 import DesignPreview from './DesignPreview.jsx';
 import CostBreakdown from './CostBreakdown.jsx';
 import '../../styles/ChatInterface.css';
+import { defaultModel, defaultDesignSystem } from '../../../../shared/constants/plugin-config.js';
 
 export default function ChatInterface({
     currentMode,
@@ -16,7 +17,7 @@ export default function ChatInterface({
     sendMessage,
 }) {
     const { state, dispatch } = useAppContext();
-    const { currentModel, availableModels, currentDesignSystem, availableDesignSystems } = state;
+    const { currentModelId, availableModels, currentDesignSystemId, availableDesignSystems } = state;
 
     const [messages, setMessages] = useState([]);
     const [conversationHistory, setConversationHistory] = useState([]);
@@ -29,10 +30,10 @@ export default function ChatInterface({
 
     // Build welcome message
     useEffect(() => {
-        const model = availableModels.find(m => m.id === currentModel);
-        const system = availableDesignSystems.find(s => s.id === currentDesignSystem);
-        const modelName = model?.name || 'Devstral-2512';
-        const systemName = system?.name || 'Default design system';
+        const model = availableModels.find(m => m.id === currentModelId);
+        const system = availableDesignSystems.find(s => s.id === currentDesignSystemId);
+        const modelName = model?.name || defaultModel.name;
+        const systemName = system?.name || defaultDesignSystem.name;
 
         let welcomeMessage;
         if (isBasedOnExistingMode) {
@@ -95,7 +96,7 @@ export default function ChatInterface({
                 message,
                 history: newHistory,
                 referenceJson: referenceDesignJson,
-                model: currentModel
+                model: currentModelId
             });
         } else if (currentMode === 'edit') {
             addMessage('assistant', 'Editing in progress, please wait', { isLoading: true });
@@ -103,19 +104,19 @@ export default function ChatInterface({
                 message,
                 history: newHistory,
                 layerJson: selectedLayerJson,
-                model: currentModel,
-                designSystemId: currentDesignSystem
+                model: currentModelId,
+                designSystemId: currentDesignSystemId
             });
         } else {
             addMessage('assistant', 'Creating in progress, please wait for me', { isLoading: true });
             sendMessage('ai-chat-message', {
                 message,
                 history: newHistory,
-                model: currentModel,
-                designSystemId: currentDesignSystem
+                model: currentModelId,
+                designSystemId: currentDesignSystemId
             });
         }
-    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModel, currentDesignSystem, selectedLayerJson, referenceDesignJson, referenceLayerName, sendMessage, addMessage]);
+    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, referenceDesignJson, referenceLayerName, sendMessage, addMessage]);
 
     const handleKeyDown = useCallback((e) => {
         if (e.key === 'Enter' && e.shiftKey) return;
@@ -190,8 +191,8 @@ export default function ChatInterface({
             ? 'e.g. Change the background color to blue, make the text larger...'
             : 'e.g. Create a login page with email and password fields...';
 
-    const selectedModel = availableModels.find(m => m.id === currentModel);
-    const selectedSystem = availableDesignSystems.find(s => s.id === currentDesignSystem);
+    const selectedModel = availableModels.find(m => m.id === currentModelId);
+    const selectedSystem = availableDesignSystems.find(s => s.id === currentDesignSystemId);
 
     return (
         <div id="ai-chat-container" className="show-chat" style={{ display: 'flex' }}>
@@ -291,7 +292,7 @@ export default function ChatInterface({
                         onClick={() => dispatch({ type: 'OPEN_MODEL_PANEL' })}
                     >
                         <div className="model-btn-icon">🤖</div>
-                        <span className="model-btn-text">{selectedModel?.name || 'Devstral-2512'}</span>
+                        <span className="model-btn-text">{selectedModel?.name || defaultModel.name}</span>
                     </div>
                     <div
                         id="design-system-floating-btn"
@@ -299,7 +300,7 @@ export default function ChatInterface({
                         onClick={() => dispatch({ type: 'TOGGLE_DESIGN_SYSTEM_PANEL' })}
                     >
                         <div className="model-btn-icon">🎨</div>
-                        <span className="design-system-btn-text">{selectedSystem?.name || 'Default Design System'}</span>
+                        <span className="design-system-btn-text">{selectedSystem?.name || defaultDesignSystem.name}</span>
                     </div>
                 </div>
             </div>

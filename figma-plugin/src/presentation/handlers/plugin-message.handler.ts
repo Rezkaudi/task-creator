@@ -7,7 +7,7 @@ import {
   ExportSelectedUseCase,
   ExportAllUseCase,
 } from '../../application/use-cases';
-import { ApiConfig } from '../../shared/constants';
+import { ApiConfig, defaultModel } from '../../shared/constants/plugin-config.js';
 import { GetUserInfoUseCase } from '@application/use-cases/getUserInfoUseCase';
 import { errorReporter } from '../../infrastructure/services/error-reporter.service';
 import { ImageOptimizerService, ImageReference } from '../../infrastructure/services/plugin-image-optimizer.service'; // ← NEW
@@ -190,7 +190,7 @@ export class PluginMessageHandler {
         headers: await this.getUserInfoUseCase.execute(),
         body: JSON.stringify({
           frames,
-          modelId: modelId || 'mistralai/devstral-2512:free'
+          modelId: modelId || defaultModel.id
         })
       });
 
@@ -377,7 +377,7 @@ export class PluginMessageHandler {
         this.conversationHistory = history;
       }
 
-      const selectedModel = model || 'mistralai/devstral-2512:free';
+      const selectedModel = model || defaultModel.id;
 
       // Strip images before sending to backend
       console.log('🔧 Plugin: Stripping images before sending to backend...');
@@ -469,7 +469,7 @@ export class PluginMessageHandler {
         conversationHistory = history;
       }
 
-      const selectedModel = model || 'mistralai/devstral-2512:free';
+      const selectedModel = model || defaultModel.id;
 
       // Strip images from reference
       console.log('🔧 Plugin: Stripping images from reference design...');
@@ -545,7 +545,7 @@ export class PluginMessageHandler {
         this.conversationHistory = history;
       }
 
-      const selectedModel = model || 'mistralai/devstral-2512:free';
+      const selectedModel = model || defaultModel.id;
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-from-conversation`, {
         method: 'POST',

@@ -3,10 +3,11 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import { escapeHtml } from '../../utils.js';
 import { reportErrorAsync } from '../../errorReporter.js';
 import '../../styles/PrototypePanel.css';
+import { defaultModel } from '../../../../shared/constants/plugin-config.js';
 
 export default function PrototypePanel({ onBack, sendMessage }) {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
-    const { currentModel, availableModels } = state;
+    const { currentModelId, availableModels } = state;
 
     const [prototypeFrames, setPrototypeFrames] = useState([]);
     const [selectedFrameIds, setSelectedFrameIds] = useState(new Set());
@@ -58,9 +59,9 @@ export default function PrototypePanel({ onBack, sendMessage }) {
         const selectedFrames = prototypeFrames.filter(f => selectedFrameIds.has(f.id));
         sendMessage('generate-prototype-connections', {
             frames: selectedFrames,
-            modelId: currentModel
+            modelId: currentModelId
         });
-    }, [selectedFrameIds, prototypeFrames, currentModel, sendMessage, showStatus]);
+    }, [selectedFrameIds, prototypeFrames, currentModelId, sendMessage, showStatus]);
 
     const applyConnections = useCallback(() => {
         if (generatedConnections.length === 0) {
@@ -133,7 +134,7 @@ export default function PrototypePanel({ onBack, sendMessage }) {
     };
 
     const count = selectedFrameIds.size;
-    const selectedModel = availableModels.find(m => m.id === currentModel);
+    const selectedModel = availableModels.find(m => m.id === currentModelId);
 
     return (
         <div id="prototype-panel" style={{ display: 'block' }}>
@@ -198,7 +199,7 @@ export default function PrototypePanel({ onBack, sendMessage }) {
                     onClick={() => dispatch({ type: 'OPEN_MODEL_PANEL' })}
                 >
                     <div className="model-btn-icon">🤖</div>
-                    <span className="model-btn-text">{selectedModel?.name || 'Devstral-2512'}</span>
+                    <span className="model-btn-text">{selectedModel?.name || defaultModel.name}</span>
                 </div>
                 <button
                     className="btn-primary"

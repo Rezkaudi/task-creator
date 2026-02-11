@@ -1,20 +1,18 @@
 // src/infrastructure/services/ai-generate-design.service.ts
-
 import OpenAI from 'openai';
 import { FigmaDesign } from '../../domain/entities/figma-design.entity';
-import { AIModelConfig, getModelById } from '../config/ai-models.config';
-import { PromptBuilderService } from './prompt-builder.service';
-import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../domain/services/IAiDesignService';
+import { FrameInfo, PrototypeConnection } from '../../domain/entities/prototype-connection.entity';
 import { CostBreakdown, IAiCostCalculator } from '../../domain/services/IAiCostCanculator';
-import { iconTools } from '../config/ai-tools.config';
-
-// Extracted services
-import { IIconService } from '../../domain/services/IIconService';
 import { IOpenAIClientFactory } from '../../domain/services/IOpenAIClientFactory';
+
+import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../domain/services/IAiDesignService';
+
+import { iconTools } from '../config/ai-tools.config';
+import { AIModelConfig, getModelById } from '../config/ai-models.config';
+
 import { ToolCallHandlerService, FunctionToolCall } from './tool-call-handler.service';
 import { ResponseParserService } from './response-parser.service';
 import { MessageBuilderService, AiMessage } from './message-builder.service';
-import { Timer } from './timer.service';
 
 interface CompletionResult {
     responseText: string;
@@ -22,33 +20,24 @@ interface CompletionResult {
 }
 
 export class AiGenerateDesignService implements IAiDesignService {
-    private readonly promptBuilder: PromptBuilderService;
     private readonly costCalculator: IAiCostCalculator;
-    private readonly iconService: IIconService;
     private readonly clientFactory: IOpenAIClientFactory;
     private readonly toolCallHandler: ToolCallHandlerService;
     private readonly responseParser: ResponseParserService;
     private readonly messageBuilder: MessageBuilderService;
-    private readonly timer: Timer;
 
     constructor(
-        promptBuilderService: PromptBuilderService,
         costCalculator: IAiCostCalculator,
-        iconService: IIconService,
         clientFactory: IOpenAIClientFactory,
         toolCallHandler: ToolCallHandlerService,
         responseParser: ResponseParserService,
         messageBuilder: MessageBuilderService,
-        timer: Timer
     ) {
-        this.promptBuilder = promptBuilderService;
         this.costCalculator = costCalculator;
-        this.iconService = iconService;
         this.clientFactory = clientFactory;
         this.toolCallHandler = toolCallHandler;
         this.responseParser = responseParser;
         this.messageBuilder = messageBuilder;
-        this.timer = timer;
     }
 
     async generateDesignFromConversation(
@@ -57,10 +46,11 @@ export class AiGenerateDesignService implements IAiDesignService {
         modelId: string,
         designSystemId: string
     ): Promise<DesignGenerationResult> {
-        this.timer.start();
 
         const aiModel = getModelById(modelId);
         const openai = this.clientFactory.createClient(aiModel);
+
+        console.log('--- 1. Prepare messages  ---');
 
         const messages = this.messageBuilder.buildConversationMessages(
             userMessage,
@@ -68,18 +58,21 @@ export class AiGenerateDesignService implements IAiDesignService {
             designSystemId
         );
 
-        console.log('--- 1. Sending Conversation ---');
-        // console.log(JSON.stringify(messages, null, 2));
+        console.log('--- 2. Sending messages to AI  ---');
 
         try {
+
             const { responseText, usage } = await this.executeWithToolCalls(
                 openai,
                 aiModel,
                 messages
             );
 
-            const designData = this.responseParser.extractDesignFromResponse(responseText);
-            const aiMessage = this.responseParser.extractMessageFromResponse(responseText);
+            console.log('--- 3. Response parsed  ---');
+
+            const result = this.responseParser.parseAIResponseForDesign(responseText);
+
+            console.log('--- 4. Calculating cost  ---');
 
             const costBreakdown = this.calculateCost(
                 aiModel,
@@ -88,12 +81,9 @@ export class AiGenerateDesignService implements IAiDesignService {
                 responseText
             );
 
-            this.timer.stop();
-            console.log(`⏱️ Preparation Time: ${this.timer.durationFormatted}`);
-
             return {
-                message: aiMessage,
-                design: designData,
+                message: result.message,
+                design: result.design,
                 previewHtml: null,
                 cost: costBreakdown
             };
@@ -110,8 +100,11 @@ export class AiGenerateDesignService implements IAiDesignService {
         modelId: string,
         designSystemId: string
     ): Promise<DesignGenerationResult> {
+
         const aiModel = getModelById(modelId);
         const openai = this.clientFactory.createClient(aiModel);
+
+        console.log('--- 1. Prepare messages  ---');
 
         const messages = this.messageBuilder.buildEditMessages(
             userMessage,
@@ -120,9 +113,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             designSystemId
         );
 
-        console.log('--- 1. Sending Edit Request to GPT ---');
-        console.log(`🎨 Design System: ${this.promptBuilder.getDesignSystemDisplayName(designSystemId) || 'default'}`);
-        console.log(`📊 Design size: ${JSON.stringify(currentDesign).length} characters`);
+        console.log('--- 2. Sending messages to AI  ---');
 
         try {
             const { responseText, usage } = await this.executeWithToolCalls(
@@ -131,13 +122,12 @@ export class AiGenerateDesignService implements IAiDesignService {
                 messages
             );
 
-            const designData = this.responseParser.extractDesignFromResponse(responseText);
-            if (!designData) {
-                console.error('Failed to extract JSON. Raw response:', responseText);
-                throw new Error('Failed to extract valid design JSON from AI response.');
-            }
+            console.log('--- 3. Response parsed  ---');
 
-            const aiMessage = this.responseParser.extractMessageFromResponse(responseText);
+            const result = this.responseParser.parseAIResponseForDesign(responseText);
+
+            console.log('--- 4. Calculating cost  ---');
+
             const costBreakdown = this.calculateCost(
                 aiModel,
                 usage,
@@ -146,8 +136,8 @@ export class AiGenerateDesignService implements IAiDesignService {
             );
 
             return {
-                message: aiMessage,
-                design: designData,
+                message: result.message,
+                design: result.design,
                 previewHtml: null,
                 cost: costBreakdown
             };
@@ -166,14 +156,15 @@ export class AiGenerateDesignService implements IAiDesignService {
         const aiModel = getModelById(modelId);
         const openai = this.clientFactory.createClient(aiModel);
 
+        console.log('--- 1. Prepare messages  ---');
+
         const messages = this.messageBuilder.buildBasedOnExistingMessages(
             userMessage,
             history,
             referenceToon
         );
 
-        console.log('🎨 Generating design based on existing design system');
-        console.log(`📊 Reference design size (TOON): ${referenceToon.length} characters`);
+        console.log('--- 2. Sending messages to AI  ---');
 
         try {
             const { responseText, usage } = await this.executeWithToolCalls(
@@ -182,13 +173,12 @@ export class AiGenerateDesignService implements IAiDesignService {
                 messages
             );
 
-            const designData = this.responseParser.extractDesignFromResponse(responseText);
-            if (!designData) {
-                console.error('Failed to extract JSON. Raw response:', responseText);
-                throw new Error('Failed to extract valid design JSON from AI response.');
-            }
+            console.log('--- 3. Response parsed  ---');
 
-            const aiMessage = this.responseParser.extractMessageFromResponse(responseText);
+            const result = this.responseParser.parseAIResponseForDesign(responseText);
+
+            console.log('--- 4. Calculating cost  ---');
+
             const costBreakdown = this.calculateCost(
                 aiModel,
                 usage,
@@ -197,27 +187,68 @@ export class AiGenerateDesignService implements IAiDesignService {
             );
 
             return {
-                message: aiMessage,
-                design: designData,
+                message: result.message,
+                design: result.design,
                 previewHtml: null,
                 cost: costBreakdown
             };
 
         } catch (error) {
-            // Provide more specific error for timeouts
-            if (error instanceof Error && error.message.includes('timed out')) {
-                throw new Error(
-                    'Request timed out. The reference design may be too complex. ' +
-                    'Try using a simpler design as reference or break it into smaller parts.'
-                );
-            }
             this.handleError(error, 'generateDesignBasedOnExisting');
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Private Methods
-    // ─────────────────────────────────────────────────────────────────────────────
+    async generateConnections(
+        frames: FrameInfo[],
+        modelId?: string
+    ): Promise<{
+        connections: PrototypeConnection[];
+        message: string;
+        reasoning?: string;
+        cost?: any;
+    }> {
+        const aiModel = getModelById(modelId!);
+        const openai = this.clientFactory.createClient(aiModel);
+
+        console.log('--- 1. Prepare messages  ---');
+
+        // FIX: Original code referenced undefined `userMessage` — now uses `frames`
+        const messages = this.messageBuilder.buildPrototypeMessages(frames);
+
+        try {
+            const completion = await openai.chat.completions.create({
+                model: aiModel.id,
+                messages
+            });
+
+            const responseText = completion.choices[0]?.message?.content;
+
+            if (!responseText) {
+                throw new Error('Empty response from AI');
+            }
+
+            const result = this.responseParser.parseAIResponseForPrototype(responseText);
+
+            console.log('--- 4. Calculating cost  ---');
+
+            const costBreakdown = this.calculateCost(
+                aiModel,
+                completion.usage,
+                JSON.stringify(messages),
+                responseText
+            );
+
+            return {
+                connections: result.connections,
+                message: `Generated ${result.connections.length} prototype connections`,
+                reasoning: result.reasoning,
+                cost: costBreakdown
+            };
+
+        } catch (error) {
+            this.handleError(error, 'generateConnections');
+        }
+    }
 
     private async executeWithToolCalls(
         openai: OpenAI,
@@ -287,17 +318,5 @@ export class AiGenerateDesignService implements IAiDesignService {
             `Failed to ${methodName.replace(/([A-Z])/g, ' $1').toLowerCase()}. ` +
             `Original error: ${error instanceof Error ? error.message : String(error)}`
         );
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Legacy methods for backward compatibility (delegate to iconService)
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    async searchIcons(query: string): Promise<{ icons: string[] }> {
-        return this.iconService.searchIcons(query);
-    }
-
-    getIconUrl(iconData: string): string {
-        return this.iconService.getIconUrl(iconData);
     }
 }

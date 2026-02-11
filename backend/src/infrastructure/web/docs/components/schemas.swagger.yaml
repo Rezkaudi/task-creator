@@ -561,7 +561,8 @@ components:
           type: string
           example: "material-3"
           description: "ID of the design system to use"
-          enum: ["material-3", "shadcn-ui", "ant-design", "Default design system"]
+          enum:
+            ["material-3", "shadcn-ui", "ant-design", "default-design-system"]
 
     # Enhanced design generation request with model and design system
     EnhancedDesignGenerationRequest:

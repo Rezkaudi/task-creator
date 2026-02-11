@@ -89,4 +89,7 @@ Use system fonts (Inter, SF Pro, or similar):
 - Hover states: subtle opacity or background changes
 - No heavy animations or effects
 
-CRITICAL: Keep designs minimal, accessible, and composable. Avoid over-styling.
+CRITICAL: 
+1-Keep designs minimal, accessible, and composable. Avoid over-styling.
+2-All generated designs MUST strictly follow shadcn/ui Design System Guidelines.
+3-Do NOT deviate from these specifications unless explicitly requested.

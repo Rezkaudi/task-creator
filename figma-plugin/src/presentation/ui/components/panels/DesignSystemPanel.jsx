@@ -4,10 +4,11 @@ import { useApiClient } from '../../hooks/useApiClient.js';
 import { escapeHtml } from '../../utils.js';
 import { reportErrorAsync } from '../../errorReporter.js';
 import '../../styles/ModelPanel.css';
+import { defaultDesignSystem } from '../../../../shared/constants/plugin-config.js';
 
 export default function DesignSystemPanel() {
     const { state, dispatch } = useAppContext();
-    const { designSystemPanelOpen, currentDesignSystem, availableDesignSystems } = state;
+    const { designSystemPanelOpen, currentDesignSystemId, availableDesignSystems } = state;
     const { apiGet } = useApiClient();
 
     const [statusMsg, setStatusMsg] = useState('');
@@ -63,7 +64,7 @@ export default function DesignSystemPanel() {
 
     if (!designSystemPanelOpen) return null;
 
-    const selectedSystem = availableDesignSystems.find(s => s.id === currentDesignSystem);
+    const selectedSystem = availableDesignSystems.find(s => s.id === currentDesignSystemId);
 
     return (
         <>
@@ -89,7 +90,7 @@ export default function DesignSystemPanel() {
                         availableDesignSystems.map(system => (
                             <div
                                 key={system.id}
-                                className={`model-item ${currentDesignSystem === system.id ? 'active' : ''}`}
+                                className={`model-item ${currentDesignSystemId === system.id ? 'active' : ''}`}
                                 data-system={system.id}
                                 onClick={() => handleSelect(system.id)}
                             >
@@ -99,7 +100,7 @@ export default function DesignSystemPanel() {
                                     <div className="model-item-desc">{escapeHtml(system.description)}</div>
                                 </div>
                                 <div className="model-item-check">
-                                    {currentDesignSystem === system.id ? '✓' : ''}
+                                    {currentDesignSystemId === system.id ? '✓' : ''}
                                 </div>
                             </div>
                         ))
@@ -109,7 +110,7 @@ export default function DesignSystemPanel() {
                 <div className="model-panel-footer">
                     <span id="selected-design-system-info">
                         Currently using: <span id="current-design-system-name">
-                            {selectedSystem?.name || 'Default design system'}
+                            {selectedSystem?.name || defaultDesignSystem.name}
                         </span>
                     </span>
                     {statusMsg && (
