@@ -3,6 +3,7 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import { useApiClient } from '../../hooks/useApiClient.js';
 import { escapeHtml } from '../../utils.js';
 import { reportErrorAsync } from '../../errorReporter.js';
+import '../../styles/ModelPanel.css';
 
 export default function ModelPanel() {
     const { state, dispatch } = useAppContext();

@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { analyzeJsonStructure } from '../../utils.js';
 import { reportErrorAsync } from '../../errorReporter.js';
+import '../../styles/ExportTab.css';
 
 export default function ExportTab({ sendMessage }) {
     const { state, dispatch, showStatus } = useAppContext();

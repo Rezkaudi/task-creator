@@ -1,0 +1,16 @@
+/* === PasteJsonTab === */
+.json-stats {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 8px;
+}
+
+.json-stats.error {
+    color: #ef4444;
+}
+
+.helper-text {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 4px;
+}

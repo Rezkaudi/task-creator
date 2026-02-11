@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../styles/CostBreakdown.css';
 
 export default function CostBreakdown({ cost }) {
     if (!cost) return null;

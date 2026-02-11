@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { setupGlobalHandlers } from './errorReporter.js';
 import App from './components/App.jsx';
+import './styles/base.css';
 
 // Setup global error handlers
 setupGlobalHandlers();

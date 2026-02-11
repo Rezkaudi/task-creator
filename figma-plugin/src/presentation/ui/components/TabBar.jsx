@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/TabBar.css';
 
 const TABS = [
     { id: 'ai', label: '🤖 AI Generate' },

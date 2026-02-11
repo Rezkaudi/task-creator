@@ -1,3 +1,4 @@
+import '../styles/ResizeHandle.css';
 
 export default function ResizeHandle() {
     const handlePointerDown = (e) => {

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { escapeHtml, getElementIcon } from '../../utils.js';
+import '../../styles/DesignPreview.css';
 
 export default function DesignPreview({ designData, previewHtml, isEditMode, isBasedOnExistingMode, layerInfo, selectedLayerForEdit, onImport }) {
     const [currentZoom, setCurrentZoom] = useState(1);

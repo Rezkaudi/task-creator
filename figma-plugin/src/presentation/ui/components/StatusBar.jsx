@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext.jsx';
+import '../styles/StatusBar.css';
 
 export default function StatusBar() {
     const { state } = useAppContext();

@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../styles/ModeSelectionScreen.css';
 
 export default function ModeSelectionScreen({ onSelectMode }) {
     return (

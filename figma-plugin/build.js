@@ -25,28 +25,32 @@ const DIST = path.join(__dirname, "dist");
 
 async function buildUI() {
   try {
-    // 1. Bundle React JSX entry point with esbuild
+    // 1. Bundle React JSX + CSS imports with esbuild
     const result = await esbuild.build({
       entryPoints: [path.join(UI_SRC, "index.jsx")],
       bundle: true,
       write: false,
+      outdir: DIST,
       format: "iife",
       target: "es2020",
       minify: isProd,
       define,
       jsx: "automatic",
-      loader: { ".jsx": "jsx", ".js": "js" },
+      loader: { ".jsx": "jsx", ".js": "js", ".css": "css" },
       logLevel: "info",
     });
 
+    // 2. Extract JS and CSS from esbuild output
+    const jsFile = result.outputFiles.find((f) => f.path.endsWith(".js"));
+    const cssFile = result.outputFiles.find((f) => f.path.endsWith(".css"));
+
     // Escape </script> sequences so they don't break inline <script> tags
-    const js = result.outputFiles[0].text.replace(/<\/script/gi, "<\\/script");
+    const js = jsFile.text.replace(/<\/script/gi, "<\\/script");
+    const css = cssFile ? cssFile.text : "";
 
-    // 2. Read HTML template and CSS
+    // 3. Read HTML template and inline CSS + JS
     const html = fs.readFileSync(path.join(UI_SRC, "ui.html"), "utf8");
-    const css = fs.readFileSync(path.join(UI_SRC, "ui.css"), "utf8");
 
-    // 3. Inline CSS and JS into the HTML template
     // IMPORTANT: Use function replacers to avoid $& / $' / $` substitution
     // issues — the bundled React source contains these patterns.
     const output = html

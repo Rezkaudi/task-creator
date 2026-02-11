@@ -161,7 +161,7 @@ function AppContent() {
             )}
 
             {activeTab === 'manual' && (
-                <PasteJsonTab onImport={handleManualImport} />
+                <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
             )}
 
             {activeTab === 'export' && (

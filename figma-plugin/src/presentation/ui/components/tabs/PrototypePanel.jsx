@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
 import { escapeHtml } from '../../utils.js';
 import { reportErrorAsync } from '../../errorReporter.js';
+import '../../styles/PrototypePanel.css';
 
 export default function PrototypePanel({ onBack, sendMessage }) {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();

@@ -3,6 +3,7 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import { escapeHtml } from '../../utils.js';
 import DesignPreview from './DesignPreview.jsx';
 import CostBreakdown from './CostBreakdown.jsx';
+import '../../styles/ChatInterface.css';
 
 export default function ChatInterface({
     currentMode,

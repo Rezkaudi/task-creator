@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { analyzeJsonStructure } from '../../utils.js';
 import { debounce } from '../../utils.js';
+import '../../styles/PasteJsonTab.css';
 
-export default function PasteJsonTab({ onImport }) {
+export default function PasteJsonTab({ onImport, valueRef }) {
     const [jsonValue, setJsonValue] = useState('');
     const [statsText, setStatsText] = useState('');
     const [validityClass, setValidityClass] = useState('');
@@ -30,6 +31,7 @@ export default function PasteJsonTab({ onImport }) {
     const handleChange = (e) => {
         const val = e.target.value;
         setJsonValue(val);
+        if (valueRef) valueRef.current = val;
         validate(val);
     };
 

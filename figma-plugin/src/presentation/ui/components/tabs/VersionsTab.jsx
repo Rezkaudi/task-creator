@@ -3,6 +3,7 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import { useApiClient } from '../../hooks/useApiClient.js';
 import { reportErrorAsync } from '../../errorReporter.js';
 import { formatDate, escapeHtml } from '../../utils.js';
+import '../../styles/VersionsTab.css';
 
 export default function VersionsTab({ sendMessage }) {
     const { showStatus, hideStatus } = useAppContext();

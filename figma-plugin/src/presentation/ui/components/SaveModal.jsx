@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppContext } from '../context/AppContext.jsx';
 import { useApiClient } from '../hooks/useApiClient.js';
 import { reportErrorAsync } from '../errorReporter.js';
+import '../styles/SaveModal.css';
 
 export default function SaveModal() {
     const { state, dispatch, showStatus } = useAppContext();
