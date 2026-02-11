@@ -16,6 +16,47 @@ function getComponentNameFromExportData(exportData) {
     return 'Untitled Component';
 }
 
+function requestPreviewImage({ maxWidth = 320, timeoutMs = 8000 } = {}) {
+    return new Promise((resolve, reject) => {
+        const requestId = `preview_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+        const cleanup = () => {
+            window.removeEventListener('message', onMessage);
+            clearTimeout(timeoutId);
+        };
+
+        const onMessage = (event) => {
+            const message = event.data?.pluginMessage;
+            if (!message || message.requestId !== requestId) return;
+
+            if (message.type === 'preview-image-generated') {
+                cleanup();
+                resolve(message.previewImage || null);
+                return;
+            }
+
+            if (message.type === 'preview-image-error') {
+                cleanup();
+                reject(new Error(message.error || 'Failed to generate preview image'));
+            }
+        };
+
+        const timeoutId = setTimeout(() => {
+            cleanup();
+            reject(new Error('Preview image generation timed out'));
+        }, timeoutMs);
+
+        window.addEventListener('message', onMessage);
+        parent.postMessage({
+            pluginMessage: {
+                type: 'generate-preview-image',
+                requestId,
+                maxWidth,
+            },
+        }, '*');
+    });
+}
+
 export default function SaveModal() {
     const { state, dispatch, showStatus } = useAppContext();
     const { saveModalOpen, currentExportData } = state;
@@ -75,12 +116,23 @@ export default function SaveModal() {
             setIsSaving(true);
             showStatus('💾 Saving component to UI Library...', 'info');
 
+            let previewImage = null;
+            try {
+                previewImage = await requestPreviewImage({ maxWidth: 320 });
+            } catch (previewError) {
+                showStatus('⚠️ Could not generate preview image. Saving without preview.', 'warning');
+                reportErrorAsync(previewError, {
+                    componentName: 'SaveToUILibraryModal',
+                    actionType: 'generatePreviewImage',
+                });
+            }
+
             const data = await apiPost('/api/ui-library/components', {
                 projectId: selectedProjectId,
                 name: componentName,
                 description: description.trim(),
                 designJson: currentExportData,
-                previewImage: null,
+                previewImage,
             });
 
             if (!data.success) {

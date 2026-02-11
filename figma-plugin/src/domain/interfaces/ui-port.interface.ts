@@ -38,6 +38,8 @@ export type UIMessage =
   | { type: 'prototype-connections-error'; error: string }
   | { type: 'prototype-applied'; appliedCount: number }
   | { type: 'prototype-apply-error'; error: string }
+  | { type: 'preview-image-generated'; requestId?: string; previewImage: string | null }
+  | { type: 'preview-image-error'; requestId?: string; error: string }
 
 /**
  * Messages received from the UI (PluginMessage)
@@ -104,6 +106,7 @@ export type PluginMessage =
   | { type: 'get-frames-for-prototype' }
   | { type: 'generate-prototype-connections'; frames: FrameInfo[]; modelId?: string }
   | { type: 'apply-prototype-connections'; connections: PrototypeConnection[] }
+  | { type: 'generate-preview-image'; requestId?: string; maxWidth?: number }
 
 /**
  * UI Port interface

@@ -243,6 +243,7 @@
 .uil-component-actions {
     display: flex;
     align-items: center;
+    /* justify-content: space-between; */
     gap: 8px;
     padding: 10px 14px 14px;
     margin-top: auto;
@@ -266,6 +267,7 @@
 }
 
 .uil-btn-delete-icon {
+    flex: 1;
     background: none;
     border: none;
     color: #94a3b8;
@@ -276,10 +278,11 @@
     align-items: center;
     justify-content: center;
     transition: background 0.15s, color 0.15s;
+    background: #fef2f2;
 }
 
 .uil-btn-delete-icon:hover {
-    background: #fef2f2;
+    background: #fae4e4;
     color: #ef4444;
 }
 

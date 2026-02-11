@@ -3,7 +3,7 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import { useApiClient } from '../../hooks/useApiClient.js';
 import { reportErrorAsync } from '../../errorReporter.js';
 import { formatDate } from '../../utils.js';
-import { Plus, ChevronRight, ChevronLeft, Trash2, FolderOpen, Download, AlertTriangle } from 'lucide-react';
+import { Plus, ChevronRight, ChevronLeft, Trash2, FolderOpen, Download, AlertTriangle, Import } from 'lucide-react';
 import '../../styles/UILibraryTab.css';
 
 function getPreviewSrc(component) {
@@ -303,7 +303,7 @@ export default function UILibraryTab({ sendMessage }) {
                                     className="uil-btn-import"
                                     onClick={() => handleImportComponent(component)}
                                 >
-                                    Import
+                                    <Import size={16} />
                                 </button>
                                 <button
                                     className="uil-btn-delete-icon"

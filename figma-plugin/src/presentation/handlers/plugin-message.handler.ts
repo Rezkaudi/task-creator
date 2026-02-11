@@ -142,6 +142,9 @@ export class PluginMessageHandler {
             await this.handleApplyPrototypeConnections(message.connections);
           }
           break;
+        case 'generate-preview-image':
+          await this.handleGeneratePreviewImage(message.requestId, message.maxWidth);
+          break;
         default:
           console.warn('Unknown message type:', message.type);
       }
@@ -807,6 +810,50 @@ export class PluginMessageHandler {
         actionType: 'handleImportUILibraryComponent',
       });
       throw error;
+    }
+  }
+
+  private async handleGeneratePreviewImage(requestId?: string, maxWidth?: number): Promise<void> {
+    try {
+      const selection = figma.currentPage.selection;
+
+      if (selection.length === 0) {
+        throw new Error('Please select a layer to generate a preview image');
+      }
+
+      if (selection.length > 1) {
+        throw new Error('Please select only one layer to generate a preview image');
+      }
+
+      const selectedNode = selection[0] as SceneNode;
+      if (!('exportAsync' in selectedNode)) {
+        throw new Error('Selected layer cannot be exported as an image');
+      }
+
+      const width = Math.max(64, Math.min(maxWidth ?? 320, 2000));
+      const bytes = await (selectedNode as ExportMixin).exportAsync({
+        format: 'PNG',
+        constraint: { type: 'WIDTH', value: width },
+      });
+
+      const base64 = figma.base64Encode(bytes);
+      this.uiPort.postMessage({
+        type: 'preview-image-generated',
+        requestId,
+        previewImage: `data:image/png;base64,${base64}`,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate preview image';
+      this.uiPort.postMessage({
+        type: 'preview-image-error',
+        requestId,
+        error: errorMessage,
+      });
+
+      errorReporter.reportErrorAsync(error as Error, {
+        componentName: 'PluginMessageHandler',
+        actionType: 'handleGeneratePreviewImage',
+      });
     }
   }
 }
