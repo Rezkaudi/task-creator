@@ -65,13 +65,17 @@ export class Server {
 
     // Routes
     this.app.use('/auth', authRoutes(this.container.authController));
+
+    // Apply authentication to all /api routes
+    this.app.use('/api', (req, res, next) => this.container.authMiddleware.requireAuth(req, res, next));
+
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
     this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController));
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
     this.app.use('/api/errors', clientErrorRoutes(this.container.clientErrorController));
-    this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController, this.container.authMiddleware));
+    this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     // API documentation redirect
