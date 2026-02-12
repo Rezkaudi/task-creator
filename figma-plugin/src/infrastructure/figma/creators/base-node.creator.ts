@@ -297,7 +297,17 @@ export abstract class BaseNodeCreator {
    * Apply auto-layout properties to a frame
    */
   protected applyAutoLayout(frameNode: FrameNode | ComponentNode, nodeData: DesignNode): void {
-    if (!nodeData.layoutMode || nodeData.layoutMode === 'NONE') {
+    const validLayoutModes = ['NONE', 'HORIZONTAL', 'VERTICAL', 'GRID'];
+    if (!nodeData.layoutMode || !validLayoutModes.includes(nodeData.layoutMode)) {
+      if (nodeData.layoutMode) {
+        console.warn(
+          `Invalid layoutMode "${nodeData.layoutMode}" on "${nodeData.name}". Skipping auto-layout.`,
+        );
+      }
+      return;
+    }
+
+    if (nodeData.layoutMode === 'NONE') {
       return;
     }
 
@@ -319,7 +329,11 @@ export abstract class BaseNodeCreator {
       frameNode.paddingLeft = nodeData.paddingLeft;
     }
 
-    if (nodeData.primaryAxisAlignItems) {
+    const validPrimaryAxisAlignItems = ['MIN', 'CENTER', 'MAX', 'SPACE_BETWEEN'];
+    if (
+      nodeData.primaryAxisAlignItems &&
+      validPrimaryAxisAlignItems.includes(nodeData.primaryAxisAlignItems)
+    ) {
       frameNode.primaryAxisAlignItems = nodeData.primaryAxisAlignItems;
     }
     // Valid values for counterAxisAlignItems are: 'MIN' | 'MAX' | 'CENTER' | 'BASELINE'
@@ -328,10 +342,17 @@ export abstract class BaseNodeCreator {
     if (nodeData.counterAxisAlignItems && nodeData.counterAxisAlignItems !== 'BASELINE' && validCounterAxisAlignItems.includes(nodeData.counterAxisAlignItems)) {
       frameNode.counterAxisAlignItems = nodeData.counterAxisAlignItems;
     }
-    if (nodeData.primaryAxisSizingMode) {
+    const validSizingModes = ['FIXED', 'AUTO'];
+    if (
+      nodeData.primaryAxisSizingMode &&
+      validSizingModes.includes(nodeData.primaryAxisSizingMode)
+    ) {
       frameNode.primaryAxisSizingMode = nodeData.primaryAxisSizingMode;
     }
-    if (nodeData.counterAxisSizingMode) {
+    if (
+      nodeData.counterAxisSizingMode &&
+      validSizingModes.includes(nodeData.counterAxisSizingMode)
+    ) {
       frameNode.counterAxisSizingMode = nodeData.counterAxisSizingMode;
     }
 
