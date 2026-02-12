@@ -174,7 +174,13 @@ function AppContent() {
 
     // Show login screen if not authenticated
     if (!isAuthenticated) {
-        return <LoginScreen />;
+        return (
+            <>
+                <LoginScreen />
+                <ResizeHandle />
+            </>
+        )
+
     }
 
     return (
@@ -194,39 +200,41 @@ function AppContent() {
                 </div>
             )}
 
-            <StatusBar />
-            <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className='content-container'>
+                <StatusBar />
+                <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
 
-            {/* Tab Content */}
-            {activeTab === 'ai' && (
-                <AiTab sendMessage={sendMessage} />
-            )}
+                {/* Tab Content */}
+                {activeTab === 'ai' && (
+                    <AiTab sendMessage={sendMessage} />
+                )}
 
-            {activeTab === 'manual' && (
-                <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
-            )}
+                {activeTab === 'manual' && (
+                    <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
+                )}
 
-            {activeTab === 'export' && (
-                <ExportTab sendMessage={sendMessage} />
-            )}
+                {activeTab === 'export' && (
+                    <ExportTab sendMessage={sendMessage} />
+                )}
 
-            {activeTab === 'ui-library' && (
-                <UILibraryTab sendMessage={sendMessage} />
-            )}
+                {activeTab === 'ui-library' && (
+                    <UILibraryTab sendMessage={sendMessage} />
+                )}
 
-            {/* Button group for manual tab */}
-            {activeTab === 'manual' && (
-                <div className="button-group" id="main-button-group" style={{ display: 'flex' }}>
-                    <button className="btn-primary" onClick={handleManualImport}>📋 Import JSON</button>
-                    <button className="btn-secondary" onClick={() => sendMessage('cancel')}>Cancel</button>
-                </div>
-            )}
+                {/* Button group for manual tab */}
+                {activeTab === 'manual' && (
+                    <div className="button-group" id="main-button-group" style={{ display: 'flex' }}>
+                        <button className="btn-primary" onClick={handleManualImport}>📋 Import JSON</button>
+                        <button className="btn-secondary" onClick={() => sendMessage('cancel')}>Cancel</button>
+                    </div>
+                )}
 
-            {/* Global Panels */}
-            <ModelPanel />
-            <DesignSystemPanel />
-            <SaveModal />
-            <ResizeHandle />
+                {/* Global Panels */}
+                <ModelPanel />
+                <DesignSystemPanel />
+                <SaveModal />
+                <ResizeHandle />
+            </div>
         </div>
     );
 }
