@@ -125,6 +125,36 @@ export class PluginMessageHandler {
             headers: headers
           });
           break;
+
+        case 'SAVE_AUTH_TOKEN':
+          if (message.token) {
+            await figma.clientStorage.setAsync('rio_auth_token', message.token);
+          }
+          break;
+
+        case 'GET_AUTH_TOKEN':
+          try {
+            const token = await figma.clientStorage.getAsync('rio_auth_token');
+            figma.ui.postMessage({
+              type: 'AUTH_TOKEN_RESPONSE',
+              token: token
+            });
+          } catch (e) {
+            console.warn('Failed to retrieve auth token:', e);
+            figma.ui.postMessage({
+              type: 'AUTH_TOKEN_RESPONSE',
+              token: null
+            });
+          }
+          break;
+
+        case 'CLEAR_AUTH_TOKEN':
+          await figma.clientStorage.deleteAsync('rio_auth_token');
+          break;
+
+        case 'OPEN_EXTERNAL_URL':
+          // Handled by UI window.open
+          break;
         case 'REPORT_ERROR':
           await this.handleReportError((message as any).errorData);
           break;

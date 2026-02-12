@@ -26,6 +26,12 @@ export class UserEntity {
     @Column({ type: "varchar", length: 255, nullable: true })
     email?: string;
 
+    @Column({ type: "varchar", length: 255, nullable: true, unique: true })
+    googleId?: string;
+
+    @Column({ type: "text", nullable: true })
+    profilePicture?: string;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;
 

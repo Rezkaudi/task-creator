@@ -23,4 +23,13 @@ export const ENV_CONFIG = {
     PORT: process.env.PORT || "5000",
     NODE_ENV: process.env.NODE_ENV || 'development',
     SERVER_URL: process.env.SERVER_URL || 'http://localhost:5000',
+
+    // Google OAuth Configuration
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID!,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET!,
+    GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/auth/google/callback',
+
+    // JWT Configuration
+    JWT_SECRET: process.env.JWT_SECRET || 'rio-jwt-secret-change-in-production',
+    JWT_EXPIRY: process.env.JWT_EXPIRY || '30d',
 };

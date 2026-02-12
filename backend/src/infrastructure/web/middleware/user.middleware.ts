@@ -20,16 +20,27 @@ export class UserMiddleware {
                 '/api',
                 '/api/docs',
                 '/api/errors',  // Allow error reporting without authentication
-                'api/tasks/extract'
+                'api/tasks/extract',
                 // '/api/ai-models',
                 // '/api/design-systems'
             ];
+
+            // Skip for auth routes (handled by auth controller)
+            if (req.path.startsWith('/auth')) {
+                return next();
+            }
 
             if (publicPaths.some(path => req.path === path)) {
                 return next();
             }
 
-            // Get user info from request headers
+            // Check if user was already set by AuthMiddleware (JWT/cookie auth)
+            if ((req as any).user) {
+                console.log(`👤 User ${(req as any).user.userName || (req as any).user.email} (ID: ${(req as any).user.id}) accessed ${req.method} ${req.path} [JWT auth]`);
+                return next();
+            }
+
+            // Fall back to Figma header-based auth
             const figmaUserId = req.headers['x-figma-user-id'] as string;
             const rawUserName = req.headers['x-figma-user-name'] as string;
             const rawUserEmail = req.headers['x-figma-user-email'] as string;
@@ -70,7 +81,7 @@ export class UserMiddleware {
                 if (requiresUser) {
                     res.status(401).json({
                         success: false,
-                        message: 'Figma User ID is required. Please make sure your Figma plugin is sending x-figma-user-id header.',
+                        message: 'Authentication required. Please sign in with Google or provide Figma user credentials.',
                     });
                     return;
                 } else {
@@ -87,7 +98,7 @@ export class UserMiddleware {
             });
 
             // Log successful registration/login
-            console.log(`👤 User ${user.userName || user.figmaUserId} (ID: ${user.id}) accessed ${req.method} ${req.path}`);
+            console.log(`👤 User ${user.userName || user.figmaUserId} (ID: ${user.id}) accessed ${req.method} ${req.path} [Figma header auth]`);
 
             // Attach user to request
             (req as any).user = user;

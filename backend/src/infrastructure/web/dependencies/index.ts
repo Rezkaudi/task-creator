@@ -11,6 +11,7 @@ import { AiExtractTasksService } from "../../services/ai-extract-tasks.service";
 import { ToolCallHandlerService } from "../../services/tool-call-handler.service";
 import { AiGenerateDesignService } from "../../services/ai-generate-design.service";
 import { AiCostCalculatorService } from "../../services/ai-cost.calculator.service";
+import { GoogleAuthService } from "../../services/google-auth.service";
 
 
 // Repositories
@@ -38,6 +39,10 @@ import { CreateUILibraryComponentUseCase } from "../../../application/use-cases/
 import { GetUILibraryComponentsByProjectUseCase } from "../../../application/use-cases/get-ui-library-components-by-project.use-case";
 import { DeleteUILibraryComponentUseCase } from "../../../application/use-cases/delete-ui-library-component.use-case";
 
+// Use Cases - Auth
+import { GoogleSignInUseCase } from "../../../application/use-cases/google-sign-in.use-case";
+import { VerifySessionUseCase } from "../../../application/use-cases/verify-session.use-case";
+
 // Use Cases - Client Errors
 import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
 
@@ -49,8 +54,10 @@ import { AIModelsController } from "../controllers/ai-models.controller";
 import { ClientErrorController } from "../controllers/client-error.controller";
 import { DesignSystemsController } from "../controllers/design-systems.controller";
 import { UILibraryController } from "../controllers/ui-library.controller";
+import { AuthController } from "../controllers/auth.controller";
 
 import { UserMiddleware } from "../middleware/user.middleware";
+import { AuthMiddleware } from "../middleware/auth.middleware";
 
 
 
@@ -110,11 +117,19 @@ export const setupDependencies = () => {
     // Use Cases - Client Errors
     const reportClientErrorUseCase = new ReportClientErrorUseCase(clientErrorRepository);
 
+    // Auth Services & Use Cases
+    const googleAuthService = new GoogleAuthService();
+    const googleSignInUseCase = new GoogleSignInUseCase(googleAuthService, userRepository);
+    const verifySessionUseCase = new VerifySessionUseCase(googleAuthService, userRepository);
+
     // Controllers
     const trelloController = new TrelloController(getBoardListsUseCase);
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
 
     const userMiddleware = new UserMiddleware(userRepository);
+    const authMiddleware = new AuthMiddleware(userRepository);
+
+    const authController = new AuthController(googleSignInUseCase, verifySessionUseCase);
 
     const designController = new DesignController(
         generateDesignFromConversationUseCase,
@@ -149,6 +164,8 @@ export const setupDependencies = () => {
         aiModelsController,
         designSystemsController,
         clientErrorController,
-        userMiddleware
+        userMiddleware,
+        authMiddleware,
+        authController,
     };
 };

@@ -18,6 +18,8 @@
   "license": "ISC",
   "dependencies": {
     "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/jsonwebtoken": "^9.0.10",
     "axios": "^1.12.1",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
@@ -30,7 +32,9 @@
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
     "express-validator": "^7.3.1",
+    "google-auth-library": "^10.5.0",
     "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.3",
     "openai": "^5.20.0",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",

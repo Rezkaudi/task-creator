@@ -1,0 +1,218 @@
+/* === Login Screen === */
+.login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: 32px 24px;
+    text-align: center;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.login-logo {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.login-title {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+}
+
+.login-subtitle {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+.google-sign-in-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 300px;
+    padding: 14px 24px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.google-sign-in-btn:hover {
+    border-color: #6366f1;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+    transform: translateY(-1px);
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    max-width: 300px;
+    margin: 24px 0;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+.token-input-section {
+    width: 100%;
+    max-width: 300px;
+}
+
+.token-input-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: left;
+    margin-bottom: 8px;
+}
+
+.token-input-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+.token-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    transition: border-color 0.3s;
+}
+
+.token-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.token-submit-btn {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.token-submit-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.token-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.login-error {
+    margin-top: 16px;
+    padding: 10px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 13px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.login-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* === User Info Bar === */
+.user-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.user-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-avatar-placeholder {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.user-name {
+    flex: 1;
+    font-weight: 500;
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logout-btn {
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}

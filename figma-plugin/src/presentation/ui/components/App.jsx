@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { AppProvider, useAppContext } from '../context/AppContext.jsx';
+import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
 import { usePluginMessage } from '../hooks/usePluginMessage.js';
 import { useApiClient } from '../hooks/useApiClient.js';
 import { reportErrorAsync, setHeaders as setErrorHeaders, setupGlobalHandlers } from '../errorReporter.js';
@@ -13,10 +14,12 @@ import ModelPanel from './panels/ModelPanel.jsx';
 import DesignSystemPanel from './panels/DesignSystemPanel.jsx';
 import SaveModal from './SaveModal.jsx';
 import ResizeHandle from './ResizeHandle.jsx';
+import LoginScreen from './LoginScreen.jsx';
 
 function AppContent() {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
     const { apiGet } = useApiClient();
+    const { isAuthenticated, isLoading: authLoading, user, token: authToken, logout } = useAuth();
 
     const [activeTab, setActiveTab] = useState('ai');
     const jsonInputRef = useRef(null);
@@ -77,8 +80,10 @@ function AppContent() {
         'prototype-apply-error': (msg) => AiTab.messageHandlers?.['prototype-apply-error']?.(msg),
     });
 
-    // Initialize on mount
+    // Initialize on mount (only when authenticated)
     useEffect(() => {
+        if (!isAuthenticated) return;
+
         // Initialize error reporter headers
         const initHeaders = async () => {
             try {
@@ -89,7 +94,12 @@ function AppContent() {
                             const handler = (event) => {
                                 if (event.data.pluginMessage?.type === 'HEADERS_RESPONSE') {
                                     window.removeEventListener('message', handler);
-                                    resolve(event.data.pluginMessage.headers);
+                                    const headers = event.data.pluginMessage.headers;
+                                    // Inject auth token into headers
+                                    if (authToken) {
+                                        headers['Authorization'] = `Bearer ${authToken}`;
+                                    }
+                                    resolve(headers);
                                 }
                             };
                             window.addEventListener('message', handler);
@@ -128,7 +138,7 @@ function AppContent() {
         setTimeout(() => {
             sendMessage('get-selection-info');
         }, 100);
-    }, []);
+    }, [isAuthenticated, authToken]);
 
     const handleTabChange = useCallback((tabId) => {
         setActiveTab(tabId);
@@ -150,8 +160,40 @@ function AppContent() {
         }
     }, [sendMessage, showStatus]);
 
+    // Show loading while checking auth
+    if (authLoading) {
+        return (
+            <div className="container">
+                <div className="loading-state">
+                    <div className="loading-spinner"></div>
+                    <span>Loading...</span>
+                </div>
+            </div>
+        );
+    }
+
+    // Show login screen if not authenticated
+    if (!isAuthenticated) {
+        return <LoginScreen />;
+    }
+
     return (
         <div className="container">
+            {/* User info bar */}
+            {user && (
+                <div className="user-info-bar">
+                    {user.profilePicture ? (
+                        <img className="user-avatar" src={user.profilePicture} alt="" />
+                    ) : (
+                        <div className="user-avatar-placeholder">
+                            {(user.userName || user.email || '?')[0].toUpperCase()}
+                        </div>
+                    )}
+                    <span className="user-name">{user.userName || user.email}</span>
+                    <button className="logout-btn" onClick={logout}>Sign out</button>
+                </div>
+            )}
+
             <StatusBar />
             <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
 
@@ -191,8 +233,10 @@ function AppContent() {
 
 export default function App() {
     return (
-        <AppProvider>
-            <AppContent />
-        </AppProvider>
+        <AuthProvider>
+            <AppProvider>
+                <AppContent />
+            </AppProvider>
+        </AuthProvider>
     );
 }
