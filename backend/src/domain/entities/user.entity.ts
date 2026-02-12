@@ -5,6 +5,8 @@ export interface User {
     figmaUserId: string;
     userName?: string;
     email?: string;
+    googleId?: string;
+    profilePicture?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }

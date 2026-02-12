@@ -31,6 +31,7 @@ export type UIMessage =
   | { type: 'ai-based-on-existing-error'; error: string } // ✨ NEW
   | { type: 'design-updated'; layerJson: any; buttonId?: string }
   | { type: 'HEADERS_RESPONSE'; headers: any }
+  | { type: 'AUTH_TOKEN_RESPONSE'; token: string | null }
   // Add to UIMessage type union (after existing types):
   | { type: 'frames-loaded'; frames: FrameInfo[] }
   | { type: 'frames-load-error'; error: string }
@@ -102,6 +103,10 @@ export type PluginMessage =
   }
   | { type: 'import-ui-library-component'; designJson: any }
   | { type: 'GET_HEADERS' }
+  | { type: 'SAVE_AUTH_TOKEN'; token: string }
+  | { type: 'GET_AUTH_TOKEN' }
+  | { type: 'CLEAR_AUTH_TOKEN' }
+  | { type: 'OPEN_EXTERNAL_URL'; url: string }
   // Add to PluginMessage type union (after existing types):
   | { type: 'get-frames-for-prototype' }
   | { type: 'generate-prototype-connections'; frames: FrameInfo[]; modelId?: string }

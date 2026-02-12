@@ -2,6 +2,7 @@
 
 import cors from 'cors';
 import express, { Application, Request, Response, NextFunction } from 'express';
+import cookieParser from 'cookie-parser';
 import { corsOptions } from '../config/cors.config';
 import swaggerSpec from '../config/swagger.config';
 import swaggerUi from 'swagger-ui-express';
@@ -14,6 +15,7 @@ import aiModelsRoutes from './routes/ai-models.routes';
 import designSystemsRoutes from './routes/design-systems.routes';
 import clientErrorRoutes from './routes/client-error.routes';
 import uiLibraryRoutes from './routes/ui-library.routes';
+import authRoutes from './routes/auth.routes';
 
 import { setupDependencies } from './dependencies';
 import { logger } from './middleware/logger.middleware';
@@ -45,13 +47,13 @@ export class Server {
     }));
     this.app.use(logger);
     this.app.use(cors(corsOptions));
+    this.app.use(cookieParser());
     this.app.use(express.json({ limit: '50mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-    // Apply User Middleware globally
-    // It will handle skipping for public paths internally
+    // Auth Middleware - extracts JWT from cookie/header and attaches user
     this.app.use((req: Request, res: Response, next: NextFunction) => {
-      this.container.userMiddleware.handle(req, res, next);
+      this.container.authMiddleware.handle(req, res, next);
     });
   }
 
@@ -62,6 +64,11 @@ export class Server {
     });
 
     // Routes
+    this.app.use('/auth', authRoutes(this.container.authController));
+
+    // Apply authentication to all /api routes
+    this.app.use('/api', (req, res, next) => this.container.authMiddleware.requireAuth(req, res, next));
+
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));

@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { UILibraryController } from '../controllers/ui-library.controller';
+import { AuthMiddleware } from '../middleware/auth.middleware';
 import {
     createUILibraryProjectValidation,
     createUILibraryComponentValidation,
@@ -16,8 +17,8 @@ const uiLibraryRoutes = (uiLibraryController: UILibraryController): Router => {
         (req: Request, res: Response, next: NextFunction) => uiLibraryController.createProject(req, res, next)
     );
 
-    router.get('/projects', (req: Request, res: Response, next: NextFunction) =>
-        uiLibraryController.getProjects(req, res, next)
+    router.get('/projects',
+        (req: Request, res: Response, next: NextFunction) => uiLibraryController.getProjects(req, res, next)
     );
 
     router.delete('/projects/:id',

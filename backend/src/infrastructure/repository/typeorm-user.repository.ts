@@ -69,12 +69,91 @@ export class TypeORMUserRepository implements IUserRepository {
         });
     }
 
+    async findByGoogleId(googleId: string): Promise<User | null> {
+        const entity = await this.repository.findOne({
+            where: { googleId },
+        });
+        return entity ? this.toUser(entity) : null;
+    }
+
+    async findByEmail(email: string): Promise<User | null> {
+        const entity = await this.repository.findOne({
+            where: { email },
+        });
+        return entity ? this.toUser(entity) : null;
+    }
+
+    async findOrCreateByGoogle(googleData: {
+        googleId: string;
+        email: string;
+        userName: string;
+        profilePicture?: string;
+        figmaUserId?: string;
+    }): Promise<User> {
+        return await AppDataSource.transaction(async (manager) => {
+            const entityManager = manager.getRepository(UserEntity);
+
+            // First try to find by googleId
+            let userEntity = await entityManager.findOne({
+                where: { googleId: googleData.googleId },
+                lock: { mode: 'pessimistic_write' },
+            });
+
+            if (userEntity) {
+                // Update profile info and ensure real figmaUserId is stored
+                userEntity.userName = googleData.userName;
+                userEntity.email = googleData.email;
+                userEntity.profilePicture = googleData.profilePicture;
+                if (googleData.figmaUserId) {
+                    userEntity.figmaUserId = googleData.figmaUserId;
+                }
+                userEntity.updatedAt = new Date();
+                await entityManager.save(userEntity);
+                return this.toUser(userEntity);
+            }
+
+            // Try to find by email and link the Google account
+            userEntity = await entityManager.findOne({
+                where: { email: googleData.email },
+                lock: { mode: 'pessimistic_write' },
+            });
+
+            if (userEntity) {
+                userEntity.googleId = googleData.googleId;
+                userEntity.userName = googleData.userName;
+                userEntity.profilePicture = googleData.profilePicture;
+                if (googleData.figmaUserId) {
+                    userEntity.figmaUserId = googleData.figmaUserId;
+                }
+                userEntity.updatedAt = new Date();
+                await entityManager.save(userEntity);
+                return this.toUser(userEntity);
+            }
+
+            // Create new user
+            userEntity = entityManager.create({
+                id: `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+                figmaUserId: googleData.figmaUserId || `google_${googleData.googleId}`,
+                googleId: googleData.googleId,
+                userName: googleData.userName,
+                email: googleData.email,
+                profilePicture: googleData.profilePicture,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+            await entityManager.save(userEntity);
+            return this.toUser(userEntity);
+        });
+    }
+
     private toUser(entity: UserEntity): User {
         return {
             id: entity.id,
             figmaUserId: entity.figmaUserId,
             userName: entity.userName,
             email: entity.email,
+            googleId: entity.googleId,
+            profilePicture: entity.profilePicture,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
         };
