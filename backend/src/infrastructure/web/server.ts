@@ -55,11 +55,6 @@ export class Server {
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       this.container.authMiddleware.handle(req, res, next);
     });
-
-    // User Middleware - falls back to Figma header auth if no JWT user
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
-      this.container.userMiddleware.handle(req, res, next);
-    });
   }
 
   private configureRoutes(): void {

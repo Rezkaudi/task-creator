@@ -9,11 +9,29 @@ export default function LoginScreen() {
     const { login, isLoading, error, clearError } = useAuth();
     const [isPolling, setIsPolling] = useState(false);
 
-    const handleGoogleSignIn = useCallback(() => {
+    const handleGoogleSignIn = useCallback(async () => {
+        // Request Figma headers from main thread 
+        parent.postMessage({ pluginMessage: { type: 'GET_HEADERS' } }, '*');
+
+        const headers = await new Promise((resolve) => {
+            const handler = (event) => {
+                if (event.data.pluginMessage?.type === 'HEADERS_RESPONSE') {
+                    window.removeEventListener('message', handler);
+                    resolve(event.data.pluginMessage.headers);
+                }
+            };
+            window.addEventListener('message', handler);
+        });
+
+        const figmaUserId = headers['x-figma-user-id'];
+
         // Generate a random polling ID
         const pollingId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-        const authUrl = `${API_BASE_URL}/auth/google?state=${pollingId}`;
+        // Encode state as pollingId:figmaUserId
+        const state = figmaUserId ? `${pollingId}:${figmaUserId}` : pollingId;
+
+        const authUrl = `${API_BASE_URL}/auth/google?state=${state}`;
         window.open(authUrl, '_blank');
 
         setIsPolling(true);

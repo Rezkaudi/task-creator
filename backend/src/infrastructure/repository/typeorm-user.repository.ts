@@ -88,6 +88,7 @@ export class TypeORMUserRepository implements IUserRepository {
         email: string;
         userName: string;
         profilePicture?: string;
+        figmaUserId?: string;
     }): Promise<User> {
         return await AppDataSource.transaction(async (manager) => {
             const entityManager = manager.getRepository(UserEntity);
@@ -99,10 +100,13 @@ export class TypeORMUserRepository implements IUserRepository {
             });
 
             if (userEntity) {
-                // Update profile info
+                // Update profile info and ensure real figmaUserId is stored
                 userEntity.userName = googleData.userName;
                 userEntity.email = googleData.email;
                 userEntity.profilePicture = googleData.profilePicture;
+                if (googleData.figmaUserId) {
+                    userEntity.figmaUserId = googleData.figmaUserId;
+                }
                 userEntity.updatedAt = new Date();
                 await entityManager.save(userEntity);
                 return this.toUser(userEntity);
@@ -118,6 +122,9 @@ export class TypeORMUserRepository implements IUserRepository {
                 userEntity.googleId = googleData.googleId;
                 userEntity.userName = googleData.userName;
                 userEntity.profilePicture = googleData.profilePicture;
+                if (googleData.figmaUserId) {
+                    userEntity.figmaUserId = googleData.figmaUserId;
+                }
                 userEntity.updatedAt = new Date();
                 await entityManager.save(userEntity);
                 return this.toUser(userEntity);
@@ -126,7 +133,7 @@ export class TypeORMUserRepository implements IUserRepository {
             // Create new user
             userEntity = entityManager.create({
                 id: `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
-                figmaUserId: `google_${googleData.googleId}`,
+                figmaUserId: googleData.figmaUserId || `google_${googleData.googleId}`,
                 googleId: googleData.googleId,
                 userName: googleData.userName,
                 email: googleData.email,

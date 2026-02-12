@@ -17,7 +17,7 @@ export class UserEntity {
     @PrimaryColumn()
     id!: string;
 
-    @Column({ type: "varchar", length: 255, unique: true })
+    @Column({ type: "varchar", length: 255 })
     figmaUserId!: string;
 
     @Column({ type: "varchar", length: 255, nullable: true })

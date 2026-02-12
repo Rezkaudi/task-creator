@@ -57,7 +57,6 @@ import { DesignSystemsController } from "../controllers/design-systems.controlle
 import { UILibraryController } from "../controllers/ui-library.controller";
 import { AuthController } from "../controllers/auth.controller";
 
-import { UserMiddleware } from "../middleware/user.middleware";
 import { AuthMiddleware } from "../middleware/auth.middleware";
 
 
@@ -128,7 +127,6 @@ export const setupDependencies = () => {
     const trelloController = new TrelloController(getBoardListsUseCase);
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
 
-    const userMiddleware = new UserMiddleware(userRepository);
     const authMiddleware = new AuthMiddleware(userRepository);
 
     const authController = new AuthController(googleSignInUseCase, verifySessionUseCase, tokenStoreService);
@@ -166,7 +164,6 @@ export const setupDependencies = () => {
         aiModelsController,
         designSystemsController,
         clientErrorController,
-        userMiddleware,
         authMiddleware,
         authController,
     };

@@ -19,7 +19,7 @@ export class GoogleSignInUseCase {
         return this.authService.getGoogleAuthUrl(state);
     }
 
-    async execute(code: string): Promise<GoogleSignInResult> {
+    async execute(code: string, figmaUserId?: string): Promise<GoogleSignInResult> {
         // Get user info from Google
         const googleUser = await this.authService.getGoogleUserInfo(code);
 
@@ -29,6 +29,7 @@ export class GoogleSignInUseCase {
             email: googleUser.email,
             userName: googleUser.name,
             profilePicture: googleUser.picture,
+            figmaUserId: figmaUserId,
         });
 
         // Generate JWT token

@@ -14,10 +14,12 @@ export class UILibraryController {
         private readonly createComponentUseCase: CreateUILibraryComponentUseCase,
         private readonly getComponentsByProjectUseCase: GetUILibraryComponentsByProjectUseCase,
         private readonly deleteComponentUseCase: DeleteUILibraryComponentUseCase,
-    ) {}
+    ) { }
 
     async createProject(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
+            console.log("req", (req as any).user);
+
             const userId = (req as any).user.id;
             const { name } = req.body;
 

@@ -14,5 +14,6 @@ export interface IUserRepository {
         email: string;
         userName: string;
         profilePicture?: string;
+        figmaUserId?: string;
     }): Promise<User>;
 }

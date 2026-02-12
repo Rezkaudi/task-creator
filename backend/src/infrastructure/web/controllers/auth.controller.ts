@@ -50,7 +50,9 @@ export class AuthController {
                 return;
             }
 
-            const { user, token } = await this.googleSignInUseCase.execute(code);
+            const [pollingId, figmaUserId] = state ? state.split(':') : [undefined, undefined];
+
+            const { user, token } = await this.googleSignInUseCase.execute(code, figmaUserId);
 
             // Set HTTP-only cookie for web frontend
             const isProduction = ENV_CONFIG.NODE_ENV === 'production';
@@ -62,9 +64,9 @@ export class AuthController {
                 path: '/',
             });
 
-            // If state (pollingId) is present, store token and serve "Success" page
-            if (state) {
-                this.tokenStoreService.storeToken(state, token);
+            // If pollingId is present, store token and serve "Success" page
+            if (pollingId) {
+                this.tokenStoreService.storeToken(pollingId, token);
                 res.send(this.getPollingSuccessHtml(user.userName || user.email || 'User'));
                 return;
             }
