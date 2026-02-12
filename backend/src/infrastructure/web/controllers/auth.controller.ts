@@ -5,19 +5,23 @@ import { GoogleSignInUseCase } from '../../../application/use-cases/google-sign-
 import { VerifySessionUseCase } from '../../../application/use-cases/verify-session.use-case';
 import { ENV_CONFIG } from '../../config/env.config';
 
+import { TokenStoreService } from '../../services/token-store.service';
+
 export class AuthController {
     constructor(
         private readonly googleSignInUseCase: GoogleSignInUseCase,
         private readonly verifySessionUseCase: VerifySessionUseCase,
+        private readonly tokenStoreService: TokenStoreService,
     ) { }
 
     /**
      * GET /auth/google
      * Redirects to Google OAuth consent screen
      */
-    googleAuth = async (_req: Request, res: Response): Promise<void> => {
+    googleAuth = async (req: Request, res: Response): Promise<void> => {
         try {
-            const authUrl = this.googleSignInUseCase.getAuthUrl();
+            const state = req.query.state as string;
+            const authUrl = this.googleSignInUseCase.getAuthUrl(state);
             res.redirect(authUrl);
         } catch (error) {
             console.error('Error generating Google auth URL:', error);
@@ -36,6 +40,8 @@ export class AuthController {
     googleCallback = async (req: Request, res: Response): Promise<void> => {
         try {
             const code = req.query.code as string;
+            const state = req.query.state as string;
+
             if (!code) {
                 res.status(400).json({
                     success: false,
@@ -56,11 +62,55 @@ export class AuthController {
                 path: '/',
             });
 
-            // Serve HTML page with token for Figma plugin
+            // If state (pollingId) is present, store token and serve "Success" page
+            if (state) {
+                this.tokenStoreService.storeToken(state, token);
+                res.send(this.getPollingSuccessHtml(user.userName || user.email || 'User'));
+                return;
+            }
+
+            // Fallback for manual flow (if any) or web login
             res.send(this.getCallbackHtml(token, user.userName || user.email || 'User'));
         } catch (error) {
             console.error('Error in Google callback:', error);
             res.send(this.getErrorHtml((error as Error).message));
+        }
+    };
+
+    /**
+     * GET /auth/poll
+     * Polls for the token using the pollingId
+     */
+    pollToken = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const pollingId = req.query.id as string;
+            if (!pollingId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Polling ID is missing',
+                });
+                return;
+            }
+
+            const token = this.tokenStoreService.getToken(pollingId);
+            if (!token) {
+                res.status(404).json({
+                    success: false,
+                    message: 'Token not found or expired',
+                });
+                return;
+            }
+
+            res.json({
+                success: true,
+                token,
+            });
+        } catch (error) {
+            console.error('Error polling token:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to poll token',
+            });
         }
     };
 
@@ -143,7 +193,60 @@ export class AuthController {
     }
 
     /**
-     * HTML page served after successful Google login
+     * HTML page served after successful Google login via Polling
+     */
+    private getPollingSuccessHtml(userName: string): string {
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rio - Sign In Successful</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2d1b69 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 48px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+        }
+        .success-icon {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 32px;
+        }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        .subtitle { color: rgba(255,255,255,0.6); margin-bottom: 32px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="success-icon">✓</div>
+        <h1>Welcome, ${userName}!</h1>
+        <p class="subtitle">You've successfully signed in. You can now close this window and return to Figma.</p>
+    </div>
+</body>
+</html>`;
+    }
+
+    /**
+     * HTML page served after successful Google login (Manual Fallback)
      */
     private getCallbackHtml(token: string, userName: string): string {
         return `<!DOCTYPE html>

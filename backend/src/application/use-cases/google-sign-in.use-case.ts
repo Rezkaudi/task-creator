@@ -15,8 +15,8 @@ export class GoogleSignInUseCase {
         private readonly userRepository: IUserRepository,
     ) { }
 
-    getAuthUrl(): string {
-        return this.authService.getGoogleAuthUrl();
+    getAuthUrl(state?: string): string {
+        return this.authService.getGoogleAuthUrl(state);
     }
 
     async execute(code: string): Promise<GoogleSignInResult> {

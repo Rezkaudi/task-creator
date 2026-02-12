@@ -19,7 +19,7 @@ export class GoogleAuthService implements IAuthService {
         this.jwtService = new JwtService();
     }
 
-    getGoogleAuthUrl(): string {
+    getGoogleAuthUrl(state?: string): string {
         return this.oauthClient.generateAuthUrl({
             access_type: 'offline',
             scope: [
@@ -27,6 +27,7 @@ export class GoogleAuthService implements IAuthService {
                 'https://www.googleapis.com/auth/userinfo.profile',
             ],
             prompt: 'consent',
+            state,
         });
     }
 

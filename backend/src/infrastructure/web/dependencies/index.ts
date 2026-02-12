@@ -12,6 +12,7 @@ import { ToolCallHandlerService } from "../../services/tool-call-handler.service
 import { AiGenerateDesignService } from "../../services/ai-generate-design.service";
 import { AiCostCalculatorService } from "../../services/ai-cost.calculator.service";
 import { GoogleAuthService } from "../../services/google-auth.service";
+import { TokenStoreService } from "../../services/token-store.service";
 
 
 // Repositories
@@ -119,6 +120,7 @@ export const setupDependencies = () => {
 
     // Auth Services & Use Cases
     const googleAuthService = new GoogleAuthService();
+    const tokenStoreService = new TokenStoreService();
     const googleSignInUseCase = new GoogleSignInUseCase(googleAuthService, userRepository);
     const verifySessionUseCase = new VerifySessionUseCase(googleAuthService, userRepository);
 
@@ -129,7 +131,7 @@ export const setupDependencies = () => {
     const userMiddleware = new UserMiddleware(userRepository);
     const authMiddleware = new AuthMiddleware(userRepository);
 
-    const authController = new AuthController(googleSignInUseCase, verifySessionUseCase);
+    const authController = new AuthController(googleSignInUseCase, verifySessionUseCase, tokenStoreService);
 
     const designController = new DesignController(
         generateDesignFromConversationUseCase,

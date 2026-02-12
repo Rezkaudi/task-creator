@@ -10,7 +10,7 @@ export interface GoogleUserInfo {
 }
 
 export interface IAuthService {
-    getGoogleAuthUrl(): string;
+    getGoogleAuthUrl(state?: string): string;
     getGoogleUserInfo(code: string): Promise<GoogleUserInfo>;
     generateToken(user: User): string;
     verifyToken(token: string): { userId: string; email: string } | null;

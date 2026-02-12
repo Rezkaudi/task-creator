@@ -7,25 +7,46 @@ const GOOGLE_ICON_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/
 
 export default function LoginScreen() {
     const { login, isLoading, error, clearError } = useAuth();
-    const [token, setToken] = useState('');
+    const [isPolling, setIsPolling] = useState(false);
 
     const handleGoogleSignIn = useCallback(() => {
-        const authUrl = `${API_BASE_URL}/auth/google`;
+        // Generate a random polling ID
+        const pollingId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+        const authUrl = `${API_BASE_URL}/auth/google?state=${pollingId}`;
         window.open(authUrl, '_blank');
-    }, []);
 
-    const handleTokenSubmit = useCallback(() => {
-        const trimmed = token.trim();
-        if (!trimmed) return;
+        setIsPolling(true);
         clearError();
-        login(trimmed);
-    }, [token, login, clearError]);
 
-    const handleKeyDown = useCallback((e) => {
-        if (e.key === 'Enter') {
-            handleTokenSubmit();
-        }
-    }, [handleTokenSubmit]);
+        // Start polling
+        const pollInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/poll?id=${pollingId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.token) {
+                        clearInterval(pollInterval);
+                        setIsPolling(false);
+                        login(data.token);
+                    }
+                }
+            } catch (err) {
+                console.error('Polling error:', err);
+            }
+        }, 2000);
+
+        // Stop polling after 5 minutes (timeout)
+        setTimeout(() => {
+            clearInterval(pollInterval);
+            if (isPolling) {
+                setIsPolling(false);
+            }
+        }, 5 * 60 * 1000);
+
+        // Cleanup interval on component unmount
+        return () => clearInterval(pollInterval);
+    }, [login, clearError, isPolling]);
 
     return (
         <div className="login-screen">
@@ -38,43 +59,20 @@ export default function LoginScreen() {
             <button
                 className="google-sign-in-btn"
                 onClick={handleGoogleSignIn}
-                disabled={isLoading}
+                disabled={isLoading || isPolling}
             >
                 <span
                     className="google-icon"
                     dangerouslySetInnerHTML={{ __html: GOOGLE_ICON_SVG }}
                 />
-                Sign in with Google
+                {isPolling ? 'Waiting for browser login...' : 'Sign in with Google'}
             </button>
 
-            <div className="login-divider">
-                <span>then paste your token</span>
-            </div>
-
-            <div className="token-input-section">
-                <label className="token-input-label">Auth Token</label>
-                <div className="token-input-wrapper">
-                    <input
-                        type="text"
-                        className="token-input"
-                        placeholder="Paste your token here..."
-                        value={token}
-                        onChange={(e) => {
-                            setToken(e.target.value);
-                            if (error) clearError();
-                        }}
-                        onKeyDown={handleKeyDown}
-                        disabled={isLoading}
-                    />
-                    <button
-                        className="token-submit-btn"
-                        onClick={handleTokenSubmit}
-                        disabled={isLoading || !token.trim()}
-                    >
-                        {isLoading ? '...' : 'Go'}
-                    </button>
+            {isPolling && (
+                <div className="login-divider">
+                    <div className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '2px', borderTopColor: '#7c3aed' }}></div>
                 </div>
-            </div>
+            )}
 
             {error && (
                 <div className="login-error">
@@ -82,7 +80,7 @@ export default function LoginScreen() {
                 </div>
             )}
 
-            {isLoading && (
+            {isLoading && !isPolling && (
                 <div className="login-loading">
                     <div className="loading-spinner"></div>
                     <span style={{ color: '#6b7280', fontSize: '13px' }}>Verifying...</span>
