@@ -71,7 +71,7 @@ export class Server {
     this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController));
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
     this.app.use('/api/errors', clientErrorRoutes(this.container.clientErrorController));
-    this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController));
+    this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController, this.container.authMiddleware));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     // API documentation redirect

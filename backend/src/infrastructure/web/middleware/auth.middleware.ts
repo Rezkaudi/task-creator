@@ -42,6 +42,21 @@ export class AuthMiddleware {
         next();
     }
 
+    /**
+     * Middleware that ensures user is authenticated.
+     * Should be used AFTER AuthMiddleware.handle.
+     */
+    requireAuth(req: Request, res: Response, next: NextFunction): void {
+        if (!(req as any).user) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required',
+            });
+            return;
+        }
+        next();
+    }
+
     private extractToken(req: Request): string | null {
         // Check HTTP-only cookie first
         const cookieToken = (req as any).cookies?.rio_token;

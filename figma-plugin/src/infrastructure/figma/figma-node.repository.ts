@@ -606,6 +606,16 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       'Content-Type': 'application/json',
     };
 
+    // Get auth token from storage
+    try {
+      const token = await figma.clientStorage.getAsync('rio_auth_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch (e) {
+      console.warn('Failed to get auth token from storage:', e);
+    }
+
     const user = figma.currentUser;
 
     if (user) {
