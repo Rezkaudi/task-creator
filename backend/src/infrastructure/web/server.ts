@@ -18,6 +18,7 @@ import clientErrorRoutes from './routes/client-error.routes';
 import uiLibraryRoutes from './routes/ui-library.routes';
 import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
+import subscriptionRoutes from './routes/subscription.routes';
 
 import { setupDependencies } from './dependencies';
 import { logger } from './middleware/logger.middleware';
@@ -81,11 +82,13 @@ export class Server {
 
     // Apply authentication to all /api routes
     this.app.use('/api', (req, res, next) => {
-      const isPublicPaymentPath = req.path === '/payments/packages'
+      const isPublicPath = req.path === '/payments/packages'
         || req.path === '/payments/webhook'
         || req.path === '/payments/packages/'
-        || req.path === '/payments/webhook/';
-      if (isPublicPaymentPath) {
+        || req.path === '/payments/webhook/'
+        || req.path === '/subscriptions/plans'
+        || req.path === '/subscriptions/plans/';
+      if (isPublicPath) {
         next();
         return;
       }
@@ -100,6 +103,7 @@ export class Server {
     this.app.use('/api/errors', clientErrorRoutes(this.container.clientErrorController));
     this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController));
     this.app.use('/api/payments', paymentRoutes(this.container.paymentController));
+    this.app.use('/api/subscriptions', subscriptionRoutes(this.container.subscriptionController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     // API documentation redirect

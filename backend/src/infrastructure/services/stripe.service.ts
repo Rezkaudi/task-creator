@@ -12,6 +12,16 @@ interface CreateCheckoutSessionInput {
     customerName?: string;
 }
 
+interface CreateSubscriptionCheckoutInput {
+    userId: string;
+    planId: string;
+    planName: string;
+    stripePriceId: string;
+    stripeCustomerId?: string;
+    customerEmail?: string;
+    customerName?: string;
+}
+
 export class StripeService {
     private readonly stripe: Stripe;
 
@@ -104,5 +114,62 @@ export class StripeService {
     async retrieveCheckoutSession(sessionId: string): Promise<Stripe.Checkout.Session> {
         this.ensureStripeConfigured();
         return this.stripe.checkout.sessions.retrieve(sessionId);
+    }
+
+    async createSubscriptionCheckout(input: CreateSubscriptionCheckoutInput): Promise<{ sessionId: string; url: string; customerId: string }> {
+        this.ensureStripeConfigured();
+
+        const customerId = await this.ensureCustomerId(
+            input.userId,
+            input.stripeCustomerId,
+            input.customerEmail,
+            input.customerName,
+        );
+
+        const session = await this.stripe.checkout.sessions.create({
+            mode: "subscription",
+            customer: customerId,
+            line_items: [
+                {
+                    price: input.stripePriceId,
+                    quantity: 1,
+                },
+            ],
+            metadata: {
+                userId: input.userId,
+                planId: input.planId,
+                planName: input.planName,
+            },
+            subscription_data: {
+                metadata: {
+                    userId: input.userId,
+                    planId: input.planId,
+                },
+            },
+            success_url: ENV_CONFIG.STRIPE_SUCCESS_URL,
+            cancel_url: ENV_CONFIG.STRIPE_CANCEL_URL,
+        });
+
+        if (!session.url) {
+            throw new Error("Stripe checkout session did not return a URL");
+        }
+
+        return {
+            sessionId: session.id,
+            url: session.url,
+            customerId,
+        };
+    }
+
+    async cancelSubscription(stripeSubscriptionId: string): Promise<void> {
+        this.ensureStripeConfigured();
+        await this.stripe.subscriptions.update(stripeSubscriptionId, {
+            cancel_at_period_end: true,
+        });
+    }
+
+    async retrieveSubscription(stripeSubscriptionId: string): Promise<Stripe.Subscription> {
+        this.ensureStripeConfigured();
+        return this.stripe.subscriptions.retrieve(stripeSubscriptionId);
     }
 }

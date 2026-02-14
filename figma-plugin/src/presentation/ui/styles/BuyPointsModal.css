@@ -11,6 +11,8 @@
     left: 50%;
     transform: translate(-50%, -50%);
     width: min(680px, calc(100vw - 24px));
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
     background: linear-gradient(155deg, #f8fafc 0%, #eef2ff 45%, #fce7f3 100%);
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
@@ -46,11 +48,45 @@
 }
 
 .buy-points-subtitle {
-    margin: 0 0 16px;
+    margin: 0 0 14px;
     color: #475569;
     font-size: 13px;
 }
 
+/* Tabs */
+.buy-points-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: rgba(148, 163, 184, 0.15);
+    border-radius: 10px;
+    padding: 3px;
+}
+
+.buy-points-tab {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.buy-points-tab.active {
+    background: white;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+
+.buy-points-tab:hover:not(.active) {
+    color: #334155;
+}
+
+/* Cards grid */
 .buy-points-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -71,6 +107,11 @@
     background: linear-gradient(155deg, #fffbeb 0%, #fff7ed 55%, #ffffff 100%);
 }
 
+.points-card.premium {
+    border-color: #8b5cf6;
+    background: linear-gradient(155deg, #f5f3ff 0%, #ede9fe 55%, #ffffff 100%);
+}
+
 .points-best-value {
     position: absolute;
     top: -10px;
@@ -83,6 +124,10 @@
     border-radius: 999px;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+}
+
+.points-best-value.premium-badge {
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
 }
 
 .points-card-title {
@@ -105,6 +150,19 @@
     font-weight: 700;
 }
 
+.price-period {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.subscription-card-detail {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 14px;
+    margin-top: -6px;
+}
+
 .points-buy-btn {
     width: 100%;
     border: none;
@@ -120,11 +178,101 @@
     background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
 }
 
+.points-card.premium .points-buy-btn {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
 .points-buy-btn:disabled {
     cursor: not-allowed;
     opacity: 0.65;
 }
 
+/* Active subscription banner */
+.subscription-active-banner {
+    background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+    border: 1px solid #86efac;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+.subscription-active-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.subscription-active-badge {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.subscription-active-plan {
+    font-size: 14px;
+    font-weight: 700;
+    color: #166534;
+}
+
+.subscription-active-usage {
+    margin-bottom: 10px;
+}
+
+.subscription-active-usage span {
+    font-size: 12px;
+    color: #15803d;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.subscription-usage-bar {
+    height: 6px;
+    background: #d1fae5;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.subscription-usage-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.subscription-cancel-btn {
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #dc2626;
+    background: #fff1f2;
+    cursor: pointer;
+}
+
+.subscription-cancel-btn:hover {
+    background: #fee2e2;
+}
+
+.subscription-cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.subscription-cancel-note {
+    font-size: 11px;
+    color: #dc2626;
+    font-weight: 500;
+}
+
+/* Loading & errors */
 .buy-points-loading {
     display: flex;
     align-items: center;

@@ -6,6 +6,7 @@ import { DesignGenerationResult } from '../../../domain/services/IAiDesignServic
 import { GeneratePrototypeConnectionsUseCase } from '../../../application/use-cases/generate-prototype-connections.use-case';
 import { IPointsService } from '../../../domain/services/IPointsService';
 import { IUserRepository } from '../../../domain/repositories/user.repository';
+import { ISubscriptionRepository } from '../../../domain/repositories/subscription.repository';
 import { HttpError, PaymentRequiredError } from '../../../application/errors/http-errors';
 import { ENV_CONFIG } from '../../config/env.config';
 
@@ -14,6 +15,10 @@ interface PointsResponse {
     remaining: number;
     wasFree: boolean;
     hasPurchased: boolean;
+    subscription?: {
+        dailyUsageCount: number;
+        dailyLimit: number;
+    };
 }
 
 export class DesignController {
@@ -24,7 +29,7 @@ export class DesignController {
         private readonly generatePrototypeConnectionsUseCase: GeneratePrototypeConnectionsUseCase,
         private readonly pointsService: IPointsService,
         private readonly userRepository: IUserRepository,
-
+        private readonly subscriptionRepository: ISubscriptionRepository,
     ) { }
 
     // Generate design from conversation with history
@@ -248,12 +253,32 @@ export class DesignController {
             throw new HttpError("Authentication required", 401);
         }
 
+        // Check active subscription first
+        const subscription = await this.subscriptionRepository.findActiveByUserId(userId);
+        if (subscription) {
+            const today = new Date().toISOString().split("T")[0];
+            const currentUsage = subscription.lastUsageResetDate === today
+                ? subscription.dailyUsageCount
+                : 0;
+
+            if (currentUsage < subscription.dailyLimit) {
+                return; // Subscription allows this request
+            }
+
+            // Daily limit reached — fall through to points check
+        }
+
         if (!user.hasPurchased) {
             throw new PaymentRequiredError("Purchase points to unlock paid AI models.");
         }
 
         const hasEnoughPoints = await this.pointsService.hasEnoughPoints(userId, ENV_CONFIG.MIN_PRE_FLIGHT_POINTS);
         if (!hasEnoughPoints) {
+            if (subscription) {
+                throw new PaymentRequiredError(
+                    `Daily limit of ${subscription.dailyLimit} generations reached. Buy points for additional usage.`
+                );
+            }
             throw new PaymentRequiredError("Insufficient points balance. Please buy points to continue.");
         }
     }
@@ -268,6 +293,36 @@ export class DesignController {
         let deducted = 0;
 
         if (!wasFree) {
+            // Check if user has an active subscription with remaining daily quota
+            const subscription = await this.subscriptionRepository.findActiveByUserId(userId);
+            if (subscription) {
+                const today = new Date().toISOString().split("T")[0];
+                const currentUsage = subscription.lastUsageResetDate === today
+                    ? subscription.dailyUsageCount
+                    : 0;
+
+                if (currentUsage < subscription.dailyLimit) {
+                    // Use subscription quota instead of points
+                    const { dailyUsageCount } = await this.subscriptionRepository.incrementDailyUsage(subscription.id);
+                    const user = await this.userRepository.findById(userId);
+                    if (!user) {
+                        throw new HttpError("Authentication required", 401);
+                    }
+
+                    return {
+                        deducted: 0,
+                        remaining: user.pointsBalance,
+                        wasFree: false,
+                        hasPurchased: user.hasPurchased,
+                        subscription: {
+                            dailyUsageCount,
+                            dailyLimit: subscription.dailyLimit,
+                        },
+                    };
+                }
+            }
+
+            // Fall back to points deduction
             try {
                 deducted = await this.pointsService.deductForUsage(
                     userId,
@@ -303,7 +358,7 @@ export class DesignController {
         }
 
         const message = error instanceof Error ? error.message.toLowerCase() : "";
-        if (message.includes("insufficient points") || message.includes("purchase points")) {
+        if (message.includes("insufficient points") || message.includes("purchase points") || message.includes("daily limit")) {
             return 402;
         }
 

@@ -12,6 +12,7 @@ import { DesignVersionEntity } from "./design-version.entity";
 import { UILibraryProjectEntity } from "./ui-library-project.entity";
 import { UILibraryComponentEntity } from "./ui-library-component.entity";
 import { PaymentTransactionEntity } from "./payment-transaction.entity";
+import { SubscriptionEntity } from "./subscription.entity";
 
 @Entity("users")
 export class UserEntity {
@@ -59,4 +60,7 @@ export class UserEntity {
 
     @OneToMany(() => PaymentTransactionEntity, (tx) => tx.user)
     paymentTransactions!: PaymentTransactionEntity[];
+
+    @OneToMany(() => SubscriptionEntity, (sub) => sub.user)
+    subscriptions!: SubscriptionEntity[];
 }

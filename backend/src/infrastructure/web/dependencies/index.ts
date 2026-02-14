@@ -22,6 +22,7 @@ import { TypeORMUserRepository } from "../../repository/typeorm-user.repository"
 import { TypeORMClientErrorRepository } from "../../repository/typeorm-client-error.repository";
 import { TypeORMUILibraryRepository } from "../../repository/typeorm-ui-library.repository";
 import { TypeORMPaymentTransactionRepository } from "../../repository/typeorm-payment-transaction.repository";
+import { TypeORMSubscriptionRepository } from "../../repository/typeorm-subscription.repository";
 
 
 // Use Cases - Tasks
@@ -53,6 +54,12 @@ import { GetPaymentHistoryUseCase } from "../../../application/use-cases/get-pay
 import { GetAvailablePackagesUseCase } from "../../../application/use-cases/get-available-packages.use-case";
 import { PollPaymentStatusUseCase } from "../../../application/use-cases/poll-payment-status.use-case";
 
+// Use Cases - Subscriptions
+import { CreateSubscriptionCheckoutUseCase } from "../../../application/use-cases/create-subscription-checkout.use-case";
+import { CancelSubscriptionUseCase } from "../../../application/use-cases/cancel-subscription.use-case";
+import { GetSubscriptionStatusUseCase } from "../../../application/use-cases/get-subscription-status.use-case";
+import { GetAvailableSubscriptionPlansUseCase } from "../../../application/use-cases/get-available-subscription-plans.use-case";
+
 // Use Cases - Client Errors
 import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
 
@@ -66,6 +73,7 @@ import { DesignSystemsController } from "../controllers/design-systems.controlle
 import { UILibraryController } from "../controllers/ui-library.controller";
 import { AuthController } from "../controllers/auth.controller";
 import { PaymentController } from "../controllers/payment.controller";
+import { SubscriptionController } from "../controllers/subscription.controller";
 
 import { AuthMiddleware } from "../middleware/auth.middleware";
 
@@ -80,6 +88,7 @@ export const setupDependencies = () => {
     const uiLibraryRepository = new TypeORMUILibraryRepository();
     const clientErrorRepository = new TypeORMClientErrorRepository();
     const paymentTransactionRepository = new TypeORMPaymentTransactionRepository();
+    const subscriptionRepository = new TypeORMSubscriptionRepository();
 
 
     // Services
@@ -144,12 +153,26 @@ export const setupDependencies = () => {
     const handleStripeWebhookUseCase = new HandleStripeWebhookUseCase(
         userRepository,
         paymentTransactionRepository,
+        subscriptionRepository,
         stripeService
     );
     const getUserBalanceUseCase = new GetUserBalanceUseCase(userRepository);
     const getPaymentHistoryUseCase = new GetPaymentHistoryUseCase(paymentTransactionRepository);
     const getAvailablePackagesUseCase = new GetAvailablePackagesUseCase();
     const pollPaymentStatusUseCase = new PollPaymentStatusUseCase(paymentTransactionRepository, userRepository);
+
+    // Subscription Use Cases
+    const createSubscriptionCheckoutUseCase = new CreateSubscriptionCheckoutUseCase(
+        userRepository,
+        subscriptionRepository,
+        stripeService
+    );
+    const cancelSubscriptionUseCase = new CancelSubscriptionUseCase(
+        subscriptionRepository,
+        stripeService
+    );
+    const getSubscriptionStatusUseCase = new GetSubscriptionStatusUseCase(subscriptionRepository);
+    const getAvailableSubscriptionPlansUseCase = new GetAvailableSubscriptionPlansUseCase();
 
     // Controllers
     const trelloController = new TrelloController(getBoardListsUseCase);
@@ -166,6 +189,7 @@ export const setupDependencies = () => {
         generatePrototypeConnectionsUseCase,
         pointsService,
         userRepository,
+        subscriptionRepository,
     );
 
     const uiLibraryController = new UILibraryController(
@@ -192,7 +216,12 @@ export const setupDependencies = () => {
         pollPaymentStatusUseCase,
     );
 
-
+    const subscriptionController = new SubscriptionController(
+        createSubscriptionCheckoutUseCase,
+        cancelSubscriptionUseCase,
+        getSubscriptionStatusUseCase,
+        getAvailableSubscriptionPlansUseCase,
+    );
 
     return {
         taskController,
@@ -203,6 +232,7 @@ export const setupDependencies = () => {
         designSystemsController,
         clientErrorController,
         paymentController,
+        subscriptionController,
         authMiddleware,
         authController,
     };
