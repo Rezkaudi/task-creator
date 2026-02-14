@@ -88,6 +88,7 @@ export const extractTasksValidation = [
         .optional()
         .isBoolean().withMessage('generateDesign must be a boolean'),
 ];
+
 export const generateBasedOnExistingValidation = [
     body('message')
         .notEmpty().withMessage('Message is required')

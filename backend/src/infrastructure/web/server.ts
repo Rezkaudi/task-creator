@@ -3,6 +3,7 @@
 import cors from 'cors';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
+import { join } from 'path';
 import { corsOptions } from '../config/cors.config';
 import swaggerSpec from '../config/swagger.config';
 import swaggerUi from 'swagger-ui-express';
@@ -62,7 +63,17 @@ export class Server {
   private configureRoutes(): void {
     // Health check
     this.app.get('/', (_, res) => {
-      res.send('Task Creator API is running');
+      res.redirect('/api/docs');
+    });
+
+    // Payment redirect pages (opened in a browser tab after Stripe Checkout)
+    const pagesDir = join(__dirname, '../../../public/pages');
+    this.app.get('/payments/success', (_req, res) => {
+      res.sendFile(join(pagesDir, 'payment-successful.html'));
+    });
+
+    this.app.get('/payments/cancel', (_req, res) => {
+      res.sendFile(join(pagesDir, 'payment-cancelled.html'));
     });
 
     // Routes

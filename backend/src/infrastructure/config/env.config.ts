@@ -38,7 +38,7 @@ export const ENV_CONFIG = {
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
     STRIPE_PRICE_STARTER: process.env.STRIPE_PRICE_STARTER || '',
     STRIPE_PRICE_PRO: process.env.STRIPE_PRICE_PRO || '',
-    STRIPE_SUCCESS_URL: process.env.STRIPE_SUCCESS_URL || 'http://localhost:5000/payments/success?session_id={CHECKOUT_SESSION_ID}',
+    STRIPE_SUCCESS_URL: process.env.STRIPE_SUCCESS_URL || 'http://localhost:5000/payments/success',
     STRIPE_CANCEL_URL: process.env.STRIPE_CANCEL_URL || 'http://localhost:5000/payments/cancel',
 
     // Points configuration
