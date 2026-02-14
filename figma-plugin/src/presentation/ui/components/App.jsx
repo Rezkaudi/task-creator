@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { AppProvider, useAppContext } from '../context/AppContext.jsx';
 import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
 import { usePluginMessage } from '../hooks/usePluginMessage.js';
@@ -32,7 +32,29 @@ function AppContent() {
     } = useAuth();
 
     const [activeTab, setActiveTab] = useState('ai');
+    const [creditsDropdownOpen, setCreditsDropdownOpen] = useState(false);
+    const creditsDropdownRef = useRef(null);
     const jsonInputRef = useRef(null);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        if (!creditsDropdownOpen) return;
+        const handleClick = (e) => {
+            if (creditsDropdownRef.current && !creditsDropdownRef.current.contains(e.target)) {
+                setCreditsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [creditsDropdownOpen]);
+
+    const totalCredits = useMemo(() => {
+        let total = Number(state.pointsBalance || 0);
+        if (authSubscription) {
+            total += Math.max(0, (authSubscription.dailyPointsLimit || 0) - (authSubscription.dailyPointsUsed || 0));
+        }
+        return total;
+    }, [state.pointsBalance, authSubscription]);
 
     // Plugin message handlers
     const sendMessage = usePluginMessage({
@@ -217,35 +239,83 @@ function AppContent() {
                         </div>
                     )}
                     <div className="user-name">
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            {authSubscription ? (
-                                <span className="sub-badge monthly">Monthly</span>
-                            ) : (
-                                <span className="sub-badge one-time">One-time</span>
-                            )}
-                            <span>{user.userName || user.email}</span>
-                        </div>
+                        <span>{user.userName || user.email}</span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {authSubscription ?
-                            <span className="daily-points-badge" title="Remaining daily points from subscription">
-                                📅 {Number((authSubscription.dailyPointsLimit || 0) - (authSubscription.dailyPointsUsed || 0)).toLocaleString()} pts
-                            </span> :
-                            <span className="points-badge" title="Total purchased points">
-                                ⚡ {Number(state.pointsBalance || 0).toLocaleString()} pts
-                            </span>
+                    <div className="credits-dropdown-wrapper" ref={creditsDropdownRef}>
+                        <button
+                            className={`credits-trigger ${creditsDropdownOpen ? 'open' : ''}`}
+                            onClick={() => setCreditsDropdownOpen(prev => !prev)}
+                        >
+                            <span className="credits-trigger-value">{totalCredits.toLocaleString()} pts</span>
+                            <svg className="credits-trigger-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                <path d="M2.5 3.75L5 6.25L7.5 3.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </button>
 
-                        }
+                        {creditsDropdownOpen && (
+                            <div className="credits-dropdown">
+                                {authSubscription && (
+                                    <div className="credits-dd-section">
+                                        <div className="credits-dd-section-header">
+                                            <span className="credits-dd-label">Subscription</span>
+                                            <span className="credits-dd-plan-badge">
+                                                {authSubscription.planId === 'premium' ? 'Premium' : 'Basic'}
+                                            </span>
+                                        </div>
+                                        <div className="credits-dd-value green">
+                                            {Number((authSubscription.dailyPointsLimit || 0) - (authSubscription.dailyPointsUsed || 0)).toLocaleString()} pts
+                                        </div>
+                                        <div className="credits-dd-sub">remaining today</div>
+                                        <div className="credits-dd-bar">
+                                            <div
+                                                className="credits-dd-bar-fill"
+                                                style={{ width: `${Math.min(100, (authSubscription.dailyPointsUsed / authSubscription.dailyPointsLimit) * 100)}%` }}
+                                            />
+                                        </div>
+                                        <div className="credits-dd-usage">
+                                            {authSubscription.dailyPointsUsed} / {authSubscription.dailyPointsLimit} used
+                                        </div>
+                                    </div>
+                                )}
 
+                                {authSubscription && state.pointsBalance > 0 && (
+                                    <div className="credits-dd-divider" />
+                                )}
+
+                                {state.pointsBalance > 0 && (
+                                    <div className="credits-dd-section">
+                                        <div className="credits-dd-section-header">
+                                            <span className="credits-dd-label">One-time Balance</span>
+                                        </div>
+                                        <div className="credits-dd-value blue">
+                                            {Number(state.pointsBalance).toLocaleString()} pts
+                                        </div>
+                                        <div className="credits-dd-sub">purchased points</div>
+                                    </div>
+                                )}
+
+                                {!authSubscription && state.pointsBalance === 0 && (
+                                    <div className="credits-dd-section">
+                                        <div className="credits-dd-empty">No credits yet</div>
+                                    </div>
+                                )}
+
+                                <div className="credits-dd-actions">
+                                    <button
+                                        className="credits-dd-buy-btn"
+                                        onClick={() => {
+                                            setCreditsDropdownOpen(false);
+                                            dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
+                                        }}
+                                    >
+                                        Buy Credits
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <button
-                        className="buy-points-btn"
-                        onClick={() => dispatch({ type: 'OPEN_BUY_POINTS_MODAL' })}
-                    >
-                        Buy Points
-                    </button>
                     <button className="logout-btn" onClick={logout}>Sign out</button>
                 </div>
             )}
