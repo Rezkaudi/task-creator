@@ -16,6 +16,7 @@ import designSystemsRoutes from './routes/design-systems.routes';
 import clientErrorRoutes from './routes/client-error.routes';
 import uiLibraryRoutes from './routes/ui-library.routes';
 import authRoutes from './routes/auth.routes';
+import paymentRoutes from './routes/payment.routes';
 
 import { setupDependencies } from './dependencies';
 import { logger } from './middleware/logger.middleware';
@@ -48,6 +49,7 @@ export class Server {
     this.app.use(logger);
     this.app.use(cors(corsOptions));
     this.app.use(cookieParser());
+    this.app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
     this.app.use(express.json({ limit: '50mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -67,7 +69,17 @@ export class Server {
     this.app.use('/auth', authRoutes(this.container.authController));
 
     // Apply authentication to all /api routes
-    this.app.use('/api', (req, res, next) => this.container.authMiddleware.requireAuth(req, res, next));
+    this.app.use('/api', (req, res, next) => {
+      const isPublicPaymentPath = req.path === '/payments/packages'
+        || req.path === '/payments/webhook'
+        || req.path === '/payments/packages/'
+        || req.path === '/payments/webhook/';
+      if (isPublicPaymentPath) {
+        next();
+        return;
+      }
+      this.container.authMiddleware.requireAuth(req, res, next);
+    });
 
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
@@ -76,6 +88,7 @@ export class Server {
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
     this.app.use('/api/errors', clientErrorRoutes(this.container.clientErrorController));
     this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController));
+    this.app.use('/api/payments', paymentRoutes(this.container.paymentController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     // API documentation redirect

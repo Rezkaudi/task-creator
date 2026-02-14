@@ -11,6 +11,7 @@ import {
 import { DesignVersionEntity } from "./design-version.entity";
 import { UILibraryProjectEntity } from "./ui-library-project.entity";
 import { UILibraryComponentEntity } from "./ui-library-component.entity";
+import { PaymentTransactionEntity } from "./payment-transaction.entity";
 
 @Entity("users")
 export class UserEntity {
@@ -32,6 +33,15 @@ export class UserEntity {
     @Column({ type: "text", nullable: true })
     profilePicture?: string;
 
+    @Column({ type: "int", default: 0 })
+    pointsBalance!: number;
+
+    @Column({ type: "varchar", length: 255, nullable: true, unique: true })
+    stripeCustomerId?: string;
+
+    @Column({ type: "boolean", default: false })
+    hasPurchased!: boolean;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;
 
@@ -46,4 +56,7 @@ export class UserEntity {
 
     @OneToMany(() => UILibraryComponentEntity, (component) => component.user)
     uiLibraryComponents!: UILibraryComponentEntity[];
+
+    @OneToMany(() => PaymentTransactionEntity, (tx) => tx.user)
+    paymentTransactions!: PaymentTransactionEntity[];
 }

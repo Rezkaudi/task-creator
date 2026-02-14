@@ -18,14 +18,14 @@ export default function PrototypePanel({ onBack, sendMessage }) {
     const [cost, setCost] = useState(null);
     const [isApplying, setIsApplying] = useState(false);
 
-    // Load frames on mount
-    useEffect(() => {
-        loadFramesForPrototype();
-    }, []);
-
     const loadFramesForPrototype = useCallback(() => {
         sendMessage('get-frames-for-prototype');
     }, [sendMessage]);
+
+    // Load frames on mount
+    useEffect(() => {
+        loadFramesForPrototype();
+    }, [loadFramesForPrototype]);
 
     const toggleFrame = useCallback((frameId) => {
         setSelectedFrameIds(prev => {
@@ -102,6 +102,12 @@ export default function PrototypePanel({ onBack, sendMessage }) {
         setShowConnectionsPreview(true);
         setReasoning(msg.reasoning || null);
         setCost(msg.cost || null);
+        if (msg.points) {
+            dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
+            if (typeof msg.points.hasPurchased === 'boolean') {
+                dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: msg.points.hasPurchased });
+            }
+        }
         showStatus(`✅ Generated ${(msg.connections || []).length} connections`, 'success');
         setTimeout(hideStatus, 3000);
     };

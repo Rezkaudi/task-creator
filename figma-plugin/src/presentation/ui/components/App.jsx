@@ -15,11 +15,20 @@ import DesignSystemPanel from './panels/DesignSystemPanel.jsx';
 import SaveModal from './SaveModal.jsx';
 import ResizeHandle from './ResizeHandle.jsx';
 import LoginScreen from './LoginScreen.jsx';
+import BuyPointsModal from './BuyPointsModal.jsx';
 
 function AppContent() {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
     const { apiGet } = useApiClient();
-    const { isAuthenticated, isLoading: authLoading, user, token: authToken, logout } = useAuth();
+    const {
+        isAuthenticated,
+        isLoading: authLoading,
+        user,
+        token: authToken,
+        pointsBalance: authPointsBalance,
+        hasPurchased: authHasPurchased,
+        logout
+    } = useAuth();
 
     const [activeTab, setActiveTab] = useState('ai');
     const jsonInputRef = useRef(null);
@@ -78,6 +87,10 @@ function AppContent() {
         'prototype-connections-error': (msg) => AiTab.messageHandlers?.['prototype-connections-error']?.(msg),
         'prototype-applied': (msg) => AiTab.messageHandlers?.['prototype-applied']?.(msg),
         'prototype-apply-error': (msg) => AiTab.messageHandlers?.['prototype-apply-error']?.(msg),
+        'points-updated': (msg) => {
+            dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.balance || 0 });
+            dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(msg.hasPurchased) });
+        },
     });
 
     // Initialize on mount (only when authenticated)
@@ -140,6 +153,12 @@ function AppContent() {
         }, 100);
     }, [isAuthenticated, authToken]);
 
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        dispatch({ type: 'SET_POINTS_BALANCE', balance: authPointsBalance || 0 });
+        dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(authHasPurchased) });
+    }, [isAuthenticated, authPointsBalance, authHasPurchased, dispatch]);
+
     const handleTabChange = useCallback((tabId) => {
         setActiveTab(tabId);
         hideStatus();
@@ -196,6 +215,13 @@ function AppContent() {
                         </div>
                     )}
                     <span className="user-name">{user.userName || user.email}</span>
+                    <span className="points-badge">⚡ {Number(state.pointsBalance || 0).toLocaleString()} pts</span>
+                    <button
+                        className="buy-points-btn"
+                        onClick={() => dispatch({ type: 'OPEN_BUY_POINTS_MODAL' })}
+                    >
+                        Buy Points
+                    </button>
                     <button className="logout-btn" onClick={logout}>Sign out</button>
                 </div>
             )}
@@ -233,6 +259,7 @@ function AppContent() {
                 <ModelPanel />
                 <DesignSystemPanel />
                 <SaveModal />
+                <BuyPointsModal />
                 <ResizeHandle />
             </div>
         </div>

@@ -1,0 +1,151 @@
+.buy-points-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 1200;
+}
+
+.buy-points-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(680px, calc(100vw - 24px));
+    background: linear-gradient(155deg, #f8fafc 0%, #eef2ff 45%, #fce7f3 100%);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+    z-index: 1201;
+    padding: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.buy-points-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.buy-points-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #1e293b;
+}
+
+.buy-points-close {
+    /* width: 30px; */
+    /* height: 30px; */
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: rgba(255, 255, 255, 0.8);
+    color: #475569;
+    font-size: 20px;
+    line-height: 1;
+    padding: 0 !important;
+    cursor: pointer;
+}
+
+.buy-points-subtitle {
+    margin: 0 0 16px;
+    color: #475569;
+    font-size: 13px;
+}
+
+.buy-points-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.points-card {
+    position: relative;
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    background: linear-gradient(160deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 0 6px 20px rgba(30, 41, 59, 0.08);
+}
+
+.points-card.pro {
+    border-color: #f59e0b;
+    background: linear-gradient(155deg, #fffbeb 0%, #fff7ed 55%, #ffffff 100%);
+}
+
+.points-best-value {
+    position: absolute;
+    top: -10px;
+    right: 12px;
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.points-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.points-card-points {
+    font-size: 24px;
+    font-weight: 800;
+    color: #4338ca;
+}
+
+.points-card-price {
+    margin: 8px 0 14px;
+    font-size: 16px;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.points-buy-btn {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    cursor: pointer;
+}
+
+.points-card.pro .points-buy-btn {
+    background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+}
+
+.points-buy-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.buy-points-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: #334155;
+}
+
+.buy-points-error {
+    margin-top: 12px;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+}
+
+@media (max-width: 640px) {
+    .buy-points-grid {
+        grid-template-columns: 1fr;
+    }
+}

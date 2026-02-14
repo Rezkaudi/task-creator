@@ -8,20 +8,14 @@ import { defaultModel } from '../../../../shared/constants/plugin-config.js';
 
 export default function ModelPanel() {
     const { state, dispatch } = useAppContext();
-    const { modelPanelOpen, currentModelId, availableModels } = state;
+    const { modelPanelOpen, currentModelId, availableModels, hasPurchased } = state;
     const { apiGet } = useApiClient();
 
     const [statusMsg, setStatusMsg] = useState('');
     const [statusType, setStatusType] = useState('');
     const [modelsLoaded, setModelsLoaded] = useState(false);
 
-    useEffect(() => {
-        if (modelPanelOpen && !modelsLoaded) {
-            fetchModels();
-        }
-    }, [modelPanelOpen]);
-
-    const fetchModels = async () => {
+    async function fetchModels() {
         try {
             setStatusMsg('🔄 Loading AI models...');
             setStatusType('info');
@@ -46,7 +40,19 @@ export default function ModelPanel() {
                 actionType: 'fetchAIModels'
             });
         }
-    };
+    }
+
+    useEffect(() => {
+        if (modelPanelOpen && !modelsLoaded) {
+            fetchModels();
+        }
+    }, [modelPanelOpen]);
+
+    useEffect(() => {
+        if (!hasPurchased && currentModelId !== 'devstral-latest') {
+            dispatch({ type: 'SET_MODEL', modelId: 'devstral-latest' });
+        }
+    }, [hasPurchased, currentModelId, dispatch]);
 
     const handleSelect = (modelId) => {
         dispatch({ type: 'SET_MODEL', modelId });
@@ -59,7 +65,11 @@ export default function ModelPanel() {
 
     if (!modelPanelOpen) return null;
 
-    const selectedModel = availableModels.find(m => m.id === currentModelId);
+    const visibleModels = hasPurchased
+        ? availableModels
+        : availableModels.filter((model) => model.isFree);
+
+    const selectedModel = availableModels.find(m => m.id === currentModelId) || visibleModels[0];
 
     return (
         <>
@@ -75,14 +85,26 @@ export default function ModelPanel() {
                     <button className="close-model-panel" onClick={handleClose}>×</button>
                 </div>
 
+                {!hasPurchased && (
+                    <div className="model-locked-banner">
+                        <span>🔒 Purchase points to unlock all AI models</span>
+                        <button
+                            className="model-unlock-btn"
+                            onClick={() => dispatch({ type: 'OPEN_BUY_POINTS_MODAL' })}
+                        >
+                            Buy Points
+                        </button>
+                    </div>
+                )}
+
                 <div id="model-list" className="model-list">
-                    {(!availableModels || availableModels.length === 0) ? (
+                    {(!visibleModels || visibleModels.length === 0) ? (
                         <div className="model-loading">
                             <div className="loading-spinner"></div>
                             <span>Loading AI models...</span>
                         </div>
                     ) : (
-                        availableModels.map(model => (
+                        visibleModels.map(model => (
                             <div
                                 key={model.id}
                                 className={`model-item ${currentModelId === model.id ? 'active' : ''}`}
@@ -91,7 +113,10 @@ export default function ModelPanel() {
                             >
                                 <div className="model-item-icon">{model.icon}</div>
                                 <div className="model-item-info">
-                                    <div className="model-item-name">{escapeHtml(model.name)}</div>
+                                    <div className="model-item-name">
+                                        {escapeHtml(model.name)}
+                                        {model.isFree && <span className="model-free-pill">Free</span>}
+                                    </div>
                                     <div className="model-item-desc">{escapeHtml(model.description)}</div>
                                 </div>
                                 <div className="model-item-check">

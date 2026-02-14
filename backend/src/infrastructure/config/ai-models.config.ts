@@ -16,7 +16,7 @@ export interface AIModelConfig {
 export const DEFAULT_MODEL_ID = 'devstral-latest'; // default model
 
 export const AI_MODELS: AIModelConfig[] = [
-  // free
+  // available after first purchase
   {
     id: 'gemini-2.5-flash',
     name: 'Gemini-2.5-Flash',
@@ -28,7 +28,7 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 0.00,
     outputPricePerMillion: 0.00
   },
-  // paid
+  // permanently free
   {
     id: 'devstral-latest',
     name: 'Devstral Latest',
@@ -37,8 +37,8 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 262144,
     apiKey: ENV_CONFIG.MISTRAL_API_KEY,
     baseURL: "https://api.mistral.ai/v1",
-    inputPricePerMillion: 0.40,
-    outputPricePerMillion: 2.00
+    inputPricePerMillion: 0.00,
+    outputPricePerMillion: 0.00
   },
   {
     id: 'gpt-5.2',
@@ -223,7 +223,8 @@ export function getModels() {
     id: model.id,
     name: model.name,
     description: model.description,
-    icon: model.icon
+    icon: model.icon,
+    isFree: model.id === 'devstral-latest' || model.id === 'gemini-2.5-flash',
   }));
 }
 

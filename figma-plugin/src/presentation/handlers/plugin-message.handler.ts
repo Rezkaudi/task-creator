@@ -233,10 +233,19 @@ export class PluginMessageHandler {
           const errorResult = await response.json();
           errorMessage = errorResult.message || errorResult.error || errorMessage;
         } catch (e) { }
-        throw new Error(errorMessage);
+        const error = new Error(errorMessage) as Error & { statusCode?: number };
+        error.statusCode = response.status;
+        throw error;
       }
 
       const result = await response.json();
+
+      const points = result.points ? {
+        deducted: result.points.deducted || 0,
+        remaining: result.points.remaining || 0,
+        wasFree: result.points.wasFree || false,
+        hasPurchased: result.points.hasPurchased,
+      } : undefined;
 
       this.uiPort.postMessage({
         type: 'prototype-connections-generated',
@@ -248,14 +257,24 @@ export class PluginMessageHandler {
           totalCost: result.cost.totalCost,
           inputTokens: result.cost.inputTokens,
           outputTokens: result.cost.outputTokens
-        } : undefined
+        } : undefined,
+        points,
       });
+
+      if (points) {
+        this.uiPort.postMessage({
+          type: 'points-updated',
+          balance: points.remaining,
+          hasPurchased: points.hasPurchased ?? true,
+        });
+      }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate connections';
       this.uiPort.postMessage({
         type: 'prototype-connections-error',
-        error: errorMessage
+        error: errorMessage,
+        statusCode: (error as any)?.statusCode,
       });
 
       errorReporter.reportErrorAsync(error as Error, {
@@ -446,7 +465,9 @@ export class PluginMessageHandler {
           const errorResult = await response.json();
           errorMessage = errorResult.message || errorResult.error || errorMessage;
         } catch (e) { }
-        throw new Error(errorMessage);
+        const error = new Error(errorMessage) as Error & { statusCode?: number };
+        error.statusCode = response.status;
+        throw error;
       }
 
       const result = await response.json();
@@ -459,6 +480,13 @@ export class PluginMessageHandler {
       // Clean up stored references
       this.imageReferencesStore.delete(requestKey);
 
+      const points = result.points ? {
+        deducted: result.points.deducted || 0,
+        remaining: result.points.remaining || 0,
+        wasFree: result.points.wasFree || false,
+        hasPurchased: result.points.hasPurchased,
+      } : undefined;
+
       this.uiPort.postMessage({
         type: 'ai-edit-response',
         message: result.message,
@@ -470,14 +498,24 @@ export class PluginMessageHandler {
           totalCost: result.cost.totalCost,
           inputTokens: result.cost.inputTokens,
           outputTokens: result.cost.outputTokens
-        } : undefined
+        } : undefined,
+        points,
       });
+
+      if (points) {
+        this.uiPort.postMessage({
+          type: 'points-updated',
+          balance: points.remaining,
+          hasPurchased: points.hasPurchased ?? true,
+        });
+      }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
       this.uiPort.postMessage({
         type: 'ai-edit-error',
-        error: errorMessage
+        error: errorMessage,
+        statusCode: (error as any)?.statusCode,
       });
 
       errorReporter.reportErrorAsync(error as Error, {
@@ -529,12 +567,21 @@ export class PluginMessageHandler {
           const errorResult = await response.json();
           errorMessage = errorResult.message || errorResult.error || errorMessage;
         } catch (e) { }
-        throw new Error(errorMessage);
+        const error = new Error(errorMessage) as Error & { statusCode?: number };
+        error.statusCode = response.status;
+        throw error;
       }
 
       const result = await response.json();
 
       console.log("✅ Received response from generate-based-on-existing");
+
+      const points = result.points ? {
+        deducted: result.points.deducted || 0,
+        remaining: result.points.remaining || 0,
+        wasFree: result.points.wasFree || false,
+        hasPurchased: result.points.hasPurchased,
+      } : undefined;
 
       this.uiPort.postMessage({
         type: 'ai-based-on-existing-response',
@@ -547,15 +594,25 @@ export class PluginMessageHandler {
           totalCost: result.cost.totalCost,
           inputTokens: result.cost.inputTokens,
           outputTokens: result.cost.outputTokens
-        } : undefined
+        } : undefined,
+        points,
       });
+
+      if (points) {
+        this.uiPort.postMessage({
+          type: 'points-updated',
+          balance: points.remaining,
+          hasPurchased: points.hasPurchased ?? true,
+        });
+      }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
       console.error("❌ Error in handleGenerateBasedOnExisting:", errorMessage);
       this.uiPort.postMessage({
         type: 'ai-based-on-existing-error',
-        error: errorMessage
+        error: errorMessage,
+        statusCode: (error as any)?.statusCode,
       });
 
       errorReporter.reportErrorAsync(error as Error, {
@@ -597,10 +654,19 @@ export class PluginMessageHandler {
           const errorResult = await response.json();
           errorMessage = errorResult.message || errorResult.error || errorMessage;
         } catch (e) { }
-        throw new Error(errorMessage);
+        const error = new Error(errorMessage) as Error & { statusCode?: number };
+        error.statusCode = response.status;
+        throw error;
       }
 
       const result = await response.json();
+
+      const points = result.points ? {
+        deducted: result.points.deducted || 0,
+        remaining: result.points.remaining || 0,
+        wasFree: result.points.wasFree || false,
+        hasPurchased: result.points.hasPurchased,
+      } : undefined;
 
       this.uiPort.postMessage({
         type: 'ai-chat-response',
@@ -613,14 +679,24 @@ export class PluginMessageHandler {
           totalCost: result.cost.totalCost,
           inputTokens: result.cost.inputTokens,
           outputTokens: result.cost.outputTokens
-        } : undefined
+        } : undefined,
+        points,
       });
+
+      if (points) {
+        this.uiPort.postMessage({
+          type: 'points-updated',
+          balance: points.remaining,
+          hasPurchased: points.hasPurchased ?? true,
+        });
+      }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
       this.uiPort.postMessage({
         type: 'ai-chat-error',
-        error: errorMessage
+        error: errorMessage,
+        statusCode: (error as any)?.statusCode,
       });
 
       errorReporter.reportErrorAsync(error as Error, {

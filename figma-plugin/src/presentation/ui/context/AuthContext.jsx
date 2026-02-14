@@ -9,8 +9,91 @@ export function AuthProvider({ children }) {
         isLoading: true,
         user: null,
         token: null,
+        pointsBalance: 0,
+        hasPurchased: false,
         error: null,
     });
+
+    const fetchBalance = useCallback(async (token) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/payments/balance`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                return { pointsBalance: 0, hasPurchased: false };
+            }
+
+            const data = await response.json();
+            if (!data.success) {
+                return { pointsBalance: 0, hasPurchased: false };
+            }
+
+            return {
+                pointsBalance: Number(data.pointsBalance || 0),
+                hasPurchased: Boolean(data.hasPurchased),
+            };
+        } catch (_error) {
+            return { pointsBalance: 0, hasPurchased: false };
+        }
+    }, []);
+
+    const verifyToken = useCallback(async (token) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    const balance = await fetchBalance(token);
+                    setAuthState({
+                        isAuthenticated: true,
+                        isLoading: false,
+                        user: data.user,
+                        token: token,
+                        pointsBalance: balance.pointsBalance,
+                        hasPurchased: balance.hasPurchased,
+                        error: null,
+                    });
+                    return;
+                }
+            }
+
+            // Token invalid - clear it
+            parent.postMessage({
+                pluginMessage: { type: 'CLEAR_AUTH_TOKEN' }
+            }, '*');
+
+            setAuthState({
+                isAuthenticated: false,
+                isLoading: false,
+                user: null,
+                token: null,
+                pointsBalance: 0,
+                hasPurchased: false,
+                error: null,
+            });
+        } catch (error) {
+            console.warn('Token verification failed:', error);
+            setAuthState({
+                isAuthenticated: false,
+                isLoading: false,
+                user: null,
+                token: null,
+                pointsBalance: 0,
+                hasPurchased: false,
+                error: null,
+            });
+        }
+    }, [fetchBalance]);
 
     // Load stored token on mount
     useEffect(() => {
@@ -52,54 +135,7 @@ export function AuthProvider({ children }) {
         };
 
         loadToken();
-    }, []);
-
-    const verifyToken = useCallback(async (token) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/auth/me`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    setAuthState({
-                        isAuthenticated: true,
-                        isLoading: false,
-                        user: data.user,
-                        token: token,
-                        error: null,
-                    });
-                    return;
-                }
-            }
-
-            // Token invalid - clear it
-            parent.postMessage({
-                pluginMessage: { type: 'CLEAR_AUTH_TOKEN' }
-            }, '*');
-
-            setAuthState({
-                isAuthenticated: false,
-                isLoading: false,
-                user: null,
-                token: null,
-                error: null,
-            });
-        } catch (error) {
-            console.warn('Token verification failed:', error);
-            setAuthState({
-                isAuthenticated: false,
-                isLoading: false,
-                user: null,
-                token: null,
-                error: null,
-            });
-        }
-    }, []);
+    }, [verifyToken]);
 
     const login = useCallback(async (token) => {
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -121,6 +157,8 @@ export function AuthProvider({ children }) {
                 throw new Error(data.message || 'Authentication failed');
             }
 
+            const balance = await fetchBalance(token);
+
             // Store token in plugin storage
             parent.postMessage({
                 pluginMessage: { type: 'SAVE_AUTH_TOKEN', token: token }
@@ -131,6 +169,8 @@ export function AuthProvider({ children }) {
                 isLoading: false,
                 user: data.user,
                 token: token,
+                pointsBalance: balance.pointsBalance,
+                hasPurchased: balance.hasPurchased,
                 error: null,
             });
         } catch (error) {
@@ -140,7 +180,7 @@ export function AuthProvider({ children }) {
                 error: error.message || 'Login failed',
             }));
         }
-    }, []);
+    }, [fetchBalance]);
 
     const logout = useCallback(() => {
         // Clear stored token
@@ -153,6 +193,8 @@ export function AuthProvider({ children }) {
             isLoading: false,
             user: null,
             token: null,
+            pointsBalance: 0,
+            hasPurchased: false,
             error: null,
         });
     }, []);

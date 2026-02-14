@@ -7,6 +7,9 @@ export interface User {
     email?: string;
     googleId?: string;
     profilePicture?: string;
+    pointsBalance: number;
+    stripeCustomerId?: string;
+    hasPurchased: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }

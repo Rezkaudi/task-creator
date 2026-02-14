@@ -13,12 +13,15 @@ import { AiGenerateDesignService } from "../../services/ai-generate-design.servi
 import { AiCostCalculatorService } from "../../services/ai-cost.calculator.service";
 import { GoogleAuthService } from "../../services/google-auth.service";
 import { TokenStoreService } from "../../services/token-store.service";
+import { PointsService } from "../../services/points.service";
+import { StripeService } from "../../services/stripe.service";
 
 
 // Repositories
 import { TypeORMUserRepository } from "../../repository/typeorm-user.repository";
 import { TypeORMClientErrorRepository } from "../../repository/typeorm-client-error.repository";
 import { TypeORMUILibraryRepository } from "../../repository/typeorm-ui-library.repository";
+import { TypeORMPaymentTransactionRepository } from "../../repository/typeorm-payment-transaction.repository";
 
 
 // Use Cases - Tasks
@@ -43,6 +46,12 @@ import { DeleteUILibraryComponentUseCase } from "../../../application/use-cases/
 // Use Cases - Auth
 import { GoogleSignInUseCase } from "../../../application/use-cases/google-sign-in.use-case";
 import { VerifySessionUseCase } from "../../../application/use-cases/verify-session.use-case";
+import { CreateCheckoutSessionUseCase } from "../../../application/use-cases/create-checkout-session.use-case";
+import { HandleStripeWebhookUseCase } from "../../../application/use-cases/handle-stripe-webhook.use-case";
+import { GetUserBalanceUseCase } from "../../../application/use-cases/get-user-balance.use-case";
+import { GetPaymentHistoryUseCase } from "../../../application/use-cases/get-payment-history.use-case";
+import { GetAvailablePackagesUseCase } from "../../../application/use-cases/get-available-packages.use-case";
+import { PollPaymentStatusUseCase } from "../../../application/use-cases/poll-payment-status.use-case";
 
 // Use Cases - Client Errors
 import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
@@ -56,6 +65,7 @@ import { ClientErrorController } from "../controllers/client-error.controller";
 import { DesignSystemsController } from "../controllers/design-systems.controller";
 import { UILibraryController } from "../controllers/ui-library.controller";
 import { AuthController } from "../controllers/auth.controller";
+import { PaymentController } from "../controllers/payment.controller";
 
 import { AuthMiddleware } from "../middleware/auth.middleware";
 
@@ -69,6 +79,7 @@ export const setupDependencies = () => {
     const userRepository = new TypeORMUserRepository();
     const uiLibraryRepository = new TypeORMUILibraryRepository();
     const clientErrorRepository = new TypeORMClientErrorRepository();
+    const paymentTransactionRepository = new TypeORMPaymentTransactionRepository();
 
 
     // Services
@@ -79,6 +90,8 @@ export const setupDependencies = () => {
     const toolCallHandler = new ToolCallHandlerService(iconService);
     const responseParser = new ResponseParserService();
     const messageBuilder = new MessageBuilderService();
+    const stripeService = new StripeService();
+    const pointsService = new PointsService(userRepository);
 
     const aiExtractTasksService = new AiExtractTasksService(aiCostCalculatorService);
 
@@ -123,6 +136,21 @@ export const setupDependencies = () => {
     const googleSignInUseCase = new GoogleSignInUseCase(googleAuthService, userRepository);
     const verifySessionUseCase = new VerifySessionUseCase(googleAuthService, userRepository);
 
+    const createCheckoutSessionUseCase = new CreateCheckoutSessionUseCase(
+        userRepository,
+        paymentTransactionRepository,
+        stripeService
+    );
+    const handleStripeWebhookUseCase = new HandleStripeWebhookUseCase(
+        userRepository,
+        paymentTransactionRepository,
+        stripeService
+    );
+    const getUserBalanceUseCase = new GetUserBalanceUseCase(userRepository);
+    const getPaymentHistoryUseCase = new GetPaymentHistoryUseCase(paymentTransactionRepository);
+    const getAvailablePackagesUseCase = new GetAvailablePackagesUseCase();
+    const pollPaymentStatusUseCase = new PollPaymentStatusUseCase(paymentTransactionRepository, userRepository);
+
     // Controllers
     const trelloController = new TrelloController(getBoardListsUseCase);
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
@@ -135,7 +163,9 @@ export const setupDependencies = () => {
         generateDesignFromConversationUseCase,
         editDesignWithAIUseCase,
         generateDesignBasedOnExistingUseCase,
-        generatePrototypeConnectionsUseCase
+        generatePrototypeConnectionsUseCase,
+        pointsService,
+        userRepository,
     );
 
     const uiLibraryController = new UILibraryController(
@@ -153,6 +183,14 @@ export const setupDependencies = () => {
 
     // Client Error Controller
     const clientErrorController = new ClientErrorController(reportClientErrorUseCase);
+    const paymentController = new PaymentController(
+        createCheckoutSessionUseCase,
+        handleStripeWebhookUseCase,
+        getUserBalanceUseCase,
+        getPaymentHistoryUseCase,
+        getAvailablePackagesUseCase,
+        pollPaymentStatusUseCase,
+    );
 
 
 
@@ -164,6 +202,7 @@ export const setupDependencies = () => {
         aiModelsController,
         designSystemsController,
         clientErrorController,
+        paymentController,
         authMiddleware,
         authController,
     };

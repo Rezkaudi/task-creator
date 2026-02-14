@@ -19,6 +19,8 @@ export class TypeORMUserRepository implements IUserRepository {
             figmaUserId: user.figmaUserId!,
             userName: user.userName,
             email: user.email,
+            pointsBalance: 0,
+            hasPurchased: false,
         });
 
         const saved = await this.repository.save(entity);
@@ -42,6 +44,46 @@ export class TypeORMUserRepository implements IUserRepository {
         return this.findById(id);
     }
 
+    async addPoints(userId: string, points: number): Promise<User> {
+        const result = await this.repository.query(
+            'UPDATE "users" SET "pointsBalance" = "pointsBalance" + $1 WHERE "id" = $2 RETURNING *',
+            [points, userId],
+        );
+
+        if (!result || result.length === 0) {
+            throw new Error("User not found while adding points");
+        }
+
+        return this.toUser(result[0] as UserEntity);
+    }
+
+    async deductPoints(userId: string, points: number): Promise<User> {
+        const result = await this.repository.query(
+            'UPDATE "users" SET "pointsBalance" = "pointsBalance" - $1 WHERE "id" = $2 AND "pointsBalance" >= $1 RETURNING *',
+            [points, userId],
+        );
+
+        if (!result || result.length === 0) {
+            throw new Error("Insufficient points balance");
+        }
+
+        return this.toUser(result[0] as UserEntity);
+    }
+
+    async setStripeCustomerId(userId: string, customerId: string): Promise<void> {
+        await this.repository.query(
+            'UPDATE "users" SET "stripeCustomerId" = $1 WHERE "id" = $2',
+            [customerId, userId],
+        );
+    }
+
+    async markHasPurchased(userId: string): Promise<void> {
+        await this.repository.query(
+            'UPDATE "users" SET "hasPurchased" = true WHERE "id" = $1',
+            [userId],
+        );
+    }
+
     // In typeorm-user.repository.ts
     async findOrCreate(userData: Partial<User>): Promise<User> {
         return await AppDataSource.transaction(async (manager) => {
@@ -59,6 +101,8 @@ export class TypeORMUserRepository implements IUserRepository {
                     figmaUserId: userData.figmaUserId,
                     userName: userData.userName,
                     email: userData.email,
+                    pointsBalance: 0,
+                    hasPurchased: false,
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 });
@@ -138,6 +182,8 @@ export class TypeORMUserRepository implements IUserRepository {
                 userName: googleData.userName,
                 email: googleData.email,
                 profilePicture: googleData.profilePicture,
+                pointsBalance: 0,
+                hasPurchased: false,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
@@ -154,6 +200,9 @@ export class TypeORMUserRepository implements IUserRepository {
             email: entity.email,
             googleId: entity.googleId,
             profilePicture: entity.profilePicture,
+            pointsBalance: entity.pointsBalance ?? 0,
+            stripeCustomerId: entity.stripeCustomerId,
+            hasPurchased: entity.hasPurchased ?? false,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
         };

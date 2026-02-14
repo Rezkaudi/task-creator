@@ -17,7 +17,7 @@ export default function ChatInterface({
     sendMessage,
 }) {
     const { state, dispatch } = useAppContext();
-    const { currentModelId, availableModels, currentDesignSystemId, availableDesignSystems } = state;
+    const { currentModelId, availableModels, currentDesignSystemId, availableDesignSystems, hasPurchased } = state;
 
     const [messages, setMessages] = useState([]);
     const [conversationHistory, setConversationHistory] = useState([]);
@@ -134,6 +134,15 @@ export default function ChatInterface({
         const isEdit = msg.type === 'ai-edit-response';
         const isBased = msg.type === 'ai-based-on-existing-response';
 
+        if (msg.points) {
+            dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
+            if (typeof msg.points.hasPurchased === 'boolean') {
+                dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: msg.points.hasPurchased });
+            } else if (!msg.points.wasFree && !hasPurchased) {
+                dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: true });
+            }
+        }
+
         addMessage('assistant', msg.message, {
             designData: msg.designData,
             previewHtml: msg.previewHtml,
@@ -150,13 +159,18 @@ export default function ChatInterface({
         });
 
         setConversationHistory(prev => [...prev, { role: 'assistant', content: msg.message }]);
-    }, [selectedLayerForEdit, selectedLayerJson, referenceLayerName, removeLoadingMessages, addMessage]);
+    }, [selectedLayerForEdit, selectedLayerJson, referenceLayerName, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
 
     const handleError = useCallback((msg) => {
         setIsGenerating(false);
         removeLoadingMessages();
         addMessage('assistant', `Error: ${msg.error}`);
-    }, [removeLoadingMessages, addMessage]);
+
+        const errorText = `${msg.error || ''}`.toLowerCase();
+        if (msg.statusCode === 402 || errorText.includes('insufficient') || errorText.includes('purchase points')) {
+            dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
+        }
+    }, [removeLoadingMessages, addMessage, dispatch]);
 
     // Expose handlers via ref (parent will call these)
     React.useImperativeHandle(React.useRef(), () => ({
