@@ -12,6 +12,7 @@ const initialState = {
     availableModels: [],
     pointsBalance: 0,
     hasPurchased: false,
+    subscription: null,
 
     // Design Systems
     currentDesignSystemId: defaultDesignSystem.id,
@@ -49,6 +50,8 @@ function appReducer(state, action) {
             return { ...state, pointsBalance: Math.max(0, state.pointsBalance - Number(action.points || 0)) };
         case 'SET_HAS_PURCHASED':
             return { ...state, hasPurchased: Boolean(action.hasPurchased) };
+        case 'SET_SUBSCRIPTION':
+            return { ...state, subscription: action.subscription };
 
         case 'SET_DESIGN_SYSTEM':
             return { ...state, currentDesignSystemId: action.systemId };

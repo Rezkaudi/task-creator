@@ -16,8 +16,8 @@ interface PointsResponse {
     wasFree: boolean;
     hasPurchased: boolean;
     subscription?: {
-        dailyUsageCount: number;
-        dailyLimit: number;
+        dailyPointsUsed: number;
+        dailyPointsLimit: number;
     };
 }
 
@@ -258,10 +258,11 @@ export class DesignController {
         if (subscription) {
             const today = new Date().toISOString().split("T")[0];
             const currentUsage = subscription.lastUsageResetDate === today
-                ? subscription.dailyUsageCount
+                ? subscription.dailyPointsUsed
                 : 0;
 
-            if (currentUsage < subscription.dailyLimit) {
+            const remainingQuota = subscription.dailyPointsLimit - currentUsage;
+            if (remainingQuota >= ENV_CONFIG.MIN_PRE_FLIGHT_POINTS) {
                 return; // Subscription allows this request
             }
 
@@ -276,7 +277,7 @@ export class DesignController {
         if (!hasEnoughPoints) {
             if (subscription) {
                 throw new PaymentRequiredError(
-                    `Daily limit of ${subscription.dailyLimit} generations reached. Buy points for additional usage.`
+                    `Daily limit of ${subscription.dailyPointsLimit} points reached. Buy points for additional usage.`
                 );
             }
             throw new PaymentRequiredError("Insufficient points balance. Please buy points to continue.");
@@ -293,17 +294,21 @@ export class DesignController {
         let deducted = 0;
 
         if (!wasFree) {
+            // Calculate points cost
+            const pointsToDeduct = this.pointsService.calculatePointsCost(modelId, inputTokens, outputTokens);
+
             // Check if user has an active subscription with remaining daily quota
             const subscription = await this.subscriptionRepository.findActiveByUserId(userId);
             if (subscription) {
                 const today = new Date().toISOString().split("T")[0];
                 const currentUsage = subscription.lastUsageResetDate === today
-                    ? subscription.dailyUsageCount
+                    ? subscription.dailyPointsUsed
                     : 0;
 
-                if (currentUsage < subscription.dailyLimit) {
+                const remainingQuota = subscription.dailyPointsLimit - currentUsage;
+                if (remainingQuota >= pointsToDeduct) {
                     // Use subscription quota instead of points
-                    const { dailyUsageCount } = await this.subscriptionRepository.incrementDailyUsage(subscription.id);
+                    const { dailyPointsUsed } = await this.subscriptionRepository.incrementDailyPointsUsed(subscription.id, pointsToDeduct);
                     const user = await this.userRepository.findById(userId);
                     if (!user) {
                         throw new HttpError("Authentication required", 401);
@@ -315,8 +320,8 @@ export class DesignController {
                         wasFree: false,
                         hasPurchased: user.hasPurchased,
                         subscription: {
-                            dailyUsageCount,
-                            dailyLimit: subscription.dailyLimit,
+                            dailyPointsUsed,
+                            dailyPointsLimit: subscription.dailyPointsLimit,
                         },
                     };
                 }

@@ -11,8 +11,27 @@ export function AuthProvider({ children }) {
         token: null,
         pointsBalance: 0,
         hasPurchased: false,
+        subscription: null,
         error: null,
     });
+
+    const fetchSubscriptionStatus = useCallback(async (token) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/subscriptions/status`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            return data.success ? data.subscription : null;
+        } catch (_error) {
+            return null;
+        }
+    }, []);
 
     const fetchBalance = useCallback(async (token) => {
         try {
@@ -53,7 +72,10 @@ export function AuthProvider({ children }) {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    const balance = await fetchBalance(token);
+                    const [balance, subscription] = await Promise.all([
+                        fetchBalance(token),
+                        fetchSubscriptionStatus(token)
+                    ]);
                     setAuthState({
                         isAuthenticated: true,
                         isLoading: false,
@@ -61,6 +83,7 @@ export function AuthProvider({ children }) {
                         token: token,
                         pointsBalance: balance.pointsBalance,
                         hasPurchased: balance.hasPurchased,
+                        subscription: subscription,
                         error: null,
                     });
                     return;
@@ -157,7 +180,10 @@ export function AuthProvider({ children }) {
                 throw new Error(data.message || 'Authentication failed');
             }
 
-            const balance = await fetchBalance(token);
+            const [balance, subscription] = await Promise.all([
+                fetchBalance(token),
+                fetchSubscriptionStatus(token)
+            ]);
 
             // Store token in plugin storage
             parent.postMessage({
@@ -171,6 +197,7 @@ export function AuthProvider({ children }) {
                 token: token,
                 pointsBalance: balance.pointsBalance,
                 hasPurchased: balance.hasPurchased,
+                subscription: subscription,
                 error: null,
             });
         } catch (error) {

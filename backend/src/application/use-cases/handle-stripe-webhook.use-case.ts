@@ -174,7 +174,7 @@ export class HandleStripeWebhookUseCase {
             stripeCustomerId: customerId,
             currentPeriodStart: period.start,
             currentPeriodEnd: period.end,
-            dailyLimit: plan.dailyLimit,
+            dailyPointsLimit: plan.dailyPointsLimit,
             cancelAtPeriodEnd: false,
         });
 

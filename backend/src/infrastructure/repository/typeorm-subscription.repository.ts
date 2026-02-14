@@ -22,8 +22,8 @@ export class TypeORMSubscriptionRepository implements ISubscriptionRepository {
             stripeCustomerId: sub.stripeCustomerId!,
             currentPeriodStart: sub.currentPeriodStart!,
             currentPeriodEnd: sub.currentPeriodEnd!,
-            dailyLimit: sub.dailyLimit!,
-            dailyUsageCount: 0,
+            dailyPointsLimit: sub.dailyPointsLimit!,
+            dailyPointsUsed: 0,
             lastUsageResetDate: new Date().toISOString().split("T")[0],
             cancelAtPeriodEnd: false,
         });
@@ -56,21 +56,21 @@ export class TypeORMSubscriptionRepository implements ISubscriptionRepository {
         await this.repository.update(id, { status });
     }
 
-    async incrementDailyUsage(id: string): Promise<{ dailyUsageCount: number; wasReset: boolean }> {
+    async incrementDailyPointsUsed(id: string, points: number): Promise<{ dailyPointsUsed: number; wasReset: boolean }> {
         const today = new Date().toISOString().split("T")[0];
 
-        // Atomic: if new day, reset to 1; otherwise increment
+        // Atomic: if new day, reset to 'points'; otherwise increment by 'points'
         const result = await this.repository.query(
             `UPDATE "subscriptions"
-             SET "dailyUsageCount" = CASE
-                 WHEN "lastUsageResetDate" != $1 THEN 1
-                 ELSE "dailyUsageCount" + 1
+             SET "dailyPointsUsed" = CASE
+                 WHEN "lastUsageResetDate" != $1 THEN $2
+                 ELSE "dailyPointsUsed" + $2
              END,
              "lastUsageResetDate" = $1,
              "updatedAt" = NOW()
-             WHERE "id" = $2
-             RETURNING "dailyUsageCount", "lastUsageResetDate"`,
-            [today, id],
+             WHERE "id" = $3
+             RETURNING "dailyPointsUsed", "lastUsageResetDate"`,
+            [today, points, id],
         );
 
         if (!result || result.length === 0) {
@@ -79,8 +79,8 @@ export class TypeORMSubscriptionRepository implements ISubscriptionRepository {
 
         const row = result[0];
         return {
-            dailyUsageCount: row.dailyUsageCount,
-            wasReset: row.lastUsageResetDate === today && row.dailyUsageCount === 1,
+            dailyPointsUsed: row.dailyPointsUsed,
+            wasReset: row.lastUsageResetDate === today && row.dailyPointsUsed === points,
         };
     }
 
@@ -98,8 +98,8 @@ export class TypeORMSubscriptionRepository implements ISubscriptionRepository {
             stripeCustomerId: entity.stripeCustomerId,
             currentPeriodStart: entity.currentPeriodStart,
             currentPeriodEnd: entity.currentPeriodEnd,
-            dailyLimit: entity.dailyLimit,
-            dailyUsageCount: entity.dailyUsageCount,
+            dailyPointsLimit: entity.dailyPointsLimit,
+            dailyPointsUsed: entity.dailyPointsUsed,
             lastUsageResetDate: entity.lastUsageResetDate,
             cancelAtPeriodEnd: entity.cancelAtPeriodEnd,
             createdAt: entity.createdAt,

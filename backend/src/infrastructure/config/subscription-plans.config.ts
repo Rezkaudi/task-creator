@@ -3,7 +3,7 @@ export interface SubscriptionPlan {
     name: string;
     priceUsd: number;
     priceCents: number;
-    dailyLimit: number;
+    dailyPointsLimit: number;
     stripePriceId: string;
 }
 
@@ -13,7 +13,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         name: 'Basic Monthly',
         priceUsd: 9,
         priceCents: 900,
-        dailyLimit: 20,
+        dailyPointsLimit: 1000,
         stripePriceId: process.env.STRIPE_PRICE_SUB_BASIC || '',
     },
     {
@@ -21,7 +21,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         name: 'Premium Monthly',
         priceUsd: 19,
         priceCents: 1900,
-        dailyLimit: 60,
+        dailyPointsLimit: 3000,
         stripePriceId: process.env.STRIPE_PRICE_SUB_PREMIUM || '',
     },
 ];

@@ -7,8 +7,8 @@ export interface Subscription {
     stripeCustomerId: string;
     currentPeriodStart: Date;
     currentPeriodEnd: Date;
-    dailyLimit: number;
-    dailyUsageCount: number;
+    dailyPointsLimit: number;
+    dailyPointsUsed: number;
     lastUsageResetDate: string;
     cancelAtPeriodEnd: boolean;
     createdAt: Date;

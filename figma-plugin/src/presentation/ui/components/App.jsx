@@ -27,6 +27,7 @@ function AppContent() {
         token: authToken,
         pointsBalance: authPointsBalance,
         hasPurchased: authHasPurchased,
+        subscription: authSubscription,
         logout
     } = useAuth();
 
@@ -157,7 +158,8 @@ function AppContent() {
         if (!isAuthenticated) return;
         dispatch({ type: 'SET_POINTS_BALANCE', balance: authPointsBalance || 0 });
         dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(authHasPurchased) });
-    }, [isAuthenticated, authPointsBalance, authHasPurchased, dispatch]);
+        dispatch({ type: 'SET_SUBSCRIPTION', subscription: authSubscription });
+    }, [isAuthenticated, authPointsBalance, authHasPurchased, authSubscription, dispatch]);
 
     const handleTabChange = useCallback((tabId) => {
         setActiveTab(tabId);
@@ -214,8 +216,30 @@ function AppContent() {
                             {(user.userName || user.email || '?')[0].toUpperCase()}
                         </div>
                     )}
-                    <span className="user-name">{user.userName || user.email}</span>
-                    <span className="points-badge">⚡ {Number(state.pointsBalance || 0).toLocaleString()} pts</span>
+                    <div className="user-name">
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            {authSubscription ? (
+                                <span className="sub-badge monthly">Monthly</span>
+                            ) : (
+                                <span className="sub-badge one-time">One-time</span>
+                            )}
+                            <span>{user.userName || user.email}</span>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        {authSubscription ?
+                            <span className="daily-points-badge" title="Remaining daily points from subscription">
+                                📅 {Number((authSubscription.dailyPointsLimit || 0) - (authSubscription.dailyPointsUsed || 0)).toLocaleString()} pts
+                            </span> :
+                            <span className="points-badge" title="Total purchased points">
+                                ⚡ {Number(state.pointsBalance || 0).toLocaleString()} pts
+                            </span>
+
+                        }
+
+                    </div>
+
                     <button
                         className="buy-points-btn"
                         onClick={() => dispatch({ type: 'OPEN_BUY_POINTS_MODAL' })}

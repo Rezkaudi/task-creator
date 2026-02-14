@@ -44,10 +44,10 @@ export class SubscriptionEntity {
     currentPeriodEnd!: Date;
 
     @Column({ type: "int" })
-    dailyLimit!: number;
+    dailyPointsLimit!: number;
 
     @Column({ type: "int", default: 0 })
-    dailyUsageCount!: number;
+    dailyPointsUsed!: number;
 
     @Column({ type: "varchar", length: 10, default: "1970-01-01" })
     lastUsageResetDate!: string;

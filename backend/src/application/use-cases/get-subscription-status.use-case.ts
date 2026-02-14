@@ -3,15 +3,15 @@ import { ISubscriptionRepository } from "../../domain/repositories/subscription.
 export class GetSubscriptionStatusUseCase {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
-    ) {}
+    ) { }
 
     async execute(userId: string): Promise<{
         hasSubscription: boolean;
         subscription: {
             planId: string;
             status: string;
-            dailyLimit: number;
-            dailyUsageCount: number;
+            dailyPointsLimit: number;
+            dailyPointsUsed: number;
             lastUsageResetDate: string;
             currentPeriodEnd: Date;
             cancelAtPeriodEnd: boolean;
@@ -24,8 +24,8 @@ export class GetSubscriptionStatusUseCase {
         }
 
         const today = new Date().toISOString().split("T")[0];
-        const dailyUsageCount = subscription.lastUsageResetDate === today
-            ? subscription.dailyUsageCount
+        const dailyPointsUsed = subscription.lastUsageResetDate === today
+            ? subscription.dailyPointsUsed
             : 0;
 
         return {
@@ -33,8 +33,8 @@ export class GetSubscriptionStatusUseCase {
             subscription: {
                 planId: subscription.planId,
                 status: subscription.status,
-                dailyLimit: subscription.dailyLimit,
-                dailyUsageCount,
+                dailyPointsLimit: subscription.dailyPointsLimit,
+                dailyPointsUsed,
                 lastUsageResetDate: subscription.lastUsageResetDate,
                 currentPeriodEnd: subscription.currentPeriodEnd,
                 cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,

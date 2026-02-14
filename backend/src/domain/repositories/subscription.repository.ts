@@ -6,6 +6,6 @@ export interface ISubscriptionRepository {
     findActiveByUserId(userId: string): Promise<Subscription | null>;
     findByStripeSubscriptionId(stripeSubId: string): Promise<Subscription | null>;
     updateStatus(id: string, status: Subscription['status']): Promise<void>;
-    incrementDailyUsage(id: string): Promise<{ dailyUsageCount: number; wasReset: boolean }>;
+    incrementDailyPointsUsed(id: string, points: number): Promise<{ dailyPointsUsed: number; wasReset: boolean }>;
     update(id: string, data: Partial<Subscription>): Promise<void>;
 }

@@ -136,6 +136,9 @@ export default function ChatInterface({
 
         if (msg.points) {
             dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
+            if (msg.points.subscription) {
+                dispatch({ type: 'SET_SUBSCRIPTION', subscription: msg.points.subscription });
+            }
             if (typeof msg.points.hasPurchased === 'boolean') {
                 dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: msg.points.hasPurchased });
             } else if (!msg.points.wasFree && !hasPurchased) {

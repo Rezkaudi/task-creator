@@ -264,11 +264,11 @@ export default function BuyPointsModal() {
                                     </span>
                                 </div>
                                 <div className="subscription-active-usage">
-                                    <span>{subscription.dailyUsageCount} / {subscription.dailyLimit} used today</span>
+                                    <span>{subscription.dailyPointsUsed} / {subscription.dailyPointsLimit} used today</span>
                                     <div className="subscription-usage-bar">
                                         <div
                                             className="subscription-usage-fill"
-                                            style={{ width: `${Math.min(100, (subscription.dailyUsageCount / subscription.dailyLimit) * 100)}%` }}
+                                            style={{ width: `${Math.min(100, (subscription.dailyPointsUsed / subscription.dailyPointsLimit) * 100)}%` }}
                                         />
                                     </div>
                                 </div>
@@ -293,10 +293,10 @@ export default function BuyPointsModal() {
                                 <div key={plan.id} className={`points-card subscription-card ${plan.id === 'premium' ? 'premium' : ''}`}>
                                     {plan.id === 'premium' && <div className="points-best-value premium-badge">Most Popular</div>}
                                     <div className="points-card-title">{plan.name}</div>
-                                    <div className="points-card-points">{plan.dailyLimit} / day</div>
+                                    <div className="points-card-points">{plan.dailyPointsLimit} / day</div>
                                     <div className="points-card-price">${plan.priceUsd}<span className="price-period">/mo</span></div>
                                     <div className="subscription-card-detail">
-                                        {plan.dailyLimit} AI generations per day
+                                        {plan.dailyPointsLimit} Points per day
                                     </div>
                                     {subscription && !subscription.cancelAtPeriodEnd ? (
                                         <button className="points-buy-btn" disabled>
