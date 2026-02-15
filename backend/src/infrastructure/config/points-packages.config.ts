@@ -1,3 +1,5 @@
+import { ENV_CONFIG } from "./env.config";
+
 export interface PointsPackage {
     id: string;
     name: string;
@@ -14,7 +16,7 @@ export const POINTS_PACKAGES: PointsPackage[] = [
         points: 5000,
         priceUsd: 10,
         priceCents: 1000,
-        stripePriceId: process.env.STRIPE_PRICE_STARTER || '',
+        stripePriceId: ENV_CONFIG.STRIPE_PRICE_STARTER || '',
     },
     {
         id: 'pro',
@@ -22,7 +24,7 @@ export const POINTS_PACKAGES: PointsPackage[] = [
         points: 15000,
         priceUsd: 25,
         priceCents: 2500,
-        stripePriceId: process.env.STRIPE_PRICE_PRO || '',
+        stripePriceId: ENV_CONFIG.STRIPE_PRICE_PRO || '',
     },
 ];
 

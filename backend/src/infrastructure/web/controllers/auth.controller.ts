@@ -4,9 +4,6 @@ import { Request, Response } from 'express';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { GoogleSignInUseCase } from '../../../application/use-cases/google-sign-in.use-case';
-import { VerifySessionUseCase } from '../../../application/use-cases/verify-session.use-case';
-import { ENV_CONFIG } from '../../config/env.config';
-
 import { TokenStoreService } from '../../services/token-store.service';
 
 const PAGES_DIR = join(__dirname, '../../../../public/pages');
@@ -14,14 +11,9 @@ const PAGES_DIR = join(__dirname, '../../../../public/pages');
 export class AuthController {
     constructor(
         private readonly googleSignInUseCase: GoogleSignInUseCase,
-        private readonly verifySessionUseCase: VerifySessionUseCase,
         private readonly tokenStoreService: TokenStoreService,
     ) { }
 
-    /**
-     * GET /auth/google
-     * Redirects to Google OAuth consent screen
-     */
     googleAuth = async (req: Request, res: Response): Promise<void> => {
         try {
             const state = req.query.state as string;
@@ -36,11 +28,6 @@ export class AuthController {
         }
     };
 
-    /**
-     * GET /auth/google/callback
-     * Handles the Google OAuth callback
-     * Sets HTTP-only cookie and serves HTML page with token for Figma plugin
-     */
     googleCallback = async (req: Request, res: Response): Promise<void> => {
         try {
             const code = req.query.code as string;
@@ -58,16 +45,6 @@ export class AuthController {
 
             const { user, token } = await this.googleSignInUseCase.execute(code, figmaUserId);
 
-            // Set HTTP-only cookie for web frontend
-            const isProduction = ENV_CONFIG.NODE_ENV === 'production';
-            res.cookie('rio_token', token, {
-                httpOnly: true,
-                secure: isProduction,
-                sameSite: isProduction ? 'none' : 'lax',
-                maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-                path: '/',
-            });
-
             // If pollingId is present, store token and serve "Success" page
             if (pollingId) {
                 this.tokenStoreService.storeToken(pollingId, token);
@@ -83,10 +60,6 @@ export class AuthController {
         }
     };
 
-    /**
-     * GET /auth/poll
-     * Polls for the token using the pollingId
-     */
     pollToken = async (req: Request, res: Response): Promise<void> => {
         try {
             const pollingId = req.query.id as string;
@@ -120,26 +93,15 @@ export class AuthController {
         }
     };
 
-    /**
-     * GET /auth/me
-     * Returns current authenticated user
-     */
     getMe = async (req: Request, res: Response): Promise<void> => {
         try {
-            const token = this.extractToken(req);
-            if (!token) {
-                res.status(401).json({
-                    success: false,
-                    message: 'Not authenticated',
-                });
-                return;
-            }
+            // User is already attached by AuthMiddleware
+            const user = (req as any).user;
 
-            const user = await this.verifySessionUseCase.execute(token);
             if (!user) {
                 res.status(401).json({
                     success: false,
-                    message: 'Invalid or expired session',
+                    message: 'Not authenticated',
                 });
                 return;
             }
@@ -161,42 +123,6 @@ export class AuthController {
             });
         }
     };
-
-    /**
-     * POST /auth/logout
-     * Clears the auth cookie
-     */
-    logout = async (_req: Request, res: Response): Promise<void> => {
-        const isProduction = ENV_CONFIG.NODE_ENV === 'production';
-        res.clearCookie('rio_token', {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? 'none' : 'lax',
-            path: '/',
-        });
-
-        res.json({
-            success: true,
-            message: 'Logged out successfully',
-        });
-    };
-
-    /**
-     * Extract token from cookie or Authorization header
-     */
-    private extractToken(req: Request): string | null {
-        // Check HTTP-only cookie first
-        const cookieToken = (req as any).cookies?.rio_token;
-        if (cookieToken) return cookieToken;
-
-        // Fall back to Authorization header
-        const authHeader = req.headers.authorization;
-        if (authHeader?.startsWith('Bearer ')) {
-            return authHeader.substring(7);
-        }
-
-        return null;
-    }
 
     private renderPage(fileName: string, replacements: Record<string, string>): string {
         let html = readFileSync(join(PAGES_DIR, fileName), 'utf-8');

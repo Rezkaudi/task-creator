@@ -1,12 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { UILibraryController } from '../controllers/ui-library.controller';
-import { AuthMiddleware } from '../middleware/auth.middleware';
+import { validateRequest } from '../middleware/validation.middleware';
 import {
     createUILibraryProjectValidation,
     createUILibraryComponentValidation,
     uiLibraryIdParamValidation,
 } from '../validation';
-import { validateRequest } from '../middleware/validation.middleware';
+
 
 const uiLibraryRoutes = (uiLibraryController: UILibraryController): Router => {
     const router = Router();

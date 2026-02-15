@@ -4,9 +4,12 @@ import cors from 'cors';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
 import { join } from 'path';
+import compression from 'compression';
+import swaggerUi from 'swagger-ui-express';
+
+// config
 import { corsOptions } from '../config/cors.config';
 import swaggerSpec from '../config/swagger.config';
-import swaggerUi from 'swagger-ui-express';
 
 // routes
 import taskRoutes from './routes/task.routes';
@@ -21,9 +24,8 @@ import paymentRoutes from './routes/payment.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 
 import { setupDependencies } from './dependencies';
-import { logger } from './middleware/logger.middleware';
-import compression from 'compression';
 
+import { logger } from './middleware/logger.middleware';
 
 export class Server {
   private app: Application;
@@ -62,13 +64,14 @@ export class Server {
   }
 
   private configureRoutes(): void {
+    const pagesDir = join(__dirname, '../../../public/pages');
+
     // Health check
     this.app.get('/', (_, res) => {
-      res.redirect('/api/docs');
+      res.sendFile(join(pagesDir, 'home.html'));
     });
 
-    // Payment redirect pages (opened in a browser tab after Stripe Checkout)
-    const pagesDir = join(__dirname, '../../../public/pages');
+    // Payment redirect pages
     this.app.get('/payments/success', (_req, res) => {
       res.sendFile(join(pagesDir, 'payment-successful.html'));
     });
@@ -78,23 +81,11 @@ export class Server {
     });
 
     // Routes
-    this.app.use('/auth', authRoutes(this.container.authController));
-
-    // Apply authentication to all /api routes
     this.app.use('/api', (req, res, next) => {
-      const isPublicPath = req.path === '/payments/packages'
-        || req.path === '/payments/webhook'
-        || req.path === '/payments/packages/'
-        || req.path === '/payments/webhook/'
-        || req.path === '/subscriptions/plans'
-        || req.path === '/subscriptions/plans/';
-      if (isPublicPath) {
-        next();
-        return;
-      }
-      this.container.authMiddleware.requireAuth(req, res, next);
+      this.container.authMiddleware.requireAuthForApi(req, res, next);
     });
 
+    this.app.use('/auth', authRoutes(this.container.authController));
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
@@ -105,11 +96,6 @@ export class Server {
     this.app.use('/api/payments', paymentRoutes(this.container.paymentController));
     this.app.use('/api/subscriptions', subscriptionRoutes(this.container.subscriptionController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-    // API documentation redirect
-    this.app.get('/api', (_, res) => {
-      res.redirect('/api/docs');
-    });
   }
 
   private configureErrorHandling(): void {
@@ -133,10 +119,6 @@ export class Server {
     this.app.listen(this.port, () => {
       console.log(`🚀 Server running on port ${this.port}`);
       console.log(`📚 API Documentation: http://localhost:${this.port}/docs`);
-      console.log(`⚕️  Health Check: http://localhost:${this.port}/health`);
-      console.log(`🤖 AI Models API: http://localhost:${this.port}/api/ai-models`);
-      console.log(`🎨 Design Systems API: http://localhost:${this.port}/api/design-systems`);
-      console.log(`🐛 Client Errors API: http://localhost:${this.port}/api/errors`);
     });
   }
 

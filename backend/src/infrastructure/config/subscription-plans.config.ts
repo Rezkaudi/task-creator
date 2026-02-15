@@ -1,3 +1,5 @@
+import { ENV_CONFIG } from "./env.config";
+
 export interface SubscriptionPlan {
     id: string;
     name: string;
@@ -14,7 +16,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         priceUsd: 9,
         priceCents: 900,
         dailyPointsLimit: 1000,
-        stripePriceId: process.env.STRIPE_PRICE_SUB_BASIC || '',
+        stripePriceId: ENV_CONFIG.STRIPE_PRICE_SUB_BASIC || '',
     },
     {
         id: 'premium',
@@ -22,7 +24,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         priceUsd: 19,
         priceCents: 1900,
         dailyPointsLimit: 3000,
-        stripePriceId: process.env.STRIPE_PRICE_SUB_PREMIUM || '',
+        stripePriceId: ENV_CONFIG.STRIPE_PRICE_SUB_PREMIUM || '',
     },
 ];
 

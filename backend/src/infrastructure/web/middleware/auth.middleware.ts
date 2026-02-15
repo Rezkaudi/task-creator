@@ -1,23 +1,18 @@
 // File: /backend/src/infrastructure/web/middleware/auth.middleware.ts
 
 import { Request, Response, NextFunction } from 'express';
-import { JwtService, JwtPayload } from '../../services/jwt.service';
+import { JwtService } from '../../services/jwt.service';
 import { TypeORMUserRepository } from '../../repository/typeorm-user.repository';
 
 export class AuthMiddleware {
     private readonly jwtService: JwtService;
     private readonly userRepository: TypeORMUserRepository;
 
-    constructor(userRepository: TypeORMUserRepository) {
-        this.jwtService = new JwtService();
+    constructor(userRepository: TypeORMUserRepository, jwtService: JwtService) {
+        this.jwtService = jwtService;
         this.userRepository = userRepository;
     }
 
-    /**
-     * Middleware that verifies JWT from cookie or Authorization header.
-     * If valid, attaches user to request. If not, continues without blocking
-     * (the downstream middleware/controller decides whether auth is required).
-     */
     async handle(req: Request, _res: Response, next: NextFunction): Promise<void> {
         try {
             const token = this.extractToken(req);
@@ -42,10 +37,6 @@ export class AuthMiddleware {
         next();
     }
 
-    /**
-     * Middleware that ensures user is authenticated.
-     * Should be used AFTER AuthMiddleware.handle.
-     */
     requireAuth(req: Request, res: Response, next: NextFunction): void {
         if (!(req as any).user) {
             res.status(401).json({
@@ -57,12 +48,28 @@ export class AuthMiddleware {
         next();
     }
 
-    private extractToken(req: Request): string | null {
-        // Check HTTP-only cookie first
-        const cookieToken = (req as any).cookies?.rio_token;
-        if (cookieToken) return cookieToken;
+    requireAuthForApi(req: Request, res: Response, next: NextFunction): void {
+        const publicPaths = [
+            '/payments/packages',
+            '/payments/packages/',
+            '/payments/webhook',
+            '/payments/webhook/',
+            '/subscriptions/plans',
+            '/subscriptions/plans/'
+        ];
 
-        // Fall back to Authorization header
+        const isPublicPath = publicPaths.includes(req.path);
+
+        if (isPublicPath) {
+            next();
+            return;
+        }
+
+        this.requireAuth(req, res, next);
+    }
+
+    private extractToken(req: Request): string | null {
+        // Extract token from Authorization header
         const authHeader = req.headers.authorization;
         if (authHeader?.startsWith('Bearer ')) {
             return authHeader.substring(7);

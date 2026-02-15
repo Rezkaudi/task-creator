@@ -19,7 +19,7 @@ export class PaymentController {
     createCheckoutSession = async (req: Request, res: Response): Promise<void> => {
         try {
             const user = (req as any).user;
-            const { packageId } = req.body || {};
+            const { packageId } = req.body;
 
             if (!user?.id) {
                 res.status(401).json({

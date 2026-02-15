@@ -15,6 +15,7 @@ import { GoogleAuthService } from "../../services/google-auth.service";
 import { TokenStoreService } from "../../services/token-store.service";
 import { PointsService } from "../../services/points.service";
 import { StripeService } from "../../services/stripe.service";
+import { JwtService } from "../../services/jwt.service";
 
 
 // Repositories
@@ -46,7 +47,6 @@ import { DeleteUILibraryComponentUseCase } from "../../../application/use-cases/
 
 // Use Cases - Auth
 import { GoogleSignInUseCase } from "../../../application/use-cases/google-sign-in.use-case";
-import { VerifySessionUseCase } from "../../../application/use-cases/verify-session.use-case";
 import { CreateCheckoutSessionUseCase } from "../../../application/use-cases/create-checkout-session.use-case";
 import { HandleStripeWebhookUseCase } from "../../../application/use-cases/handle-stripe-webhook.use-case";
 import { GetUserBalanceUseCase } from "../../../application/use-cases/get-user-balance.use-case";
@@ -79,7 +79,6 @@ import { AuthMiddleware } from "../middleware/auth.middleware";
 
 
 
-
 export const setupDependencies = () => {
 
     // Repositories
@@ -101,6 +100,7 @@ export const setupDependencies = () => {
     const messageBuilder = new MessageBuilderService();
     const stripeService = new StripeService();
     const pointsService = new PointsService(userRepository);
+    const jwtService = new JwtService();
 
     const aiExtractTasksService = new AiExtractTasksService(aiCostCalculatorService);
 
@@ -143,7 +143,6 @@ export const setupDependencies = () => {
     const googleAuthService = new GoogleAuthService();
     const tokenStoreService = new TokenStoreService();
     const googleSignInUseCase = new GoogleSignInUseCase(googleAuthService, userRepository);
-    const verifySessionUseCase = new VerifySessionUseCase(googleAuthService, userRepository);
 
     const createCheckoutSessionUseCase = new CreateCheckoutSessionUseCase(
         userRepository,
@@ -178,9 +177,9 @@ export const setupDependencies = () => {
     const trelloController = new TrelloController(getBoardListsUseCase);
     const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
 
-    const authMiddleware = new AuthMiddleware(userRepository);
+    const authMiddleware = new AuthMiddleware(userRepository, jwtService);
 
-    const authController = new AuthController(googleSignInUseCase, verifySessionUseCase, tokenStoreService);
+    const authController = new AuthController(googleSignInUseCase, tokenStoreService);
 
     const designController = new DesignController(
         generateDesignFromConversationUseCase,

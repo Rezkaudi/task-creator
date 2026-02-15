@@ -17,6 +17,7 @@ export class AIModelsController {
         count: models.length,
         models
       });
+
     } catch (error) {
       console.error('❌ Error fetching AI models:', error);
 

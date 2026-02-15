@@ -49,10 +49,21 @@ export default function ModelPanel() {
     }, [modelPanelOpen]);
 
     useEffect(() => {
-        if (!hasPurchased && currentModelId !== 'devstral-latest') {
-            dispatch({ type: 'SET_MODEL', modelId: 'devstral-latest' });
+        // If user hasn't purchased, ensure they're using a free model
+        if (!hasPurchased && availableModels.length > 0) {
+            const currentModel = availableModels.find(m => m.id === currentModelId);
+            const isCurrentModelFree = currentModel && currentModel.isFree;
+
+            if (!isCurrentModelFree) {
+                // Switch to the first available free model
+                const firstFreeModel = availableModels.find(m => m.isFree);
+                if (firstFreeModel) {
+                    dispatch({ type: 'SET_MODEL', modelId: firstFreeModel.id });
+                }
+            }
         }
-    }, [hasPurchased, currentModelId, dispatch]);
+    }, [hasPurchased, currentModelId, availableModels, dispatch]);
+
 
     const handleSelect = (modelId) => {
         dispatch({ type: 'SET_MODEL', modelId });

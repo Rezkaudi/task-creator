@@ -55,8 +55,6 @@ export class DesignController {
                 result.cost?.outputTokens ?? 0,
             );
 
-            console.log('[BackendController] Points being sent to frontend:', JSON.stringify(points, null, 2));
-
             res.status(200).json({
                 success: true,
                 message: result.message,
@@ -108,8 +106,6 @@ export class DesignController {
                 result.cost?.outputTokens ?? 0,
             );
 
-            console.log('[BackendController] Points being sent to frontend:', JSON.stringify(points, null, 2));
-
             res.status(200).json({
                 success: true,
                 message: result.message,
@@ -143,13 +139,6 @@ export class DesignController {
         const { message, history, referenceDesign, modelId } = req.body;
 
         try {
-            if (!message || !referenceDesign) {
-                res.status(400).json({
-                    success: false,
-                    message: 'Message and reference design are required'
-                });
-                return;
-            }
 
             const userId = this.getUserId(req);
             await this.ensureModelUsable(userId, modelId);
