@@ -3,7 +3,12 @@
 import { Router, Request, Response } from 'express';
 import { DesignController } from '../controllers/design.controller';
 import { validateRequest } from '../middleware/validation.middleware';
-import { generateFromConversationValidation, editWithAIValidation, generateBasedOnExistingValidation, generatePrototypeValidation } from '../validation';
+import {
+    generateFromConversationValidation,
+    editWithAIValidation,
+    generateBasedOnExistingValidation,
+    generatePrototypeValidation
+} from '../validation';
 
 
 const designRoutes = (designController: DesignController): Router => {

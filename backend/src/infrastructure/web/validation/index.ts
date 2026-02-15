@@ -88,6 +88,7 @@ export const extractTasksValidation = [
         .optional()
         .isBoolean().withMessage('generateDesign must be a boolean'),
 ];
+
 export const generateBasedOnExistingValidation = [
     body('message')
         .notEmpty().withMessage('Message is required')
@@ -108,21 +109,6 @@ export const generateBasedOnExistingValidation = [
         .optional()
         .isString().withMessage('Design System ID must be a string')
         .isIn(DESIGN_SYSTEMS.map(designSystem => designSystem.id)).withMessage('Invalid design system'),
-];
-
-// Design Version validations
-export const saveDesignVersionValidation = [
-    body('description')
-        .notEmpty().withMessage('Description is required')
-        .isString().withMessage('Description must be a string'),
-
-    body('designJson')
-        .notEmpty().withMessage('Design JSON is required'),
-];
-
-export const designVersionIdParamValidation = [
-    param('id')
-        .isString().withMessage('ID must be a string'),
 ];
 
 // UI Library validations

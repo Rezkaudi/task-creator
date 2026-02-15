@@ -12,7 +12,8 @@ const taskRoutes = (taskController: TaskController): Router => {
         (req: Request, res: Response, next: NextFunction) => taskController.extractTasksAndCreateOnTrello(req, res, next)
     );
 
-    router.get("/latest-design", (req, res, next) => taskController.getLatestDesign(req, res, next));
+    router.get("/latest-design",
+        (req: Request, res: Response, next: NextFunction) => taskController.getLatestDesign(req, res, next));
 
     return router;
 };

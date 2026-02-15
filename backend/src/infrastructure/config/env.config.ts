@@ -32,4 +32,18 @@ export const ENV_CONFIG = {
     // JWT Configuration
     JWT_SECRET: process.env.JWT_SECRET || 'rio-jwt-secret-change-in-production',
     JWT_EXPIRY: process.env.JWT_EXPIRY || '30d',
+
+    // Stripe configuration
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
+    STRIPE_PRICE_STARTER: process.env.STRIPE_PRICE_STARTER || '',
+    STRIPE_PRICE_PRO: process.env.STRIPE_PRICE_PRO || '',
+    STRIPE_PRICE_SUB_BASIC: process.env.STRIPE_PRICE_SUB_BASIC || '',
+    STRIPE_PRICE_SUB_PREMIUM: process.env.STRIPE_PRICE_SUB_PREMIUM || '',
+    STRIPE_SUCCESS_URL: process.env.STRIPE_SUCCESS_URL || 'http://localhost:5000/payments/success',
+    STRIPE_CANCEL_URL: process.env.STRIPE_CANCEL_URL || 'http://localhost:5000/payments/cancel',
+
+    // Points configuration
+    POINTS_PER_DOLLAR: Number(process.env.POINTS_PER_DOLLAR || 500),
+    MIN_PRE_FLIGHT_POINTS: Number(process.env.MIN_PRE_FLIGHT_POINTS || 100),
 };

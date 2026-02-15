@@ -25,4 +25,4 @@ dist-ssr
 
 .config/
 !.env
-.env
+.*

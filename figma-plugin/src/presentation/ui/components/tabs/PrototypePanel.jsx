@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { escapeHtml } from '../../utils.js';
 import { reportErrorAsync } from '../../errorReporter.js';
 import '../../styles/PrototypePanel.css';
@@ -8,6 +9,7 @@ import { defaultModel } from '../../../../shared/constants/plugin-config.js';
 export default function PrototypePanel({ onBack, sendMessage }) {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
     const { currentModelId, availableModels } = state;
+    const { updateSubscription, updatePointsBalance } = useAuth();
 
     const [prototypeFrames, setPrototypeFrames] = useState([]);
     const [selectedFrameIds, setSelectedFrameIds] = useState(new Set());
@@ -18,14 +20,23 @@ export default function PrototypePanel({ onBack, sendMessage }) {
     const [cost, setCost] = useState(null);
     const [isApplying, setIsApplying] = useState(false);
 
-    // Load frames on mount
+    // Store AuthContext update functions in refs so static handlers can access them
+    const updateSubscriptionRef = useRef(updateSubscription);
+    const updatePointsBalanceRef = useRef(updatePointsBalance);
+
     useEffect(() => {
-        loadFramesForPrototype();
-    }, []);
+        updateSubscriptionRef.current = updateSubscription;
+        updatePointsBalanceRef.current = updatePointsBalance;
+    }, [updateSubscription, updatePointsBalance]);
 
     const loadFramesForPrototype = useCallback(() => {
         sendMessage('get-frames-for-prototype');
     }, [sendMessage]);
+
+    // Load frames on mount
+    useEffect(() => {
+        loadFramesForPrototype();
+    }, [loadFramesForPrototype]);
 
     const toggleFrame = useCallback((frameId) => {
         setSelectedFrameIds(prev => {
@@ -102,6 +113,20 @@ export default function PrototypePanel({ onBack, sendMessage }) {
         setShowConnectionsPreview(true);
         setReasoning(msg.reasoning || null);
         setCost(msg.cost || null);
+        if (msg.points) {
+            // Update AppContext
+            dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
+            if (msg.points.subscription) {
+                dispatch({ type: 'SET_SUBSCRIPTION', subscription: msg.points.subscription });
+                // Update AuthContext to immediately reflect subscription changes in UI
+                updateSubscriptionRef.current(msg.points.subscription);
+            }
+            if (typeof msg.points.hasPurchased === 'boolean') {
+                dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: msg.points.hasPurchased });
+                // Update AuthContext to immediately reflect points balance changes in UI
+                updatePointsBalanceRef.current(msg.points.remaining || 0, msg.points.hasPurchased);
+            }
+        }
         showStatus(`✅ Generated ${(msg.connections || []).length} connections`, 'success');
         setTimeout(hideStatus, 3000);
     };

@@ -11,6 +11,7 @@ export interface AIModelConfig {
   // Pricing in USD per million tokens
   inputPricePerMillion: number;
   outputPricePerMillion: number;
+  isFree: boolean;
 }
 
 export const DEFAULT_MODEL_ID = 'devstral-latest'; // default model
@@ -26,9 +27,9 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.GEMINI_API_KEY,
     baseURL: "https://generativelanguage.googleapis.com/v1beta",
     inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00
+    outputPricePerMillion: 0.00,
+    isFree: true,
   },
-  // paid
   {
     id: 'devstral-latest',
     name: 'Devstral Latest',
@@ -38,7 +39,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.MISTRAL_API_KEY,
     baseURL: "https://api.mistral.ai/v1",
     inputPricePerMillion: 0.40,
-    outputPricePerMillion: 2.00
+    outputPricePerMillion: 2.00,
+    isFree: true,
   },
   {
     id: 'gpt-5.2',
@@ -49,7 +51,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
     inputPricePerMillion: 1.75,
-    outputPricePerMillion: 14.00
+    outputPricePerMillion: 14.00,
+    isFree: false
   },
   {
     id: 'gpt-5',
@@ -60,7 +63,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
     inputPricePerMillion: 1.25,
-    outputPricePerMillion: 10.00
+    outputPricePerMillion: 10.00,
+    isFree: false
   },
   {
     id: 'gpt-5-mini',
@@ -71,7 +75,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
     inputPricePerMillion: 0.25,
-    outputPricePerMillion: 2.00
+    outputPricePerMillion: 2.00,
+    isFree: false
   },
   {
     id: 'gpt-5-nano',
@@ -82,7 +87,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
     inputPricePerMillion: 0.05,
-    outputPricePerMillion: 0.40
+    outputPricePerMillion: 0.40,
+    isFree: false
   },
   {
     id: 'gpt-4.1-mini',
@@ -93,7 +99,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
     inputPricePerMillion: 0.40,
-    outputPricePerMillion: 1.60
+    outputPricePerMillion: 1.60,
+    isFree: false
   },
   {
     id: 'gpt-4.1',
@@ -104,7 +111,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
     inputPricePerMillion: 2.00,
-    outputPricePerMillion: 8.00
+    outputPricePerMillion: 8.00,
+    isFree: false
   },
   {
     id: 'o3',
@@ -115,7 +123,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.OPENAI_API_KEY,
     baseURL: "https://api.openai.com/v1",
     inputPricePerMillion: 2.00,
-    outputPricePerMillion: 8.00
+    outputPricePerMillion: 8.00,
+    isFree: false
   },
   /////claude
   {
@@ -127,7 +136,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 5.00,
-    outputPricePerMillion: 25.00
+    outputPricePerMillion: 25.00,
+    isFree: false
   },
   {
     id: 'claude-haiku-4-5-20251001',
@@ -138,7 +148,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 1.00,
-    outputPricePerMillion: 5.00
+    outputPricePerMillion: 5.00,
+    isFree: false
   },
   {
     id: 'claude-sonnet-4-5-20250929',
@@ -149,7 +160,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 3.00,
-    outputPricePerMillion: 15.00
+    outputPricePerMillion: 15.00,
+    isFree: false
   },
   {
     id: 'claude-opus-4-1-20250805',
@@ -160,7 +172,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 15.00,
-    outputPricePerMillion: 75.00
+    outputPricePerMillion: 75.00,
+    isFree: false
   },
   {
     id: 'claude-opus-4-20250514',
@@ -171,7 +184,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 15.00,
-    outputPricePerMillion: 75.00
+    outputPricePerMillion: 75.00,
+    isFree: false
   },
   {
     id: 'claude-sonnet-4-20250514',
@@ -182,7 +196,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 3.00,
-    outputPricePerMillion: 15.00
+    outputPricePerMillion: 15.00,
+    isFree: false
   },
   {
     id: 'claude-3-7-sonnet-20250219',
@@ -193,7 +208,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 3.00,
-    outputPricePerMillion: 15.00
+    outputPricePerMillion: 15.00,
+    isFree: false
   },
   {
     id: 'claude-3-5-haiku-20241022',
@@ -204,7 +220,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 0.80,
-    outputPricePerMillion: 4.00
+    outputPricePerMillion: 4.00,
+    isFree: false
   },
   {
     id: 'claude-3-haiku-20240307',
@@ -215,7 +232,8 @@ export const AI_MODELS: AIModelConfig[] = [
     apiKey: ENV_CONFIG.CLAUDE_API_KEY,
     baseURL: "https://api.anthropic.com/v1",
     inputPricePerMillion: 0.25,
-    outputPricePerMillion: 1.25
+    outputPricePerMillion: 1.25,
+    isFree: false
   }
 ];
 export function getModels() {
@@ -223,7 +241,8 @@ export function getModels() {
     id: model.id,
     name: model.name,
     description: model.description,
-    icon: model.icon
+    icon: model.icon,
+    isFree: model.isFree,
   }));
 }
 

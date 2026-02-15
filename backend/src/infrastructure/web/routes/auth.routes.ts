@@ -10,7 +10,6 @@ export default function authRoutes(authController: AuthController): Router {
     router.get('/google/callback', authController.googleCallback);
     router.get('/poll', authController.pollToken);
     router.get('/me', authController.getMe);
-    router.post('/logout', authController.logout);
 
     return router;
 }

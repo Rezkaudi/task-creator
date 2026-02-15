@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { escapeHtml } from '../../utils.js';
 import DesignPreview from './DesignPreview.jsx';
 import CostBreakdown from './CostBreakdown.jsx';
@@ -17,7 +18,8 @@ export default function ChatInterface({
     sendMessage,
 }) {
     const { state, dispatch } = useAppContext();
-    const { currentModelId, availableModels, currentDesignSystemId, availableDesignSystems } = state;
+    const { currentModelId, availableModels, currentDesignSystemId, availableDesignSystems, hasPurchased } = state;
+    const { updateSubscription, updatePointsBalance } = useAuth();
 
     const [messages, setMessages] = useState([]);
     const [conversationHistory, setConversationHistory] = useState([]);
@@ -27,6 +29,15 @@ export default function ChatInterface({
 
     const chatMessagesRef = useRef(null);
     const inputRef = useRef(null);
+
+    // Store AuthContext update functions in refs so static handlers can access them
+    const updateSubscriptionRef = useRef(updateSubscription);
+    const updatePointsBalanceRef = useRef(updatePointsBalance);
+
+    useEffect(() => {
+        updateSubscriptionRef.current = updateSubscription;
+        updatePointsBalanceRef.current = updatePointsBalance;
+    }, [updateSubscription, updatePointsBalance]);
 
     // Build welcome message
     useEffect(() => {
@@ -128,11 +139,41 @@ export default function ChatInterface({
 
     // Handle responses - exposed via ref or callback
     const handleResponse = useCallback((msg) => {
+        console.log('[ChatInterface] handleResponse called, msg.points:', msg.points);
+
         setIsGenerating(false);
         removeLoadingMessages();
 
         const isEdit = msg.type === 'ai-edit-response';
         const isBased = msg.type === 'ai-based-on-existing-response';
+
+        if (msg.points) {
+            console.log('[ChatInterface] Processing points update');
+            console.log('[ChatInterface] Has subscription?', !!msg.points.subscription);
+            console.log('[ChatInterface] Subscription data:', msg.points.subscription);
+
+            // Update AppContext
+            dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
+            if (msg.points.subscription) {
+                console.log('[ChatInterface] Updating subscription in both contexts');
+                dispatch({ type: 'SET_SUBSCRIPTION', subscription: msg.points.subscription });
+                // Update AuthContext to immediately reflect subscription changes in UI
+                updateSubscriptionRef.current(msg.points.subscription);
+                console.log('[ChatInterface] Called updateSubscriptionRef.current');
+            } else {
+                console.log('[ChatInterface] NO subscription data in points!');
+            }
+            if (typeof msg.points.hasPurchased === 'boolean') {
+                dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: msg.points.hasPurchased });
+                // Update AuthContext to immediately reflect points balance changes in UI
+                updatePointsBalanceRef.current(msg.points.remaining || 0, msg.points.hasPurchased);
+            } else if (!msg.points.wasFree && !hasPurchased) {
+                dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: true });
+                updatePointsBalanceRef.current(msg.points.remaining || 0, true);
+            }
+        } else {
+            console.log('[ChatInterface] NO points data in message!');
+        }
 
         addMessage('assistant', msg.message, {
             designData: msg.designData,
@@ -150,13 +191,18 @@ export default function ChatInterface({
         });
 
         setConversationHistory(prev => [...prev, { role: 'assistant', content: msg.message }]);
-    }, [selectedLayerForEdit, selectedLayerJson, referenceLayerName, removeLoadingMessages, addMessage]);
+    }, [selectedLayerForEdit, selectedLayerJson, referenceLayerName, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
 
     const handleError = useCallback((msg) => {
         setIsGenerating(false);
         removeLoadingMessages();
         addMessage('assistant', `Error: ${msg.error}`);
-    }, [removeLoadingMessages, addMessage]);
+
+        const errorText = `${msg.error || ''}`.toLowerCase();
+        if (msg.statusCode === 402 || errorText.includes('insufficient') || errorText.includes('purchase points')) {
+            dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
+        }
+    }, [removeLoadingMessages, addMessage, dispatch]);
 
     // Expose handlers via ref (parent will call these)
     React.useImperativeHandle(React.useRef(), () => ({

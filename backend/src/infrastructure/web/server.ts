@@ -3,9 +3,13 @@
 import cors from 'cors';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
+import { join } from 'path';
+import compression from 'compression';
+import swaggerUi from 'swagger-ui-express';
+
+// config
 import { corsOptions } from '../config/cors.config';
 import swaggerSpec from '../config/swagger.config';
-import swaggerUi from 'swagger-ui-express';
 
 // routes
 import taskRoutes from './routes/task.routes';
@@ -16,11 +20,12 @@ import designSystemsRoutes from './routes/design-systems.routes';
 import clientErrorRoutes from './routes/client-error.routes';
 import uiLibraryRoutes from './routes/ui-library.routes';
 import authRoutes from './routes/auth.routes';
+import paymentRoutes from './routes/payment.routes';
+import subscriptionRoutes from './routes/subscription.routes';
 
 import { setupDependencies } from './dependencies';
-import { logger } from './middleware/logger.middleware';
-import compression from 'compression';
 
+import { logger } from './middleware/logger.middleware';
 
 export class Server {
   private app: Application;
@@ -48,6 +53,7 @@ export class Server {
     this.app.use(logger);
     this.app.use(cors(corsOptions));
     this.app.use(cookieParser());
+    this.app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
     this.app.use(express.json({ limit: '50mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -58,17 +64,28 @@ export class Server {
   }
 
   private configureRoutes(): void {
+    const pagesDir = join(__dirname, '../../../public/pages');
+
     // Health check
     this.app.get('/', (_, res) => {
-      res.send('Task Creator API is running');
+      res.sendFile(join(pagesDir, 'home.html'));
+    });
+
+    // Payment redirect pages
+    this.app.get('/payments/success', (_req, res) => {
+      res.sendFile(join(pagesDir, 'payment-successful.html'));
+    });
+
+    this.app.get('/payments/cancel', (_req, res) => {
+      res.sendFile(join(pagesDir, 'payment-cancelled.html'));
     });
 
     // Routes
+    this.app.use('/api', (req, res, next) => {
+      this.container.authMiddleware.requireAuthForApi(req, res, next);
+    });
+
     this.app.use('/auth', authRoutes(this.container.authController));
-
-    // Apply authentication to all /api routes
-    this.app.use('/api', (req, res, next) => this.container.authMiddleware.requireAuth(req, res, next));
-
     this.app.use('/api/tasks', taskRoutes(this.container.taskController));
     this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
@@ -76,12 +93,9 @@ export class Server {
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
     this.app.use('/api/errors', clientErrorRoutes(this.container.clientErrorController));
     this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController));
+    this.app.use('/api/payments', paymentRoutes(this.container.paymentController));
+    this.app.use('/api/subscriptions', subscriptionRoutes(this.container.subscriptionController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-    // API documentation redirect
-    this.app.get('/api', (_, res) => {
-      res.redirect('/api/docs');
-    });
   }
 
   private configureErrorHandling(): void {
@@ -105,10 +119,6 @@ export class Server {
     this.app.listen(this.port, () => {
       console.log(`🚀 Server running on port ${this.port}`);
       console.log(`📚 API Documentation: http://localhost:${this.port}/docs`);
-      console.log(`⚕️  Health Check: http://localhost:${this.port}/health`);
-      console.log(`🤖 AI Models API: http://localhost:${this.port}/api/ai-models`);
-      console.log(`🎨 Design Systems API: http://localhost:${this.port}/api/design-systems`);
-      console.log(`🐛 Client Errors API: http://localhost:${this.port}/api/errors`);
     });
   }
 

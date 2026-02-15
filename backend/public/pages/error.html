@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rio - Sign In Failed</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2d1b69 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 48px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+        }
+        .error-icon {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 32px;
+        }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        .error-msg { color: rgba(255,255,255,0.6); margin-bottom: 24px; font-size: 14px; }
+        .retry-btn {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            border: none;
+            color: #fff;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="error-icon">&#10005;</div>
+        <h1>Sign In Failed</h1>
+        <p class="error-msg">{{errorMessage}}</p>
+        <a href="/auth/google" class="retry-btn">Try Again</a>
+    </div>
+</body>
+</html>

@@ -7,7 +7,7 @@ import ChatInterface from './ChatInterface.jsx';
 import PrototypePanel from './PrototypePanel.jsx';
 
 export default function AiTab({ sendMessage }) {
-    const { showStatus, hideStatus } = useAppContext();
+    const { dispatch, showStatus, hideStatus } = useAppContext();
 
     // AI tab internal state
     const [view, setView] = useState('mode-selection'); // 'mode-selection' | 'chat' | 'prototype'
@@ -130,6 +130,10 @@ export default function AiTab({ sendMessage }) {
         },
         'prototype-connections-error': (msg) => {
             PrototypePanel.handleConnectionsError?.(msg);
+            const errorText = `${msg.error || ''}`.toLowerCase();
+            if (msg.statusCode === 402 || errorText.includes('insufficient') || errorText.includes('purchase points')) {
+                dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
+            }
         },
         'prototype-applied': (msg) => {
             PrototypePanel.handlePrototypeApplied?.(msg);

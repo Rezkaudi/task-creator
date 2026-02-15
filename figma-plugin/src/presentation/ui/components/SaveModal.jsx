@@ -19,13 +19,16 @@ function getComponentNameFromExportData(exportData) {
 function requestPreviewImage({ maxWidth = 320, timeoutMs = 8000 } = {}) {
     return new Promise((resolve, reject) => {
         const requestId = `preview_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        let timeoutId = null;
 
-        const cleanup = () => {
+        function cleanup() {
             window.removeEventListener('message', onMessage);
-            clearTimeout(timeoutId);
-        };
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        }
 
-        const onMessage = (event) => {
+        function onMessage(event) {
             const message = event.data?.pluginMessage;
             if (!message || message.requestId !== requestId) return;
 
@@ -39,9 +42,9 @@ function requestPreviewImage({ maxWidth = 320, timeoutMs = 8000 } = {}) {
                 cleanup();
                 reject(new Error(message.error || 'Failed to generate preview image'));
             }
-        };
+        }
 
-        const timeoutId = setTimeout(() => {
+        timeoutId = setTimeout(() => {
             cleanup();
             reject(new Error('Preview image generation timed out'));
         }, timeoutMs);

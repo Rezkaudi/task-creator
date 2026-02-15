@@ -1,16 +1,95 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { API_BASE_URL } from '../utils.js';
+import { useApiClient } from '../hooks/useApiClient.js';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+    const { apiGet } = useApiClient();
     const [authState, setAuthState] = useState({
         isAuthenticated: false,
         isLoading: true,
         user: null,
         token: null,
+        pointsBalance: 0,
+        hasPurchased: false,
+        subscription: null,
         error: null,
     });
+
+    const fetchSubscriptionStatus = useCallback(async () => {
+        try {
+            const data = await apiGet('/api/subscriptions/status');
+            return data.success ? data.subscription : null;
+        } catch (_error) {
+            return null;
+        }
+    }, [apiGet]);
+
+    const fetchBalance = useCallback(async () => {
+        try {
+            const data = await apiGet('/api/payments/balance');
+            if (!data.success) {
+                return { pointsBalance: 0, hasPurchased: false };
+            }
+
+            return {
+                pointsBalance: Number(data.pointsBalance || 0),
+                hasPurchased: Boolean(data.hasPurchased),
+            };
+        } catch (_error) {
+            return { pointsBalance: 0, hasPurchased: false };
+        }
+    }, [apiGet]);
+
+    const verifyToken = useCallback(async (token) => {
+        try {
+            const data = await apiGet('/auth/me');
+
+            if (data.success) {
+                const [balance, subscription] = await Promise.all([
+                    fetchBalance(),
+                    fetchSubscriptionStatus()
+                ]);
+                setAuthState({
+                    isAuthenticated: true,
+                    isLoading: false,
+                    user: data.user,
+                    token: token,
+                    pointsBalance: balance.pointsBalance,
+                    hasPurchased: balance.hasPurchased,
+                    subscription: subscription,
+                    error: null,
+                });
+                return;
+            }
+
+            // Token invalid - clear it
+            parent.postMessage({
+                pluginMessage: { type: 'CLEAR_AUTH_TOKEN' }
+            }, '*');
+
+            setAuthState({
+                isAuthenticated: false,
+                isLoading: false,
+                user: null,
+                token: null,
+                pointsBalance: 0,
+                hasPurchased: false,
+                error: null,
+            });
+        } catch (error) {
+            console.warn('Token verification failed:', error);
+            setAuthState({
+                isAuthenticated: false,
+                isLoading: false,
+                user: null,
+                token: null,
+                pointsBalance: 0,
+                hasPurchased: false,
+                error: null,
+            });
+        }
+    }, [apiGet, fetchBalance, fetchSubscriptionStatus]);
 
     // Load stored token on mount
     useEffect(() => {
@@ -52,95 +131,50 @@ export function AuthProvider({ children }) {
         };
 
         loadToken();
-    }, []);
-
-    const verifyToken = useCallback(async (token) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/auth/me`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    setAuthState({
-                        isAuthenticated: true,
-                        isLoading: false,
-                        user: data.user,
-                        token: token,
-                        error: null,
-                    });
-                    return;
-                }
-            }
-
-            // Token invalid - clear it
-            parent.postMessage({
-                pluginMessage: { type: 'CLEAR_AUTH_TOKEN' }
-            }, '*');
-
-            setAuthState({
-                isAuthenticated: false,
-                isLoading: false,
-                user: null,
-                token: null,
-                error: null,
-            });
-        } catch (error) {
-            console.warn('Token verification failed:', error);
-            setAuthState({
-                isAuthenticated: false,
-                isLoading: false,
-                user: null,
-                token: null,
-                error: null,
-            });
-        }
-    }, []);
+    }, [verifyToken]);
 
     const login = useCallback(async (token) => {
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
+        // Save token first so apiGet's getHeaders() can retrieve it
+        parent.postMessage({
+            pluginMessage: { type: 'SAVE_AUTH_TOKEN', token: token }
+        }, '*');
+
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/me`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error('Invalid token. Please try signing in again.');
-            }
-
-            const data = await response.json();
+            const data = await apiGet('/auth/me');
             if (!data.success) {
                 throw new Error(data.message || 'Authentication failed');
             }
 
-            // Store token in plugin storage
-            parent.postMessage({
-                pluginMessage: { type: 'SAVE_AUTH_TOKEN', token: token }
-            }, '*');
+            const [balance, subscription] = await Promise.all([
+                fetchBalance(),
+                fetchSubscriptionStatus()
+            ]);
 
             setAuthState({
                 isAuthenticated: true,
                 isLoading: false,
                 user: data.user,
                 token: token,
+                pointsBalance: balance.pointsBalance,
+                hasPurchased: balance.hasPurchased,
+                subscription: subscription,
                 error: null,
             });
         } catch (error) {
+            // Clear token on failure
+            parent.postMessage({
+                pluginMessage: { type: 'CLEAR_AUTH_TOKEN' }
+            }, '*');
+
             setAuthState(prev => ({
                 ...prev,
                 isLoading: false,
                 error: error.message || 'Login failed',
             }));
         }
-    }, []);
+    }, [apiGet, fetchBalance, fetchSubscriptionStatus]);
 
     const logout = useCallback(() => {
         // Clear stored token
@@ -153,6 +187,8 @@ export function AuthProvider({ children }) {
             isLoading: false,
             user: null,
             token: null,
+            pointsBalance: 0,
+            hasPurchased: false,
             error: null,
         });
     }, []);
@@ -161,8 +197,39 @@ export function AuthProvider({ children }) {
         setAuthState(prev => ({ ...prev, error: null }));
     }, []);
 
+    const updateSubscription = useCallback((subscriptionUpdate) => {
+        console.log('[AuthContext] updateSubscription called with:', subscriptionUpdate);
+        setAuthState(prev => {
+            const newSubscription = prev.subscription
+                ? { ...prev.subscription, ...subscriptionUpdate }
+                : subscriptionUpdate;
+            console.log('[AuthContext] Previous subscription:', prev.subscription);
+            console.log('[AuthContext] New subscription:', newSubscription);
+            return {
+                ...prev,
+                subscription: newSubscription
+            };
+        });
+    }, []);
+
+    const updatePointsBalance = useCallback((pointsBalance, hasPurchased) => {
+        console.log('[AuthContext] updatePointsBalance called with:', { pointsBalance, hasPurchased });
+        setAuthState(prev => ({
+            ...prev,
+            pointsBalance: Number(pointsBalance || 0),
+            hasPurchased: Boolean(hasPurchased)
+        }));
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ ...authState, login, logout, clearError }}>
+        <AuthContext.Provider value={{
+            ...authState,
+            login,
+            logout,
+            clearError,
+            updateSubscription,
+            updatePointsBalance
+        }}>
             {children}
         </AuthContext.Provider>
     );

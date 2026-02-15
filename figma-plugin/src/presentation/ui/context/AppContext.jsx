@@ -10,6 +10,9 @@ const initialState = {
     // Models
     currentModelId: defaultModel.id,
     availableModels: [],
+    pointsBalance: 0,
+    hasPurchased: false,
+    subscription: null,
 
     // Design Systems
     currentDesignSystemId: defaultDesignSystem.id,
@@ -21,6 +24,9 @@ const initialState = {
 
     // Save Modal
     saveModalOpen: false,
+
+    // Payments
+    buyPointsModalOpen: false,
 
     // Export
     currentExportData: null,
@@ -38,6 +44,14 @@ function appReducer(state, action) {
             return { ...state, currentModelId: action.modelId };
         case 'SET_AVAILABLE_MODELS':
             return { ...state, availableModels: action.models };
+        case 'SET_POINTS_BALANCE':
+            return { ...state, pointsBalance: Math.max(0, Number(action.balance || 0)) };
+        case 'DEDUCT_POINTS':
+            return { ...state, pointsBalance: Math.max(0, state.pointsBalance - Number(action.points || 0)) };
+        case 'SET_HAS_PURCHASED':
+            return { ...state, hasPurchased: Boolean(action.hasPurchased) };
+        case 'SET_SUBSCRIPTION':
+            return { ...state, subscription: action.subscription };
 
         case 'SET_DESIGN_SYSTEM':
             return { ...state, currentDesignSystemId: action.systemId };
@@ -60,6 +74,11 @@ function appReducer(state, action) {
             return { ...state, saveModalOpen: true };
         case 'CLOSE_SAVE_MODAL':
             return { ...state, saveModalOpen: false };
+
+        case 'OPEN_BUY_POINTS_MODAL':
+            return { ...state, buyPointsModalOpen: true };
+        case 'CLOSE_BUY_POINTS_MODAL':
+            return { ...state, buyPointsModalOpen: false };
 
         case 'SET_EXPORT_DATA':
             return { ...state, currentExportData: action.data };

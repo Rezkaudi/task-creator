@@ -9,6 +9,10 @@ export interface IUserRepository {
     findByEmail(email: string): Promise<User | null>;
     findById(id: string): Promise<User | null>;
     update(id: string, user: Partial<User>): Promise<User | null>;
+    addPoints(userId: string, points: number): Promise<User>;
+    deductPoints(userId: string, points: number): Promise<User>;
+    setStripeCustomerId(userId: string, customerId: string): Promise<void>;
+    markHasPurchased(userId: string): Promise<void>;
     findOrCreateByGoogle(googleData: {
         googleId: string;
         email: string;
