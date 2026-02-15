@@ -27,7 +27,7 @@ export class StripeService {
 
     constructor() {
         this.stripe = new Stripe(ENV_CONFIG.STRIPE_SECRET_KEY || "sk_test_placeholder", {
-            apiVersion: "2024-12-18.acacia" as Stripe.LatestApiVersion,
+            apiVersion: "2023-10-16" as Stripe.LatestApiVersion,
         });
     }
 
