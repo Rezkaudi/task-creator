@@ -13,7 +13,7 @@ export class PointsService implements IPointsService {
     }
 
     isFreeModel(modelId: string): boolean {
-        return modelId === "devstral-latest";
+        return modelId === "devstral-latest" || modelId === "gemini-2.5-flash";
     }
 
     calculatePointsCost(modelId: string, inputTokens: number, outputTokens: number): number {

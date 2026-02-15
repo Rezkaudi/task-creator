@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppContext } from '../context/AppContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useApiClient } from '../hooks/useApiClient.js';
 import { reportErrorAsync } from '../errorReporter.js';
 import { XCircleIcon } from 'lucide-react';
@@ -8,6 +9,7 @@ import '../styles/BuyPointsModal.css';
 export default function BuyPointsModal() {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
     const { buyPointsModalOpen } = state;
+    const { updateSubscription, updatePointsBalance } = useAuth();
     const { apiGet, apiPost } = useApiClient();
 
     const [packages, setPackages] = useState([]);
@@ -83,9 +85,13 @@ export default function BuyPointsModal() {
                     stopPolling();
                     setBuyingPackageId(null);
 
+                    // Update AppContext
                     dispatch({ type: 'SET_POINTS_BALANCE', balance: result.pointsBalance || 0 });
                     dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(result.hasPurchased) });
                     dispatch({ type: 'CLOSE_BUY_POINTS_MODAL' });
+
+                    // Update AuthContext to immediately reflect changes in UI
+                    updatePointsBalance(result.pointsBalance || 0, Boolean(result.hasPurchased));
 
                     showStatus(`Points updated: ${result.pointsBalance || 0} pts`, 'success');
                     setTimeout(hideStatus, 2500);
@@ -100,7 +106,7 @@ export default function BuyPointsModal() {
             setBuyingPackageId(null);
             setError('Payment confirmation is taking longer than expected. You can retry polling by reopening this modal.');
         }, 5 * 60 * 1000);
-    }, [apiGet, dispatch, hideStatus, showStatus, stopPolling]);
+    }, [apiGet, dispatch, hideStatus, showStatus, stopPolling, updatePointsBalance]);
 
     const startSubscriptionPolling = useCallback(() => {
         stopPolling();
@@ -113,8 +119,14 @@ export default function BuyPointsModal() {
                     setSubscribingPlanId(null);
                     setSubscription(result.subscription);
 
+                    // Update AppContext
+                    dispatch({ type: 'SET_SUBSCRIPTION', subscription: result.subscription });
                     dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: true });
                     dispatch({ type: 'CLOSE_BUY_POINTS_MODAL' });
+
+                    // Update AuthContext to immediately reflect changes in UI
+                    updateSubscription(result.subscription);
+                    updatePointsBalance(0, true); // Subscription has hasPurchased=true, but balance might be 0
 
                     showStatus('Subscription activated!', 'success');
                     setTimeout(hideStatus, 2500);
@@ -129,7 +141,7 @@ export default function BuyPointsModal() {
             setSubscribingPlanId(null);
             setError('Subscription confirmation is taking longer than expected. Please reopen this modal to check.');
         }, 5 * 60 * 1000);
-    }, [apiGet, dispatch, hideStatus, showStatus, stopPolling]);
+    }, [apiGet, dispatch, hideStatus, showStatus, stopPolling, updateSubscription, updatePointsBalance]);
 
     const handleBuy = useCallback(async (packageId) => {
         setError('');

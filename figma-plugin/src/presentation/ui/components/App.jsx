@@ -28,7 +28,8 @@ function AppContent() {
         pointsBalance: authPointsBalance,
         hasPurchased: authHasPurchased,
         subscription: authSubscription,
-        logout
+        logout,
+        updatePointsBalance
     } = useAuth();
 
     const [activeTab, setActiveTab] = useState('ai');
@@ -111,8 +112,11 @@ function AppContent() {
         'prototype-applied': (msg) => AiTab.messageHandlers?.['prototype-applied']?.(msg),
         'prototype-apply-error': (msg) => AiTab.messageHandlers?.['prototype-apply-error']?.(msg),
         'points-updated': (msg) => {
+            // Update AppContext
             dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.balance || 0 });
             dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(msg.hasPurchased) });
+            // Update AuthContext to immediately reflect changes in UI
+            updatePointsBalance(msg.balance || 0, Boolean(msg.hasPurchased));
         },
     });
 

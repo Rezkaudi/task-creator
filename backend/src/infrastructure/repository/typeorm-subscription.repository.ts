@@ -73,11 +73,18 @@ export class TypeORMSubscriptionRepository implements ISubscriptionRepository {
             [today, points, id],
         );
 
-        if (!result || result.length === 0) {
+        console.log('[incrementDailyPointsUsed] Raw DB result:', result);
+
+        if (!result || result.length === 0 || !result[0] || result[0].length === 0) {
             throw new Error("Subscription not found");
         }
 
-        const row = result[0];
+        // TypeORM query returns: [[rows...], affectedCount]
+        // We need result[0][0] to get the first row
+        const row = result[0][0];
+        console.log('[incrementDailyPointsUsed] Row (fixed):', row);
+        console.log('[incrementDailyPointsUsed] dailyPointsUsed value:', row.dailyPointsUsed);
+
         return {
             dailyPointsUsed: row.dailyPointsUsed,
             wasReset: row.lastUsageResetDate === today && row.dailyPointsUsed === points,

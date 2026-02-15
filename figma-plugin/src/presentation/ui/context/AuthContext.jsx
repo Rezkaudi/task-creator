@@ -230,8 +230,39 @@ export function AuthProvider({ children }) {
         setAuthState(prev => ({ ...prev, error: null }));
     }, []);
 
+    const updateSubscription = useCallback((subscriptionUpdate) => {
+        console.log('[AuthContext] updateSubscription called with:', subscriptionUpdate);
+        setAuthState(prev => {
+            const newSubscription = prev.subscription
+                ? { ...prev.subscription, ...subscriptionUpdate }
+                : subscriptionUpdate;
+            console.log('[AuthContext] Previous subscription:', prev.subscription);
+            console.log('[AuthContext] New subscription:', newSubscription);
+            return {
+                ...prev,
+                subscription: newSubscription
+            };
+        });
+    }, []);
+
+    const updatePointsBalance = useCallback((pointsBalance, hasPurchased) => {
+        console.log('[AuthContext] updatePointsBalance called with:', { pointsBalance, hasPurchased });
+        setAuthState(prev => ({
+            ...prev,
+            pointsBalance: Number(pointsBalance || 0),
+            hasPurchased: Boolean(hasPurchased)
+        }));
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ ...authState, login, logout, clearError }}>
+        <AuthContext.Provider value={{
+            ...authState,
+            login,
+            logout,
+            clearError,
+            updateSubscription,
+            updatePointsBalance
+        }}>
             {children}
         </AuthContext.Provider>
     );

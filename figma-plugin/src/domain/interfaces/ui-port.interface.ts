@@ -15,6 +15,11 @@ export interface PointsInfo {
   remaining: number;
   wasFree: boolean;
   hasPurchased?: boolean;
+  subscription?: {
+    dailyPointsUsed: number;
+    dailyPointsLimit: number;
+    planId?: string;
+  };
 }
 
 /**

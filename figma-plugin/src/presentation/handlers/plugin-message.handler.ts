@@ -245,6 +245,7 @@ export class PluginMessageHandler {
         remaining: result.points.remaining || 0,
         wasFree: result.points.wasFree || false,
         hasPurchased: result.points.hasPurchased,
+        subscription: result.points.subscription,
       } : undefined;
 
       this.uiPort.postMessage({
@@ -485,6 +486,7 @@ export class PluginMessageHandler {
         remaining: result.points.remaining || 0,
         wasFree: result.points.wasFree || false,
         hasPurchased: result.points.hasPurchased,
+        subscription: result.points.subscription,
       } : undefined;
 
       this.uiPort.postMessage({
@@ -581,6 +583,7 @@ export class PluginMessageHandler {
         remaining: result.points.remaining || 0,
         wasFree: result.points.wasFree || false,
         hasPurchased: result.points.hasPurchased,
+        subscription: result.points.subscription,
       } : undefined;
 
       this.uiPort.postMessage({
@@ -661,12 +664,17 @@ export class PluginMessageHandler {
 
       const result = await response.json();
 
+      console.log('[PluginHandler] Backend response points:', result.points);
+
       const points = result.points ? {
         deducted: result.points.deducted || 0,
         remaining: result.points.remaining || 0,
         wasFree: result.points.wasFree || false,
         hasPurchased: result.points.hasPurchased,
+        subscription: result.points.subscription,
       } : undefined;
+
+      console.log('[PluginHandler] Sending points to UI:', points);
 
       this.uiPort.postMessage({
         type: 'ai-chat-response',

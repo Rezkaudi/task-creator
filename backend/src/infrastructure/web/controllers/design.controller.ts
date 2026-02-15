@@ -18,6 +18,7 @@ interface PointsResponse {
     subscription?: {
         dailyPointsUsed: number;
         dailyPointsLimit: number;
+        planId?: string;
     };
 }
 
@@ -53,6 +54,8 @@ export class DesignController {
                 result.cost?.inputTokens ?? 0,
                 result.cost?.outputTokens ?? 0,
             );
+
+            console.log('[BackendController] Points being sent to frontend:', JSON.stringify(points, null, 2));
 
             res.status(200).json({
                 success: true,
@@ -104,6 +107,8 @@ export class DesignController {
                 result.cost?.inputTokens ?? 0,
                 result.cost?.outputTokens ?? 0,
             );
+
+            console.log('[BackendController] Points being sent to frontend:', JSON.stringify(points, null, 2));
 
             res.status(200).json({
                 success: true,
@@ -314,7 +319,7 @@ export class DesignController {
                         throw new HttpError("Authentication required", 401);
                     }
 
-                    return {
+                    const pointsResponse = {
                         deducted: 0,
                         remaining: user.pointsBalance,
                         wasFree: false,
@@ -322,8 +327,11 @@ export class DesignController {
                         subscription: {
                             dailyPointsUsed,
                             dailyPointsLimit: subscription.dailyPointsLimit,
+                            planId: subscription.planId,
                         },
                     };
+                    console.log('[applyPointsDeduction] Returning subscription with dailyPointsUsed:', dailyPointsUsed);
+                    return pointsResponse;
                 }
             }
 
