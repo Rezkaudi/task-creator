@@ -38,8 +38,8 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 262144,
     apiKey: ENV_CONFIG.MISTRAL_API_KEY,
     baseURL: "https://api.mistral.ai/v1",
-    inputPricePerMillion: 0.00,
-    outputPricePerMillion: 0.00,
+    inputPricePerMillion: 0.40,
+    outputPricePerMillion: 2.00,
     isFree: true,
   },
   {

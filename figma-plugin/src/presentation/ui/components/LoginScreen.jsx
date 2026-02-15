@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useApiClient } from '../hooks/useApiClient.js';
 import { API_BASE_URL } from '../utils.js';
 import '../styles/login.css';
 
@@ -7,10 +8,11 @@ const GOOGLE_ICON_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/
 
 export default function LoginScreen() {
     const { login, isLoading, error, clearError } = useAuth();
+    const { apiFetch } = useApiClient();
     const [isPolling, setIsPolling] = useState(false);
 
     const handleGoogleSignIn = useCallback(async () => {
-        // Request Figma headers from main thread 
+        // Request Figma headers from main thread
         parent.postMessage({ pluginMessage: { type: 'GET_HEADERS' } }, '*');
 
         const headers = await new Promise((resolve) => {
@@ -40,14 +42,11 @@ export default function LoginScreen() {
         // Start polling
         const pollInterval = setInterval(async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/auth/poll?id=${pollingId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.token) {
-                        clearInterval(pollInterval);
-                        setIsPolling(false);
-                        login(data.token);
-                    }
+                const data = await apiFetch(`${API_BASE_URL}/auth/poll?id=${pollingId}`);
+                if (data.success && data.token) {
+                    clearInterval(pollInterval);
+                    setIsPolling(false);
+                    login(data.token);
                 }
             } catch (err) {
                 console.error('Polling error:', err);
@@ -64,7 +63,7 @@ export default function LoginScreen() {
 
         // Cleanup interval on component unmount
         return () => clearInterval(pollInterval);
-    }, [login, clearError, isPolling]);
+    }, [login, clearError, isPolling, apiFetch]);
 
     return (
         <div className="login-screen">
