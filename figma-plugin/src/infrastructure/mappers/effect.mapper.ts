@@ -90,11 +90,28 @@ export class EffectMapper {
   }
 
   /**
+   * Valid Figma effect types
+   */
+  private static readonly VALID_EFFECT_TYPES: Set<string> = new Set([
+    'DROP_SHADOW',
+    'INNER_SHADOW',
+    'LAYER_BLUR',
+    'BACKGROUND_BLUR',
+  ]);
+
+  /**
    * Convert array of domain effects to Figma effects
    */
   static toFigmaEffects(entities: Effect[]): (DropShadowEffect | InnerShadowEffect | BlurEffect)[] {
     return entities
-      .filter(e => e && e.type)
+      .filter(e => {
+        if (!e || !e.type) return false;
+        if (!EffectMapper.VALID_EFFECT_TYPES.has(e.type)) {
+          console.warn(`Skipping unsupported effect type: "${e.type}". Valid types: ${[...EffectMapper.VALID_EFFECT_TYPES].join(', ')}`);
+          return false;
+        }
+        return true;
+      })
       .map(e => EffectMapper.toFigmaEffect(e));
   }
 
