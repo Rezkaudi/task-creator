@@ -9,22 +9,27 @@ export interface PointsPackage {
     stripePriceId: string;
 }
 
+
+//Points = (Price - Profit Percentage of Price) * 500
+
 export const POINTS_PACKAGES: PointsPackage[] = [
     {
         id: 'starter',
         name: 'Starter Pack',
-        points: 5000,
+        points: 3750,
         priceUsd: 10,
         priceCents: 1000,
         stripePriceId: ENV_CONFIG.STRIPE_PRICE_STARTER || '',
+        //Profit Percentage = 25% => Points = (10 - 2.5) * 500 = 3750
     },
     {
         id: 'pro',
         name: 'Pro Pack',
-        points: 15000,
+        points: 10000,
         priceUsd: 25,
         priceCents: 2500,
         stripePriceId: ENV_CONFIG.STRIPE_PRICE_PRO || '',
+        //Profit Percentage = 20% => Points = (25 - 5) * 500 = 10000
     },
 ];
 

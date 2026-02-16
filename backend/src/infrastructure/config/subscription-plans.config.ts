@@ -9,22 +9,27 @@ export interface SubscriptionPlan {
     stripePriceId: string;
 }
 
+//Points = (Price - Profit Percentage of Price) * 500
+
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     {
         id: 'basic',
         name: 'Basic Monthly',
-        priceUsd: 9,
-        priceCents: 900,
-        dailyPointsLimit: 1000,
+        priceUsd: 50,
+        priceCents: 5000,
+        dailyPointsLimit: 21250 / 30, //708.33 points per day
         stripePriceId: ENV_CONFIG.STRIPE_PRICE_SUB_BASIC || '',
+        //Profit Percentage = 15% => Points = (50 - 7.5) * 500 = 21250
+
     },
     {
         id: 'premium',
         name: 'Premium Monthly',
-        priceUsd: 19,
-        priceCents: 1900,
-        dailyPointsLimit: 3000,
+        priceUsd: 80,
+        priceCents: 8000,
+        dailyPointsLimit: 36000 / 30, //1200 points per day
         stripePriceId: ENV_CONFIG.STRIPE_PRICE_SUB_PREMIUM || '',
+        //Profit Percentage = 10% => Points = (80 - 8) * 500 = 36000
     },
 ];
 
