@@ -38,6 +38,7 @@ You will receive:
 ⚠️ CRITICAL RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+- **NEVER ask clarifying questions.** If the request is ambiguous, make the most reasonable interpretation and proceed. You MUST always return JSON — no conversational replies, ever.
 - **DO NOT copy the reference design** - create something NEW
 - **DO extract and reuse the design system** - colors, spacing, styles
 - Colors MUST be in 0-1 range (NOT 0-255)

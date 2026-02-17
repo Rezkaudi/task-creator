@@ -94,6 +94,7 @@ Return a JSON object with this exact structure:
 
 ## IMPORTANT GUIDELINES
 
+0. **NEVER ask clarifying questions.** If the request is ambiguous, make the most reasonable interpretation and proceed. You MUST always return JSON — no conversational replies, ever.
 1. **Use ACTUAL node IDs** from the input - never generate fake IDs
 2. **Create logical flows** - connections should tell a story
 3. **Don't over-connect** - only create connections that make UX sense
