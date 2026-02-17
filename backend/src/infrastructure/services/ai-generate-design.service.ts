@@ -70,7 +70,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             console.log('--- 3. Response parsed  ---');
 
-            const result = this.responseParser.parseAIResponseForDesign(responseText);
+            const result = this.responseParser.parseAIResponse(responseText);
 
             console.log('--- 4. Calculating cost  ---');
 
@@ -83,7 +83,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 message: result.message,
-                design: result.design,
+                design: result.data,
                 previewHtml: null,
                 cost: costBreakdown
             };
@@ -124,7 +124,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             console.log('--- 3. Response parsed  ---');
 
-            const result = this.responseParser.parseAIResponseForDesign(responseText);
+            const result = this.responseParser.parseAIResponse(responseText);
 
             console.log('--- 4. Calculating cost  ---');
 
@@ -137,7 +137,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 message: result.message,
-                design: result.design,
+                design: result.data,
                 previewHtml: null,
                 cost: costBreakdown
             };
@@ -175,7 +175,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             console.log('--- 3. Response parsed  ---');
 
-            const result = this.responseParser.parseAIResponseForDesign(responseText);
+            const result = this.responseParser.parseAIResponse(responseText);
 
             console.log('--- 4. Calculating cost  ---');
 
@@ -188,7 +188,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 message: result.message,
-                design: result.design,
+                design: result.data,
                 previewHtml: null,
                 cost: costBreakdown
             };
@@ -204,7 +204,6 @@ export class AiGenerateDesignService implements IAiDesignService {
     ): Promise<{
         connections: PrototypeConnection[];
         message: string;
-        reasoning?: string;
         cost?: any;
     }> {
         const aiModel = getModelById(modelId!);
@@ -227,7 +226,7 @@ export class AiGenerateDesignService implements IAiDesignService {
                 throw new Error('Empty response from AI');
             }
 
-            const result = this.responseParser.parseAIResponseForPrototype(responseText);
+            const result = this.responseParser.parseAIResponse(responseText);
 
             console.log('--- 4. Calculating cost  ---');
 
@@ -239,9 +238,8 @@ export class AiGenerateDesignService implements IAiDesignService {
             );
 
             return {
-                connections: result.connections,
-                message: `Generated ${result.connections.length} prototype connections`,
-                reasoning: result.reasoning,
+                connections: result.data,
+                message: result.message,
                 cost: costBreakdown
             };
 
@@ -287,6 +285,8 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
 
         const responseText = completion.choices[0]?.message?.content;
+        console.log('--- responseText ---', responseText);
+
         if (!responseText) {
             throw new Error('GPT API returned empty response.');
         }

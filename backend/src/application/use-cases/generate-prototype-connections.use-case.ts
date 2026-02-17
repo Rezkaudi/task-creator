@@ -14,7 +14,6 @@ export class GeneratePrototypeConnectionsUseCase {
     ): Promise<{
         connections: PrototypeConnection[];
         message: string;
-        reasoning?: string;
         cost?: any;
     }> {
 

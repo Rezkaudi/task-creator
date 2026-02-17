@@ -573,28 +573,28 @@ Before outputting, verify:
 📋 RESPONSE FORMAT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-When replying, follow this structure:
-
-1. **Brief Description**: One sentence explaining what was created
-2. **JSON Design**: Complete design array wrapped in a ```json code block
+Return a single JSON object with two keys:
+- **data**: The design array (array of FRAME objects)
+- **message**: One sentence explaining what was created
 
 Example:
 
-Created a landing page with navigation bar and hero section.
-
 ```json
-[
-  {
-    "name": "Landing Page",
-    "type": "FRAME",
-    "x": 0,
-    "y": 0,
-    "width": 1920,
-    "height": 1080,
-    "fills": [...],
-    "children": [...]
-  }
-]
+{
+  "data": [
+    {
+      "name": "Landing Page",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "fills": [...],
+      "children": [...]
+    }
+  ],
+  "message": "Created a landing page with navigation bar and hero section."
+}
 ```
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -31,28 +31,28 @@ You will receive:
 📋 RESPONSE FORMAT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-When replying, follow this structure:
-
-1. **Brief Description**: One sentence explaining what was modified
-2. **JSON Design**: Complete design array wrapped in a ```json code block
+Return a single JSON object with two keys:
+- **data**: The complete design array (array of FRAME objects)
+- **message**: One sentence explaining what was modified
 
 Example:
 
-Changed the button color to blue and updated the card shadow.
-
 ```json
-[
-  {
-    "name": "Design",
-    "type": "FRAME",
-    "x": 0,
-    "y": 0,
-    "width": 400,
-    "height": 600,
-    "fills": [...],
-    "children": [...]
-  }
-]
+{
+  "data": [
+    {
+      "name": "Design",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 400,
+      "height": 600,
+      "fills": [...],
+      "children": [...]
+    }
+  ],
+  "message": "Changed the button color to blue and updated the card shadow."
+}
 ```
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

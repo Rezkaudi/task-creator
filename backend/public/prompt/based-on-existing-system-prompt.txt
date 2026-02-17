@@ -67,26 +67,26 @@ Your Output: Login Page with:
 📋 RESPONSE FORMAT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Brief description + complete JSON array
+Return a single JSON object with two keys:
+- **data**: The complete design array (array of FRAME objects)
+- **message**: One sentence explaining what was created
 
 Example:
 
-Created a login page following the same design system as the reference sign up page.
-
-\`\`\`json
-[
-  {
-    "name": "Login Page",
-    "type": "FRAME",
-    "x": 0,
-    "y": 0,
-    "width": 400,
-    "height": 600,
-    "fills": [...],
-    "children": [...]
-  }
-]
-\`\`\`
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-`
+```json
+{
+  "data": [
+    {
+      "name": "Login Page",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 400,
+      "height": 600,
+      "fills": [...],
+      "children": [...]
+    }
+  ],
+  "message": "Created a login page following the same design system as the reference sign up page."
+}
+```
