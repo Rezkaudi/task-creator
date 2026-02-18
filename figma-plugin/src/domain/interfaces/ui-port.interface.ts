@@ -86,8 +86,7 @@ export type PluginMessage =
     type: 'ai-edit-design';
     message: string;
     history?: Array<{ role: string; content: string }>;
-    layerJson?: any;
-    layerId?: string;
+    layerJson: any;
     model?: string;
     designSystemId?: string;
   }
@@ -95,8 +94,7 @@ export type PluginMessage =
     type: 'ai-generate-based-on-existing';
     message: string;
     history?: Array<{ role: string; content: string }>;
-    referenceJson?: any;
-    referenceId?: string;
+    referenceJson: any;
     model?: string;
     designSystemId?: string;
   }
@@ -124,12 +122,7 @@ export type PluginMessage =
   | { type: 'OPEN_EXTERNAL_URL'; url: string }
   // Add to PluginMessage type union (after existing types):
   | { type: 'get-frames-for-prototype' }
-  | {
-    type: 'generate-prototype-connections';
-    frames?: any[]; // Keep for backward compatibility if needed, or remove if fully deprecated
-    frameIds?: string[];
-    modelId?: string;
-  }
+  | { type: 'generate-prototype-connections'; frames: FrameInfo[]; modelId?: string }
   | { type: 'apply-prototype-connections'; connections: PrototypeConnection[] }
   | { type: 'generate-preview-image'; requestId?: string; maxWidth?: number }
 
