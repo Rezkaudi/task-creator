@@ -16,12 +16,6 @@ export default function ChatInterface({
     referenceDesignJson,
     onBack,
     sendMessage,
-    // New props from AiTab
-    selectedFrames = [],
-    onRemoveFrame,
-    onToggleFramePicker,
-    framePickerOpen = false,
-    systemMessages = [],
 }) {
     const { state, dispatch } = useAppContext();
     const { currentModelId, availableModels, currentDesignSystemId, availableDesignSystems, hasPurchased } = state;
@@ -40,23 +34,6 @@ export default function ChatInterface({
     const updateSubscriptionRef = useRef(updateSubscription);
     const updatePointsBalanceRef = useRef(updatePointsBalance);
 
-    const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
-    const [dsDropdownOpen, setDsDropdownOpen] = useState(false);
-
-    // Close dropdowns on outside click
-    useEffect(() => {
-        const handleClickOutside = () => {
-            if (modelDropdownOpen) setModelDropdownOpen(false);
-            if (dsDropdownOpen) setDsDropdownOpen(false);
-        };
-
-        if (modelDropdownOpen || dsDropdownOpen) {
-            document.addEventListener('click', handleClickOutside);
-        }
-
-        return () => document.removeEventListener('click', handleClickOutside);
-    }, [modelDropdownOpen, dsDropdownOpen]);
-
     useEffect(() => {
         updateSubscriptionRef.current = updateSubscription;
         updatePointsBalanceRef.current = updatePointsBalance;
@@ -71,13 +48,11 @@ export default function ChatInterface({
 
         let welcomeMessage;
         if (isBasedOnExistingMode) {
-            welcomeMessage = `By Reference: Attach a reference frame with 📎, then describe what new design you want to create based on its style. 🎨`;
+            welcomeMessage = `I'll create a new design based on <strong>"${referenceLayerName}"</strong> style using ${modelName}. What would you like to create? 🎨`;
         } else if (currentMode === 'edit') {
-            welcomeMessage = `Edit Mode: Attach a frame with 📎 to start editing using ${modelName}. What would you like to change?`;
-        } else if (currentMode === 'prototype') {
-            welcomeMessage = `Prototype Mode: Attach 2 or more frames with 📎 to generate connections between them. Then click Send. 🔗`;
+            welcomeMessage = `I'll help you edit <strong>"${selectedLayerForEdit}"</strong> using ${modelName} and ${systemName}. What changes would you like to make?`;
         } else {
-            welcomeMessage = `Attach a frame with 📎, then describe what you'd like to create. I'll generate your design using <strong>${modelName}</strong> + <strong>${systemName}</strong>. ✨`;
+            welcomeMessage = `Hi! I'll create your design using ${modelName} and ${systemName}. Describe what you want. 🎨`;
         }
 
         setMessages([{ role: 'assistant', content: welcomeMessage, isHtml: true }]);
@@ -96,18 +71,6 @@ export default function ChatInterface({
         scrollToBottom();
     }, [messages]);
 
-    // Add system messages from parent whenever they change
-    const lastSystemMsgCount = useRef(0);
-    useEffect(() => {
-        if (systemMessages.length > lastSystemMsgCount.current) {
-            const newMsgs = systemMessages.slice(lastSystemMsgCount.current);
-            newMsgs.forEach(sm => {
-                setMessages(prev => [...prev, { role: 'system', badge: sm.badge }]);
-            });
-            lastSystemMsgCount.current = systemMessages.length;
-        }
-    }, [systemMessages]);
-
     const addMessage = useCallback((role, content, opts = {}) => {
         setMessages(prev => [...prev, {
             role,
@@ -119,8 +82,6 @@ export default function ChatInterface({
             cost: opts.cost || null,
             isEditMode: opts.isEditMode || false,
             layerInfo: opts.layerInfo || null,
-            isPrototypeResponse: opts.isPrototypeResponse || false,
-            connections: opts.connections || null,
             timestamp: new Date()
         }]);
     }, []);
@@ -131,31 +92,7 @@ export default function ChatInterface({
 
     const sendChatMessage = useCallback(() => {
         const message = inputValue.trim();
-        if ((!message && currentMode !== 'prototype') || isGenerating) return;
-
-        // Validation for Edit Mode: Must have exactly one frame attached
-        if (currentMode === 'edit') {
-            if (selectedFrames.length === 0) {
-                addMessage('assistant', '⚠️ Please attach a frame to edit using the 📎 button.');
-                return;
-            }
-            if (selectedFrames.length > 1) {
-                addMessage('assistant', '⚠️ Please attach only one frame for editing.');
-                return;
-            }
-        }
-
-        // Validation for By Reference Mode: Must have exactly one frame attached
-        if (isBasedOnExistingMode) {
-            if (selectedFrames.length === 0) {
-                addMessage('assistant', '⚠️ Please attach a reference frame using the 📎 button.');
-                return;
-            }
-            if (selectedFrames.length > 1) {
-                addMessage('assistant', '⚠️ Please attach only one reference frame.');
-                return;
-            }
-        }
+        if (!message || isGenerating) return;
 
         addMessage('user', message);
         setInputValue('');
@@ -165,38 +102,21 @@ export default function ChatInterface({
         setConversationHistory(newHistory);
 
         if (isBasedOnExistingMode) {
-            const referenceFrame = selectedFrames[0];
-            addMessage('assistant', `Creating new design based on "${referenceFrame.name}" style...`, { isLoading: true });
+            addMessage('assistant', `Creating new design based on "${referenceLayerName}" style...`, { isLoading: true });
             sendMessage('ai-generate-based-on-existing', {
                 message,
                 history: newHistory,
-                referenceId: referenceFrame.id, // Send ID instead of JSON
+                referenceJson: referenceDesignJson,
                 model: currentModelId
             });
         } else if (currentMode === 'edit') {
-            const attachedFrame = selectedFrames[0];
-            addMessage('assistant', `Editing "${attachedFrame.name}"...`, { isLoading: true });
+            addMessage('assistant', 'Editing in progress, please wait', { isLoading: true });
             sendMessage('ai-edit-design', {
                 message,
                 history: newHistory,
-                layerId: attachedFrame.id, // Send ID instead of JSON
+                layerJson: selectedLayerJson,
                 model: currentModelId,
                 designSystemId: currentDesignSystemId
-            });
-        } else if (currentMode === 'prototype') {
-            // Validation for Prototype Mode
-            if (selectedFrames.length < 2) {
-                addMessage('assistant', '⚠️ Please attach at least 2 frames for prototyping.');
-                setIsGenerating(false); // Stop loading state
-                return;
-            }
-
-            addMessage('assistant', `Generating connections for ${selectedFrames.length} frames...`, { isLoading: true });
-
-            const frameIds = selectedFrames.map(f => f.id);
-            sendMessage('generate-prototype-connections', {
-                frameIds,
-                modelId: currentModelId
             });
         } else {
             addMessage('assistant', 'Creating in progress, please wait for me', { isLoading: true });
@@ -207,7 +127,7 @@ export default function ChatInterface({
                 designSystemId: currentDesignSystemId
             });
         }
-    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, referenceDesignJson, referenceLayerName, sendMessage, addMessage, selectedFrames]);
+    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, referenceDesignJson, referenceLayerName, sendMessage, addMessage]);
 
     const handleKeyDown = useCallback((e) => {
         if (e.key === 'Enter' && e.shiftKey) return;
@@ -217,8 +137,10 @@ export default function ChatInterface({
         }
     }, [sendChatMessage, isComposing]);
 
-    // Handle responses
+    // Handle responses - exposed via ref or callback
     const handleResponse = useCallback((msg) => {
+        console.log('[ChatInterface] handleResponse called, msg.points:', msg.points);
+
         setIsGenerating(false);
         removeLoadingMessages();
 
@@ -226,18 +148,31 @@ export default function ChatInterface({
         const isBased = msg.type === 'ai-based-on-existing-response';
 
         if (msg.points) {
+            console.log('[ChatInterface] Processing points update');
+            console.log('[ChatInterface] Has subscription?', !!msg.points.subscription);
+            console.log('[ChatInterface] Subscription data:', msg.points.subscription);
+
+            // Update AppContext
             dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
             if (msg.points.subscription) {
+                console.log('[ChatInterface] Updating subscription in both contexts');
                 dispatch({ type: 'SET_SUBSCRIPTION', subscription: msg.points.subscription });
+                // Update AuthContext to immediately reflect subscription changes in UI
                 updateSubscriptionRef.current(msg.points.subscription);
+                console.log('[ChatInterface] Called updateSubscriptionRef.current');
+            } else {
+                console.log('[ChatInterface] NO subscription data in points!');
             }
             if (typeof msg.points.hasPurchased === 'boolean') {
                 dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: msg.points.hasPurchased });
+                // Update AuthContext to immediately reflect points balance changes in UI
                 updatePointsBalanceRef.current(msg.points.remaining || 0, msg.points.hasPurchased);
             } else if (!msg.points.wasFree && !hasPurchased) {
                 dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: true });
                 updatePointsBalanceRef.current(msg.points.remaining || 0, true);
             }
+        } else {
+            console.log('[ChatInterface] NO points data in message!');
         }
 
         addMessage('assistant', msg.message, {
@@ -269,43 +204,15 @@ export default function ChatInterface({
         }
     }, [removeLoadingMessages, addMessage, dispatch]);
 
-    const handlePrototypeResponse = useCallback((msg) => {
-        setIsGenerating(false);
-        removeLoadingMessages();
-
-        if (msg.points) {
-            dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
-            if (msg.points.subscription) {
-                dispatch({ type: 'SET_SUBSCRIPTION', subscription: msg.points.subscription });
-                updateSubscriptionRef.current(msg.points.subscription);
-            }
-            if (typeof msg.points.hasPurchased === 'boolean') {
-                dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: msg.points.hasPurchased });
-                updatePointsBalanceRef.current(msg.points.remaining || 0, msg.points.hasPurchased);
-            }
-        }
-
-        const connectionsCount = (msg.connections || []).length;
-        const messageContent = `
-            <strong>✅ Generated ${connectionsCount} connections!</strong><br/>
-            ${msg.reasoning ? `<em>${msg.reasoning}</em><br/>` : ''}
-            <br/>
-            Click <strong>Apply</strong> to add them to your Figma file.
-        `;
-
-        addMessage('assistant', messageContent, {
-            isHtml: true,
-            cost: msg.cost,
-            isPrototypeResponse: true,
-            connections: msg.connections,
-            timestamp: new Date()
-        });
-    }, [dispatch, removeLoadingMessages, addMessage]);
+    // Expose handlers via ref (parent will call these)
+    React.useImperativeHandle(React.useRef(), () => ({
+        handleResponse,
+        handleError
+    }));
 
     // Store handlers on component so parent can access
     ChatInterface.handleResponse = handleResponse;
     ChatInterface.handleError = handleError;
-    ChatInterface.handlePrototypeResponse = handlePrototypeResponse;
 
     const handleImportDesign = useCallback((designData, isEditMode) => {
         let messageType;
@@ -327,235 +234,123 @@ export default function ChatInterface({
     const placeholder = isBasedOnExistingMode
         ? `e.g., Create a login page based on "${referenceLayerName}" style...`
         : currentMode === 'edit'
-            ? 'e.g. Change the background color to blue...'
-            : currentMode === 'prototype'
-                ? 'Click Send to generate connections...'
-                : 'Describe what to create...';
+            ? 'e.g. Change the background color to blue, make the text larger...'
+            : 'e.g. Create a login page with email and password fields...';
 
     const selectedModel = availableModels.find(m => m.id === currentModelId);
     const selectedSystem = availableDesignSystems.find(s => s.id === currentDesignSystemId);
 
-    // Auto-resize textarea
-    const autoResize = useCallback((el) => {
-        if (!el) return;
-        el.style.height = 'auto';
-        el.style.height = Math.min(el.scrollHeight, 56) + 'px';
-    }, []);
-
     return (
         <div id="ai-chat-container" className="show-chat" style={{ display: 'flex' }}>
+            {/* Edit Mode Header */}
+            {currentMode === 'edit' && (
+                <div id="edit-mode-header" className="show-header" style={{ display: 'block' }}>
+                    <button className="back-btn" onClick={onBack}>← Back to Mode Selection</button>
+                    <div className="edit-mode-info">
+                        <span className="edit-mode-label">✏️ Editing Mode</span>
+                        <span className="selected-layer-name">"{selectedLayerForEdit}"</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Based on Existing Mode Header */}
+            {isBasedOnExistingMode && (
+                <div id="based-on-existing-mode-header" style={{ display: 'block' }}>
+                    <button className="back-btn" onClick={onBack}>← Back to Mode Selection</button>
+                    <div className="edit-mode-info">
+                        <span className="edit-mode-label">🎨 Based on Existing Mode</span>
+                        <span className="selected-layer-name">"{referenceLayerName}"</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Mode - back button */}
+            {currentMode === 'create' && (
+                <div style={{ marginBottom: '12px' }}>
+                    <button className="back-btn" onClick={onBack}>← Back to Mode Selection</button>
+                </div>
+            )}
+
             {/* Chat Messages */}
             <div id="chat-messages" className="show-messages" ref={chatMessagesRef} style={{ display: 'flex' }}>
-                {messages.map((msg, i) => {
-                    // System message (mode switch)
-                    if (msg.role === 'system') {
-                        return (
-                            <div key={i} className="system-msg">
-                                <span className="sys-badge">{msg.badge}</span>
-                            </div>
-                        );
-                    }
-
-                    return (
-                        <div key={i} className={`message ${msg.role}`}>
-                            {msg.role === 'assistant' && (
-                                <div className="msg-avatar ai-avatar">R</div>
+                {messages.map((msg, i) => (
+                    <div key={i} className={`message ${msg.role}`}>
+                        <div className="message-content">
+                            {msg.isLoading ? (
+                                <div className="loading-indicator">
+                                    <div className="spinner"></div>
+                                    <span>{msg.content}</span>
+                                </div>
+                            ) : msg.isHtml ? (
+                                <div dangerouslySetInnerHTML={{ __html: msg.content }} />
+                            ) : (
+                                <div className="message-text"
+                                    dangerouslySetInnerHTML={{
+                                        __html: escapeHtml(msg.content).replace(/\n/g, '<br>')
+                                    }}
+                                />
                             )}
-                            <div className="message-content">
-                                {msg.isLoading ? (
-                                    <div className="loading-indicator">
-                                        <div className="spinner" />
-                                        <span>{msg.content}</span>
-                                    </div>
-                                ) : msg.isHtml ? (
-                                    <div dangerouslySetInnerHTML={{ __html: msg.content }} />
-                                ) : (
-                                    <div className="message-text"
-                                        dangerouslySetInnerHTML={{
-                                            __html: escapeHtml(msg.content).replace(/\n/g, '<br>')
-                                        }}
-                                    />
-                                )}
-                                {msg.cost && <CostBreakdown cost={msg.cost} />}
-                                {(msg.designData || msg.previewHtml) && (
-                                    <DesignPreview
-                                        designData={msg.designData}
-                                        previewHtml={msg.previewHtml}
-                                        isEditMode={msg.isEditMode}
-                                        isBasedOnExistingMode={isBasedOnExistingMode}
-                                        layerInfo={msg.layerInfo}
-                                        selectedLayerForEdit={selectedLayerForEdit}
-                                        onImport={() => handleImportDesign(msg.designData, msg.isEditMode)}
-                                    />
-                                )}
-                                {msg.isPrototypeResponse && msg.connections && (
-                                    <div className="prototype-result">
-                                        <div className="connections-list-preview" style={{ marginTop: '8px', fontSize: '12px', color: '#888' }}>
-                                            {msg.connections.slice(0, 3).map((conn, idx) => (
-                                                <div key={idx} className="conn-preview-item">
-                                                    🔗 {conn.sourceNodeName} → {conn.targetFrameName}
-                                                </div>
-                                            ))}
-                                            {msg.connections.length > 3 && (
-                                                <div className="more-conns">+{msg.connections.length - 3} more...</div>
-                                            )}
-                                        </div>
-                                        <button
-                                            className="btn-primary"
-                                            style={{ marginTop: '12px', width: '100%' }}
-                                            onClick={() => sendMessage('apply-prototype-connections', { connections: msg.connections })}
-                                        >
-                                            ✅ Apply Connections
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                            {msg.cost && <CostBreakdown cost={msg.cost} />}
+                            {(msg.designData || msg.previewHtml) && (
+                                <DesignPreview
+                                    designData={msg.designData}
+                                    previewHtml={msg.previewHtml}
+                                    isEditMode={msg.isEditMode}
+                                    isBasedOnExistingMode={isBasedOnExistingMode}
+                                    layerInfo={msg.layerInfo}
+                                    selectedLayerForEdit={selectedLayerForEdit}
+                                    onImport={() => handleImportDesign(msg.designData, msg.isEditMode)}
+                                />
+                            )}
                         </div>
-                    );
-                })}
+                    </div>
+                ))}
             </div>
 
-            {/* Input Area */}
-            <div className="chat-input-area">
-                {/* Frame Chips */}
-                {selectedFrames.length > 0 && (
-                    <div className="frame-chips">
-                        {selectedFrames.map(frame => (
-                            <span key={frame.id} className="f-chip">
-                                <span className="chip-icon">📐</span>
-                                {frame.name.length > 20 ? frame.name.slice(0, 20) + '…' : frame.name}
-                                <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
-                            </span>
-                        ))}
-                    </div>
-                )}
-
-                {/* Input Row */}
-                {currentMode === 'prototype' ? (
-                    <div className="input-row prototype-action" style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                            className={`attach-btn ${framePickerOpen ? 'active' : ''}`}
-                            onClick={onToggleFramePicker}
-                            title="Attach frames"
-                        >
-                            📎
-                        </button>
-                        <button
-                            className="btn-primary"
-                            style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                            onClick={sendChatMessage}
-                            disabled={isGenerating || selectedFrames.length < 2}
-                        >
-                            {isGenerating ? <div className="spinner" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }} /> : '⚡'}
-                            {isGenerating ? 'Generating...' : 'Generate Connections'}
-                        </button>
-                    </div>
-                ) : (
-                    <div className="input-row">
-                        <button
-                            className={`attach-btn ${framePickerOpen ? 'active' : ''}`}
-                            onClick={onToggleFramePicker}
-                            title="Attach frames"
-                        >
-                            📎
-                        </button>
-                        <textarea
-                            className="input-field"
-                            ref={inputRef}
-                            placeholder={placeholder}
-                            value={inputValue}
-                            onChange={(e) => {
-                                setInputValue(e.target.value);
-                                autoResize(e.target);
-                            }}
-                            onKeyDown={handleKeyDown}
-                            onCompositionStart={() => setIsComposing(true)}
-                            onCompositionEnd={() => setIsComposing(false)}
-                            disabled={isGenerating}
-                            rows="1"
-                        />
-                        <button
-                            className="send-btn-icon"
-                            onClick={sendChatMessage}
-                            disabled={isGenerating || !inputValue.trim()}
-                        >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M22 2 11 13" />
-                                <path d="M22 2 15 22 11 13 2 9z" />
-                            </svg>
-                        </button>
-                    </div>
-                )}
-
-                {/* Selectors Row */}
-                {/* Selectors Row */}
-                <div className="selectors-row">
+            {/* Chat Input */}
+            <div id="chat-input-container" className="show-input" style={{ display: 'flex' }}>
+                <textarea
+                    id="chat-input"
+                    className="show-input"
+                    ref={inputRef}
+                    rows="8"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onCompositionStart={() => setIsComposing(true)}
+                    onCompositionEnd={() => setIsComposing(false)}
+                    placeholder={placeholder}
+                    disabled={isGenerating}
+                    style={{ display: 'block' }}
+                />
+                <div className="chat-actions">
                     <button
-                        className="selector-pill model"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setDsDropdownOpen(false);
-                            setModelDropdownOpen(!modelDropdownOpen);
-                        }}
+                        id="chat-send-btn"
+                        className="show-button"
+                        onClick={sendChatMessage}
+                        disabled={isGenerating || !inputValue.trim()}
+                        style={{ display: 'block' }}
                     >
-                        <span>🤖</span> {selectedModel?.name || defaultModel.name} <span className="sel-arrow">▾</span>
-
-                        {/* Model Dropdown */}
-                        {modelDropdownOpen && (
-                            <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
-                                {availableModels.map(model => (
-                                    <div
-                                        key={model.id}
-                                        className={`sd-item ${currentModelId === model.id ? 'sel' : ''}`}
-                                        onClick={() => {
-                                            dispatch({ type: 'SET_MODEL', modelId: model.id });
-                                            setModelDropdownOpen(false);
-                                        }}
-                                    >
-                                        <span className="sd-icon">🤖</span>
-                                        <div style={{ flex: 1 }}>{model.name}</div>
-                                        <span className="sd-check">✓</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        Send
                     </button>
-
-                    <button
-                        className="selector-pill ds"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setModelDropdownOpen(false);
-                            setDsDropdownOpen(!dsDropdownOpen);
-                        }}
+                    <div
+                        className="model-floating-btn"
+                        onClick={() => dispatch({ type: 'OPEN_MODEL_PANEL' })}
                     >
-                        <span>🎨</span> {selectedSystem?.name || defaultDesignSystem.name} <span className="sel-arrow">▾</span>
-
-                        {/* Design System Dropdown */}
-                        {dsDropdownOpen && (
-                            <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
-                                {availableDesignSystems.map(ds => (
-                                    <div
-                                        key={ds.id}
-                                        className={`sd-item ${currentDesignSystemId === ds.id ? 'sel-ds' : ''}`}
-                                        onClick={() => {
-                                            dispatch({ type: 'SET_DESIGN_SYSTEM', systemId: ds.id });
-                                            setDsDropdownOpen(false);
-                                        }}
-                                    >
-                                        <span className="sd-icon">🎨</span>
-                                        <div style={{ flex: 1 }}>{ds.name}</div>
-                                        <span className="sd-check">✓</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </button>
-
-                    <span className="selectors-spacer" />
-                    <span className="chat-hint-inline">↵ Send</span>
+                        <div className="model-btn-icon">🤖</div>
+                        <span className="model-btn-text">{selectedModel?.name || defaultModel.name}</span>
+                    </div>
+                    <div
+                        id="design-system-floating-btn"
+                        className="model-floating-btn"
+                        onClick={() => dispatch({ type: 'TOGGLE_DESIGN_SYSTEM_PANEL' })}
+                    >
+                        <div className="model-btn-icon">🎨</div>
+                        <span className="design-system-btn-text">{selectedSystem?.name || defaultDesignSystem.name}</span>
+                    </div>
                 </div>
             </div>
+            <div className="chat-hint">Press Enter to send • Shift + Enter for new line</div>
         </div>
     );
 }
