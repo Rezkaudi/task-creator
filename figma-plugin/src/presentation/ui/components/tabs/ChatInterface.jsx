@@ -40,6 +40,23 @@ export default function ChatInterface({
     const updateSubscriptionRef = useRef(updateSubscription);
     const updatePointsBalanceRef = useRef(updatePointsBalance);
 
+    const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+    const [dsDropdownOpen, setDsDropdownOpen] = useState(false);
+
+    // Close dropdowns on outside click
+    useEffect(() => {
+        const handleClickOutside = () => {
+            if (modelDropdownOpen) setModelDropdownOpen(false);
+            if (dsDropdownOpen) setDsDropdownOpen(false);
+        };
+
+        if (modelDropdownOpen || dsDropdownOpen) {
+            document.addEventListener('click', handleClickOutside);
+        }
+
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, [modelDropdownOpen, dsDropdownOpen]);
+
     useEffect(() => {
         updateSubscriptionRef.current = updateSubscription;
         updatePointsBalanceRef.current = updatePointsBalance;
@@ -471,19 +488,70 @@ export default function ChatInterface({
                 )}
 
                 {/* Selectors Row */}
+                {/* Selectors Row */}
                 <div className="selectors-row">
                     <button
                         className="selector-pill model"
-                        onClick={() => dispatch({ type: 'OPEN_MODEL_PANEL' })}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setDsDropdownOpen(false);
+                            setModelDropdownOpen(!modelDropdownOpen);
+                        }}
                     >
-                        <span>🤖</span> {selectedModel?.name || defaultModel.name}
+                        <span>🤖</span> {selectedModel?.name || defaultModel.name} <span className="sel-arrow">▾</span>
+
+                        {/* Model Dropdown */}
+                        {modelDropdownOpen && (
+                            <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
+                                {availableModels.map(model => (
+                                    <div
+                                        key={model.id}
+                                        className={`sd-item ${currentModelId === model.id ? 'sel' : ''}`}
+                                        onClick={() => {
+                                            dispatch({ type: 'SET_MODEL', modelId: model.id });
+                                            setModelDropdownOpen(false);
+                                        }}
+                                    >
+                                        <span className="sd-icon">🤖</span>
+                                        <div style={{ flex: 1 }}>{model.name}</div>
+                                        <span className="sd-check">✓</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </button>
+
                     <button
                         className="selector-pill ds"
-                        onClick={() => dispatch({ type: 'TOGGLE_DESIGN_SYSTEM_PANEL' })}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setModelDropdownOpen(false);
+                            setDsDropdownOpen(!dsDropdownOpen);
+                        }}
                     >
-                        <span>🎨</span> {selectedSystem?.name || defaultDesignSystem.name}
+                        <span>🎨</span> {selectedSystem?.name || defaultDesignSystem.name} <span className="sel-arrow">▾</span>
+
+                        {/* Design System Dropdown */}
+                        {dsDropdownOpen && (
+                            <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
+                                {availableDesignSystems.map(ds => (
+                                    <div
+                                        key={ds.id}
+                                        className={`sd-item ${currentDesignSystemId === ds.id ? 'sel-ds' : ''}`}
+                                        onClick={() => {
+                                            dispatch({ type: 'SET_DESIGN_SYSTEM', systemId: ds.id });
+                                            setDsDropdownOpen(false);
+                                        }}
+                                    >
+                                        <span className="sd-icon">🎨</span>
+                                        <div style={{ flex: 1 }}>{ds.name}</div>
+                                        <span className="sd-check">✓</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </button>
+
                     <span className="selectors-spacer" />
                     <span className="chat-hint-inline">↵ Send</span>
                 </div>
