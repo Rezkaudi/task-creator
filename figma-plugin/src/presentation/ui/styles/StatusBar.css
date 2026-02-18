@@ -1,5 +1,6 @@
 /* === StatusBar === */
 .status {
+    margin: 8px;
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 16px;
