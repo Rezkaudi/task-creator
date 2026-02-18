@@ -638,7 +638,8 @@
     box-shadow: var(--shadow-lg);
     min-width: 160px;
     z-index: 60;
-    overflow: hidden;
+    overflow: scroll;
+    max-height: 200px;
     display: none;
     text-align: left;
 }

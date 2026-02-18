@@ -84,7 +84,7 @@ export default function ChatInterface({
         setConversationHistory([]);
 
         setTimeout(() => inputRef.current?.focus(), 100);
-    }, [currentMode, isBasedOnExistingMode]);
+    }, [currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, availableModels, availableDesignSystems]);
 
     const scrollToBottom = useCallback(() => {
         if (chatMessagesRef.current) {
@@ -334,6 +334,7 @@ export default function ChatInterface({
 
     const selectedModel = availableModels.find(m => m.id === currentModelId);
     const selectedSystem = availableDesignSystems.find(s => s.id === currentDesignSystemId);
+    const visibleModels = hasPurchased ? availableModels : availableModels.filter((model) => model.isFree);
 
     // Auto-resize textarea
     const autoResize = useCallback((el) => {
@@ -503,7 +504,7 @@ export default function ChatInterface({
                         {/* Model Dropdown */}
                         {modelDropdownOpen && (
                             <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
-                                {availableModels.map(model => (
+                                {visibleModels.map(model => (
                                     <div
                                         key={model.id}
                                         className={`sd-item ${currentModelId === model.id ? 'sel' : ''}`}
