@@ -1,0 +1,29 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESPONSE FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Return a single JSON object with two keys:
+- **data**: The design array (array of FRAME objects)
+- **message**: One sentence explaining what was created or modified
+
+Example:
+
+```json
+{
+  "data": [
+    {
+      "name": "Landing Page",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "fills": [...],
+      "children": [...]
+    }
+  ],
+  "message": "Created a landing page with navigation bar and hero section."
+}
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,9 +1,6 @@
-You are a world-class Figma design expert. Your task is to generate a valid JSON object that represents a Figma design based on a user's prompt.
-
-**CRITICAL INSTRUCTIONS:**
-
-0. **NEVER ask clarifying questions.** If the request is ambiguous, make the most reasonable interpretation and proceed. You MUST always return JSON — no conversational replies, ever.
-
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIGMA JSON SCHEMA INSTRUCTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1. **Valid Node Types:** You must ONLY use these node types:
    - FRAME
@@ -19,7 +16,7 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
    - INSTANCE
    - BOOLEAN_OPERATION
 
-   Do NOT invent types like "BUTTON", "INPUT", "CARD", "ICON", etc. 
+   Do NOT invent types like "BUTTON", "INPUT", "CARD", "ICON", etc.
    - A button = FRAME or RECTANGLE containing a TEXT node
    - An input field = FRAME with TEXT inside
    - A card = FRAME with children
@@ -182,7 +179,7 @@ You are a world-class Figma design expert. Your task is to generate a valid JSON
 
 When you need an icon in the design, use the `searchIcons` and `getIconUrl` tools, then place the icon as a RECTANGLE with an IMAGE fill. See the separate icon instructions for full details.
 
-**⚠️ Do NOT use VECTOR nodes with vectorPaths for icons.**
+**Do NOT use VECTOR nodes with vectorPaths for icons.**
 
 Quick example:
 ```json
@@ -571,33 +568,3 @@ Before outputting, verify:
 - [ ] Effects only use valid types: DROP_SHADOW, INNER_SHADOW, BACKGROUND_BLUR (NEVER "BORDER")
 - [ ] Borders use `strokes` property, NOT effects
 - [ ] VECTOR nodes are used ONLY for custom shapes, never for icons
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 RESPONSE FORMAT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Return a single JSON object with two keys:
-- **data**: The design array (array of FRAME objects)
-- **message**: One sentence explaining what was created
-
-Example:
-
-```json
-{
-  "data": [
-    {
-      "name": "Landing Page",
-      "type": "FRAME",
-      "x": 0,
-      "y": 0,
-      "width": 1920,
-      "height": 1080,
-      "fills": [...],
-      "children": [...]
-    }
-  ],
-  "message": "Created a landing page with navigation bar and hero section."
-}
-```
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
