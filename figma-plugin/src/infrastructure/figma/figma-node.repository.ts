@@ -78,6 +78,27 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
   }
 
   /**
+   * Export a node by its ID
+   */
+  async exportNodeById(nodeId: string): Promise<DesignNode | null> {
+    try {
+      const node = await figma.getNodeByIdAsync(nodeId);
+      if (!node) {
+        return null;
+      }
+
+      // Clear image cache for fresh export
+      this.nodeExporter.clearImageCache();
+
+      const exported = await this.nodeExporter.export(node as SceneNode, 0);
+      return exported || null;
+    } catch (error) {
+      console.error(`Error exporting node by ID ${nodeId}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Export all nodes from current page
    */
   async exportAll(): Promise<DesignNode[]> {
@@ -159,48 +180,70 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     for (const node of page.children) {
       if (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') {
         const frameInfo = await this.extractFrameInfo(node as FrameNode);
-        frames.push(frameInfo);
+        if (frameInfo) { // Added null check
+          frames.push(frameInfo);
+        }
       }
     }
 
     return frames;
   }
 
+  async getFrameInfoById(frameId: string): Promise<FrameInfo | null> {
+    try {
+      const node = await figma.getNodeByIdAsync(frameId);
+      if (node && node.type === 'FRAME') {
+        return await this.extractFrameInfo(node as FrameNode);
+      }
+      return null;
+    } catch (error) {
+      console.error(`Error getting frame info for ID ${frameId}:`, error);
+      return null;
+    }
+  }
+
   /**
    * Extract frame info with interactive elements
    */
-  private async extractFrameInfo(frame: FrameNode | ComponentNode | ComponentSetNode): Promise<FrameInfo> {
+  private async extractFrameInfo(frame: FrameNode): Promise<FrameInfo | null> {
     const interactiveElements: InteractiveElement[] = [];
 
-    const findInteractiveElements = (node: SceneNode, parentFrameId: string, parentFrameName: string) => {
-      // Check if this node could be interactive (buttons, links, icons, etc.)
-      const isInteractive = this.isInteractiveElement(node);
-
-      if (isInteractive) {
+    // Helper to process nodes recursively
+    const processNode = (node: SceneNode) => {
+      // Check if node is likely interactive (button, link, input, etc.)
+      if (this.isInteractiveElement(node)) {
         interactiveElements.push({
           nodeId: node.id,
           name: node.name,
           type: node.type,
-          parentFrameId,
-          parentFrameName
+          parentFrameId: frame.id, // Use the top-level frame's ID
+          parentFrameName: frame.name, // Use the top-level frame's name
+          text: 'characters' in node ? (node as TextNode).characters : undefined
         });
       }
 
-      // Recursively search children
       if ('children' in node) {
         for (const child of node.children) {
-          findInteractiveElements(child, parentFrameId, parentFrameName);
+          processNode(child);
         }
       }
     };
 
-    // Search for interactive elements in this frame
-    if ('children' in frame) {
-      for (const child of frame.children) {
-        findInteractiveElements(child, frame.id, frame.name);
-      }
+    processNode(frame);
+
+    // Only include frames that have interactive elements or look like screens
+    if (interactiveElements.length > 0) {
+      return {
+        id: frame.id,
+        name: frame.name,
+        width: frame.width,
+        height: frame.height,
+        interactiveElements
+      };
     }
 
+    // Also include if it's a top-level frame (likely a screen) even with no obvious interactive elements
+    // so the AI can at least link TO it
     return {
       id: frame.id,
       name: frame.name,

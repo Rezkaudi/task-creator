@@ -6,6 +6,7 @@ export interface InteractiveElement {
     type: string;
     parentFrameId: string;
     parentFrameName: string;
+    text?: string;
 }
 
 export interface FrameInfo {
