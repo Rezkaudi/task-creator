@@ -111,7 +111,7 @@ export default function AiTab({ sendMessage }) {
             case 'prototype':
                 setCurrentMode('prototype');
                 setIsBasedOnExistingMode(false);
-                setView('prototype');
+                setView('chat');
                 setSystemMessages(prev => [...prev, { badge: MODE_LABELS.prototype.badge }]);
                 break;
             default:
@@ -188,16 +188,23 @@ export default function AiTab({ sendMessage }) {
             setFramesLoaded(true);
             PrototypePanel.handleFramesError?.(msg);
         },
-        'prototype-connections-generated': (msg) => PrototypePanel.handleConnectionsGenerated?.(msg),
+        'prototype-connections-generated': (msg) => ChatInterface.handlePrototypeResponse?.(msg),
         'prototype-connections-error': (msg) => {
-            PrototypePanel.handleConnectionsError?.(msg);
+            ChatInterface.handleError?.(msg);
             const errorText = `${msg.error || ''}`.toLowerCase();
             if (msg.statusCode === 402 || errorText.includes('insufficient') || errorText.includes('purchase points')) {
                 dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
             }
         },
-        'prototype-applied': (msg) => PrototypePanel.handlePrototypeApplied?.(msg),
-        'prototype-apply-error': (msg) => PrototypePanel.handlePrototypeApplyError?.(msg),
+        'prototype-applied': (msg) => {
+            // Just show status for now, maybe add chat message later
+            showStatus(`✅ Applied ${msg.appliedCount} prototype connections!`, 'success');
+            setTimeout(hideStatus, 3000);
+        },
+        'prototype-apply-error': (msg) => {
+            showStatus(`❌ ${msg.error}`, 'error');
+            reportErrorAsync(new Error(msg.error), { componentName: 'Prototype', actionType: 'apply-error' });
+        },
     };
 
     return (

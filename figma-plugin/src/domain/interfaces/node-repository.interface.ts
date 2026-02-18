@@ -69,6 +69,12 @@ export interface INodeRepository {
   exportNodeById(nodeId: string): Promise<DesignNode | null>;
 
   /**
+   * Get FrameInfo by ID
+   * @param frameId The ID of the frame to get info for
+   */
+  getFrameInfoById(frameId: string): Promise<FrameInfo | null>;
+
+  /**
    * Scroll and zoom to view nodes
    */
   focusOnNodes(nodes: SceneNode[]): void;

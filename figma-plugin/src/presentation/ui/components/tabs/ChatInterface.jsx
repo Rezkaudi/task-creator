@@ -57,6 +57,8 @@ export default function ChatInterface({
             welcomeMessage = `By Reference: Attach a reference frame with 📎, then describe what new design you want to create based on its style. 🎨`;
         } else if (currentMode === 'edit') {
             welcomeMessage = `Edit Mode: Attach a frame with 📎 to start editing using ${modelName}. What would you like to change?`;
+        } else if (currentMode === 'prototype') {
+            welcomeMessage = `Prototype Mode: Attach 2 or more frames with 📎 to generate connections between them. Then click Send. 🔗`;
         } else {
             welcomeMessage = `Attach a frame with 📎, then describe what you'd like to create. I'll generate your design using <strong>${modelName}</strong> + <strong>${systemName}</strong>. ✨`;
         }
@@ -100,6 +102,8 @@ export default function ChatInterface({
             cost: opts.cost || null,
             isEditMode: opts.isEditMode || false,
             layerInfo: opts.layerInfo || null,
+            isPrototypeResponse: opts.isPrototypeResponse || false,
+            connections: opts.connections || null,
             timestamp: new Date()
         }]);
     }, []);
@@ -110,7 +114,7 @@ export default function ChatInterface({
 
     const sendChatMessage = useCallback(() => {
         const message = inputValue.trim();
-        if (!message || isGenerating) return;
+        if ((!message && currentMode !== 'prototype') || isGenerating) return;
 
         // Validation for Edit Mode: Must have exactly one frame attached
         if (currentMode === 'edit') {
@@ -161,6 +165,21 @@ export default function ChatInterface({
                 layerId: attachedFrame.id, // Send ID instead of JSON
                 model: currentModelId,
                 designSystemId: currentDesignSystemId
+            });
+        } else if (currentMode === 'prototype') {
+            // Validation for Prototype Mode
+            if (selectedFrames.length < 2) {
+                addMessage('assistant', '⚠️ Please attach at least 2 frames for prototyping.');
+                setIsGenerating(false); // Stop loading state
+                return;
+            }
+
+            addMessage('assistant', `Generating connections for ${selectedFrames.length} frames...`, { isLoading: true });
+
+            const frameIds = selectedFrames.map(f => f.id);
+            sendMessage('generate-prototype-connections', {
+                frameIds,
+                modelId: currentModelId
             });
         } else {
             addMessage('assistant', 'Creating in progress, please wait for me', { isLoading: true });
@@ -233,9 +252,43 @@ export default function ChatInterface({
         }
     }, [removeLoadingMessages, addMessage, dispatch]);
 
+    const handlePrototypeResponse = useCallback((msg) => {
+        setIsGenerating(false);
+        removeLoadingMessages();
+
+        if (msg.points) {
+            dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
+            if (msg.points.subscription) {
+                dispatch({ type: 'SET_SUBSCRIPTION', subscription: msg.points.subscription });
+                updateSubscriptionRef.current(msg.points.subscription);
+            }
+            if (typeof msg.points.hasPurchased === 'boolean') {
+                dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: msg.points.hasPurchased });
+                updatePointsBalanceRef.current(msg.points.remaining || 0, msg.points.hasPurchased);
+            }
+        }
+
+        const connectionsCount = (msg.connections || []).length;
+        const messageContent = `
+            <strong>✅ Generated ${connectionsCount} connections!</strong><br/>
+            ${msg.reasoning ? `<em>${msg.reasoning}</em><br/>` : ''}
+            <br/>
+            Click <strong>Apply</strong> to add them to your Figma file.
+        `;
+
+        addMessage('assistant', messageContent, {
+            isHtml: true,
+            cost: msg.cost,
+            isPrototypeResponse: true,
+            connections: msg.connections,
+            timestamp: new Date()
+        });
+    }, [dispatch, removeLoadingMessages, addMessage]);
+
     // Store handlers on component so parent can access
     ChatInterface.handleResponse = handleResponse;
     ChatInterface.handleError = handleError;
+    ChatInterface.handlePrototypeResponse = handlePrototypeResponse;
 
     const handleImportDesign = useCallback((designData, isEditMode) => {
         let messageType;
@@ -258,7 +311,9 @@ export default function ChatInterface({
         ? `e.g., Create a login page based on "${referenceLayerName}" style...`
         : currentMode === 'edit'
             ? 'e.g. Change the background color to blue...'
-            : 'Describe what to create...';
+            : currentMode === 'prototype'
+                ? 'Click Send to generate connections...'
+                : 'Describe what to create...';
 
     const selectedModel = availableModels.find(m => m.id === currentModelId);
     const selectedSystem = availableDesignSystems.find(s => s.id === currentDesignSystemId);
@@ -316,6 +371,27 @@ export default function ChatInterface({
                                         onImport={() => handleImportDesign(msg.designData, msg.isEditMode)}
                                     />
                                 )}
+                                {msg.isPrototypeResponse && msg.connections && (
+                                    <div className="prototype-result">
+                                        <div className="connections-list-preview" style={{ marginTop: '8px', fontSize: '12px', color: '#888' }}>
+                                            {msg.connections.slice(0, 3).map((conn, idx) => (
+                                                <div key={idx} className="conn-preview-item">
+                                                    🔗 {conn.sourceNodeName} → {conn.targetFrameName}
+                                                </div>
+                                            ))}
+                                            {msg.connections.length > 3 && (
+                                                <div className="more-conns">+{msg.connections.length - 3} more...</div>
+                                            )}
+                                        </div>
+                                        <button
+                                            className="btn-primary"
+                                            style={{ marginTop: '12px', width: '100%' }}
+                                            onClick={() => sendMessage('apply-prototype-connections', { connections: msg.connections })}
+                                        >
+                                            ✅ Apply Connections
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     );
@@ -338,40 +414,61 @@ export default function ChatInterface({
                 )}
 
                 {/* Input Row */}
-                <div className="input-row">
-                    <button
-                        className={`attach-btn ${framePickerOpen ? 'active' : ''}`}
-                        onClick={onToggleFramePicker}
-                        title="Attach frames"
-                    >
-                        📎
-                    </button>
-                    <textarea
-                        className="input-field"
-                        ref={inputRef}
-                        placeholder={placeholder}
-                        value={inputValue}
-                        onChange={(e) => {
-                            setInputValue(e.target.value);
-                            autoResize(e.target);
-                        }}
-                        onKeyDown={handleKeyDown}
-                        onCompositionStart={() => setIsComposing(true)}
-                        onCompositionEnd={() => setIsComposing(false)}
-                        disabled={isGenerating}
-                        rows="1"
-                    />
-                    <button
-                        className="send-btn-icon"
-                        onClick={sendChatMessage}
-                        disabled={isGenerating || !inputValue.trim()}
-                    >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 2 11 13" />
-                            <path d="M22 2 15 22 11 13 2 9z" />
-                        </svg>
-                    </button>
-                </div>
+                {currentMode === 'prototype' ? (
+                    <div className="input-row prototype-action" style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            className={`attach-btn ${framePickerOpen ? 'active' : ''}`}
+                            onClick={onToggleFramePicker}
+                            title="Attach frames"
+                        >
+                            📎
+                        </button>
+                        <button
+                            className="btn-primary"
+                            style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                            onClick={sendChatMessage}
+                            disabled={isGenerating || selectedFrames.length < 2}
+                        >
+                            {isGenerating ? <div className="spinner" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }} /> : '⚡'}
+                            {isGenerating ? 'Generating...' : 'Generate Connections'}
+                        </button>
+                    </div>
+                ) : (
+                    <div className="input-row">
+                        <button
+                            className={`attach-btn ${framePickerOpen ? 'active' : ''}`}
+                            onClick={onToggleFramePicker}
+                            title="Attach frames"
+                        >
+                            📎
+                        </button>
+                        <textarea
+                            className="input-field"
+                            ref={inputRef}
+                            placeholder={placeholder}
+                            value={inputValue}
+                            onChange={(e) => {
+                                setInputValue(e.target.value);
+                                autoResize(e.target);
+                            }}
+                            onKeyDown={handleKeyDown}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            disabled={isGenerating}
+                            rows="1"
+                        />
+                        <button
+                            className="send-btn-icon"
+                            onClick={sendChatMessage}
+                            disabled={isGenerating || !inputValue.trim()}
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 2 11 13" />
+                                <path d="M22 2 15 22 11 13 2 9z" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
 
                 {/* Selectors Row */}
                 <div className="selectors-row">

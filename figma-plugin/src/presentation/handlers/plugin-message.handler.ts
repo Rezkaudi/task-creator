@@ -171,7 +171,9 @@ export class PluginMessageHandler {
           await this.handleGetFramesForPrototype();
           break;
         case 'generate-prototype-connections':
-          if (message.frames) {
+          if (message.frameIds) {
+            await this.handleGeneratePrototypeConnections(message.frameIds, message.modelId);
+          } else if (message.frames) {
             await this.handleGeneratePrototypeConnections(message.frames, message.modelId);
           }
           break;
@@ -222,15 +224,38 @@ export class PluginMessageHandler {
   }
 
   private async handleGeneratePrototypeConnections(
-    frames: FrameInfo[],
+    framesOrIds: FrameInfo[] | string[],
     modelId?: string
   ): Promise<void> {
     try {
+      let framesToProcess: FrameInfo[] = [];
+
+      // Check if input is array of strings (IDs)
+      if (framesOrIds.length > 0 && typeof framesOrIds[0] === 'string') {
+        const frameIds = framesOrIds as string[];
+        console.log(`🔍 Fetching ${frameIds.length} frames for prototype by ID`);
+        const nodeRepository = new (await import('../../infrastructure/figma/figma-node.repository')).FigmaNodeRepository();
+
+        for (const id of frameIds) {
+          const frameInfo = await nodeRepository.getFrameInfoById(id);
+          if (frameInfo) {
+            framesToProcess.push(frameInfo);
+          }
+        }
+
+        if (framesToProcess.length < 2) {
+          throw new Error('Need at least 2 valid frames to generate connections');
+        }
+
+      } else {
+        framesToProcess = framesOrIds as FrameInfo[];
+      }
+
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-prototype`, {
         method: 'POST',
         headers: await this.getUserInfoUseCase.execute(),
         body: JSON.stringify({
-          frames,
+          frames: framesToProcess,
           modelId: modelId || defaultModel.id
         })
       });
