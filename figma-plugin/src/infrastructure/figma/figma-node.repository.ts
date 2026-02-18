@@ -78,6 +78,27 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
   }
 
   /**
+   * Export a node by its ID
+   */
+  async exportNodeById(nodeId: string): Promise<DesignNode | null> {
+    try {
+      const node = await figma.getNodeByIdAsync(nodeId);
+      if (!node) {
+        return null;
+      }
+
+      // Clear image cache for fresh export
+      this.nodeExporter.clearImageCache();
+
+      const exported = await this.nodeExporter.export(node as SceneNode, 0);
+      return exported || null;
+    } catch (error) {
+      console.error(`Error exporting node by ID ${nodeId}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Export all nodes from current page
    */
   async exportAll(): Promise<DesignNode[]> {

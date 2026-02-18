@@ -86,7 +86,8 @@ export type PluginMessage =
     type: 'ai-edit-design';
     message: string;
     history?: Array<{ role: string; content: string }>;
-    layerJson: any;
+    layerJson?: any;
+    layerId?: string;
     model?: string;
     designSystemId?: string;
   }
@@ -94,7 +95,8 @@ export type PluginMessage =
     type: 'ai-generate-based-on-existing';
     message: string;
     history?: Array<{ role: string; content: string }>;
-    referenceJson: any;
+    referenceJson?: any;
+    referenceId?: string;
     model?: string;
     designSystemId?: string;
   }

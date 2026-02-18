@@ -64,6 +64,11 @@ export interface INodeRepository {
   setSelection(nodes: SceneNode[]): void;
 
   /**
+   * Export a node by its ID
+   */
+  exportNodeById(nodeId: string): Promise<DesignNode | null>;
+
+  /**
    * Scroll and zoom to view nodes
    */
   focusOnNodes(nodes: SceneNode[]): void;

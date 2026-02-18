@@ -74,18 +74,26 @@ export class PluginMessageHandler {
           await this.handleRequestLayerSelectionForReference();
           break;
         case 'ai-edit-design':
-          if (message.message !== undefined && message.layerJson !== undefined) {
-            await this.handleAIEditDesign(message.message, message.history, message.layerJson, message.model, message.designSystemId);
+          if (message.message !== undefined && (message.layerJson !== undefined || message.layerId !== undefined)) {
+            await this.handleAIEditDesign(
+              message.message,
+              message.history,
+              message.layerJson,
+              message.model,
+              message.designSystemId,
+              message.layerId
+            );
           }
           break;
         case 'ai-generate-based-on-existing':
-          if (message.message !== undefined && message.referenceJson !== undefined) {
+          if (message.message !== undefined && (message.referenceJson !== undefined || message.referenceId !== undefined)) {
             console.log('🎨 Handling generate-based-on-existing request');
             await this.handleGenerateBasedOnExisting(
               message.message,
               message.history,
               message.referenceJson,
-              message.model
+              message.model,
+              message.referenceId
             );
           }
           break;
@@ -423,20 +431,35 @@ export class PluginMessageHandler {
     history: Array<{ role: string; content: string }> | undefined,
     layerJson: any,
     model?: string,
-    designSystemId?: string
+    designSystemId?: string,
+    layerId?: string // New optional parameter
   ): Promise<void> {
     try {
       if (history && history.length > 0) {
         this.conversationHistory = history;
       }
 
+      // If no JSON provided but ID is, fetch the node from Figma
+      let designToProcess = layerJson;
+      if (!designToProcess && layerId) {
+        console.log(`🔍 Fetching layer by ID: ${layerId}`);
+        const nodeRepository = new (await import('../../infrastructure/figma/figma-node.repository')).FigmaNodeRepository();
+        designToProcess = await nodeRepository.exportNodeById(layerId);
+
+        if (!designToProcess) {
+          throw new Error(`Could not find layer with ID: ${layerId}`);
+        }
+      } else if (!designToProcess) {
+        throw new Error('No design data or layer ID provided for editing');
+      }
+
       const selectedModel = model || defaultModel.id;
 
       // Strip images before sending to backend
       console.log('🔧 Plugin: Stripping images before sending to backend...');
-      const originalSize = JSON.stringify(layerJson).length;
+      const originalSize = JSON.stringify(designToProcess).length;
 
-      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(layerJson);
+      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(designToProcess);
 
       const optimizedSize = JSON.stringify(cleanedDesign).length;
       const reduction = ((1 - optimizedSize / originalSize) * 100).toFixed(1);
@@ -533,7 +556,8 @@ export class PluginMessageHandler {
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
     referenceJson: any,
-    model?: string
+    model?: string,
+    referenceId?: string // New optional parameter
   ): Promise<void> {
     try {
       let conversationHistory: Array<{ role: string; content: string }> = [];
@@ -542,11 +566,25 @@ export class PluginMessageHandler {
         conversationHistory = history;
       }
 
+      // If no JSON provided but ID is, fetch the node from Figma
+      let referenceToProcess = referenceJson;
+      if (!referenceToProcess && referenceId) {
+        console.log(`🔍 Fetching reference layer by ID: ${referenceId}`);
+        const nodeRepository = new (await import('../../infrastructure/figma/figma-node.repository')).FigmaNodeRepository();
+        referenceToProcess = await nodeRepository.exportNodeById(referenceId);
+
+        if (!referenceToProcess) {
+          throw new Error(`Could not find reference layer with ID: ${referenceId}`);
+        }
+      } else if (!referenceToProcess) {
+        throw new Error('No reference design or ID provided');
+      }
+
       const selectedModel = model || defaultModel.id;
 
       // Strip images from reference
       console.log('🔧 Plugin: Stripping images from reference design...');
-      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(referenceJson);
+      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(referenceToProcess);
       console.log(`📸 Plugin: Extracted ${imageReferences.length} images from reference`);
 
       console.log("🎨 Generating design based on existing reference");
