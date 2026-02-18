@@ -51,11 +51,6 @@ export default function DesignSystemPanel() {
     const handleSelect = (systemId) => {
         dispatch({ type: 'SET_DESIGN_SYSTEM', systemId });
         dispatch({ type: 'CLOSE_DESIGN_SYSTEM_PANEL' });
-        try {
-            localStorage.setItem('figma-design-system', systemId);
-        } catch (e) {
-            console.log('LocalStorage save error:', e);
-        }
     };
 
     const handleClose = () => {

@@ -9,7 +9,6 @@ export interface IPrototypeService {
     ): Promise<{
         connections: PrototypeConnection[];
         message: string;
-        reasoning?: string;
         cost?: any;
     }>;
 }

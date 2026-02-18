@@ -208,7 +208,6 @@ export class DesignController {
                 success: true,
                 connections: result.connections,
                 message: result.message,
-                reasoning: result.reasoning,
                 cost: result.cost,
                 points,
             };

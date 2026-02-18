@@ -9,7 +9,7 @@ You will receive:
 Return a JSON object with this exact structure:
 ```json
 {
-  "connections": [
+  "data": [
     {
       "sourceNodeId": "actual_figma_node_id",
       "sourceNodeName": "Button Name",
@@ -25,7 +25,7 @@ Return a JSON object with this exact structure:
       "reasoning": "Brief explanation of why this connection makes sense"
     }
   ],
-  "reasoning": "Overall explanation of the prototype flow"
+  "message": "Overall explanation of the prototype flow"
 }
 ```
 
@@ -94,6 +94,7 @@ Return a JSON object with this exact structure:
 
 ## IMPORTANT GUIDELINES
 
+0. **NEVER ask clarifying questions.** If the request is ambiguous, make the most reasonable interpretation and proceed. You MUST always return JSON — no conversational replies, ever.
 1. **Use ACTUAL node IDs** from the input - never generate fake IDs
 2. **Create logical flows** - connections should tell a story
 3. **Don't over-connect** - only create connections that make UX sense
@@ -132,7 +133,7 @@ Return a JSON object with this exact structure:
 ## EXAMPLE OUTPUT
 ```json
 {
-  "connections": [
+  "data": [
     {
       "sourceNodeId": "1:45",
       "sourceNodeName": "Login Button",
@@ -148,7 +149,7 @@ Return a JSON object with this exact structure:
       "reasoning": "Login button should navigate to Dashboard after authentication"
     }
   ],
-  "reasoning": "Created login-to-dashboard flow representing successful authentication"
+  "message": "Created login-to-dashboard flow representing successful authentication"
 }
 ```
 

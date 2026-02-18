@@ -45,15 +45,17 @@ export class AuthController {
 
             const { user, token } = await this.googleSignInUseCase.execute(code, figmaUserId);
 
-            // If pollingId is present, store token and serve "Success" page
             if (pollingId) {
                 this.tokenStoreService.storeToken(pollingId, token);
                 res.send(this.renderPage('polling-success.html', { userName: user.userName || user.email || 'User' }));
                 return;
             }
 
-            // Fallback for manual flow (if any) or web login
-            res.send(this.renderPage('callback.html', { token, userName: user.userName || user.email || 'User' }));
+            // No polling ID means invalid flow
+            res.status(400).json({
+                success: false,
+                message: 'Invalid authentication flow. Please sign in through the Figma plugin.',
+            });
         } catch (error) {
             console.error('Error in Google callback:', error);
             res.send(this.renderPage('error.html', { errorMessage: (error as Error).message }));
@@ -95,7 +97,6 @@ export class AuthController {
 
     getMe = async (req: Request, res: Response): Promise<void> => {
         try {
-            // User is already attached by AuthMiddleware
             const user = (req as any).user;
 
             if (!user) {
