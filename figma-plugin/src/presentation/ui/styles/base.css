@@ -164,7 +164,8 @@ textarea.valid:not(.design-preview textarea) {
     padding-top: 16px;
 }
 
-button:not(.design-preview button) {
+.button-group button:not(.design-preview button),
+.content-container>button:not(.design-preview button) {
     padding: 12px 24px;
     border: none;
     border-radius: 8px;
