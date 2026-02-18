@@ -269,7 +269,7 @@ export default function AiTab({ sendMessage }) {
                 <div className="fp-panel">
                     <div className="fp-header">
                         <div className="fp-title">
-                            <span className="fp-title-icon">📐</span> Select Frames
+                            <span className="fp-title-icon">📐</span> Select Frames {availableFrames?.length ? `- ${availableFrames.length} available` : ""}
                         </div>
                         <div className="fp-actions">
                             <button className="fp-action-btn" onClick={selectAllFrames}>All</button>

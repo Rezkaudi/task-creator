@@ -67,7 +67,7 @@
 .mode-btn .mode-tip {
     display: none;
     position: absolute;
-    bottom: calc(100% + 6px);
+    top: calc(100% + 6px);
     left: 50%;
     transform: translateX(-50%);
     background: var(--text-primary);
@@ -85,11 +85,11 @@
 .mode-btn .mode-tip::after {
     content: '';
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 50%;
     margin-left: -3px;
     border: 3px solid transparent;
-    border-top-color: var(--text-primary);
+    border-bottom-color: var(--text-primary);
 }
 
 .mode-btn:hover .mode-tip {
@@ -409,6 +409,8 @@
     gap: 3px;
     padding-bottom: 5px;
     min-height: 0;
+    max-height: 80px;
+    overflow: scroll;
 }
 
 .frame-chips:empty {
@@ -638,7 +640,8 @@
     box-shadow: var(--shadow-lg);
     min-width: 160px;
     z-index: 60;
-    overflow: hidden;
+    overflow: scroll;
+    max-height: 200px;
     display: none;
     text-align: left;
 }
