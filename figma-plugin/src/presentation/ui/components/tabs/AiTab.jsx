@@ -6,6 +6,7 @@ import PrototypePanel from './PrototypePanel.jsx';
 import '../../styles/ModeBar.css';
 
 const MODE_LABELS = {
+    create: { icon: '✨', label: 'Create', tip: 'Generate a new design from scratch', badge: '✨ Create Mode' },
     edit: { icon: '✏️', label: 'Edit', tip: 'Modify an existing frame with AI', badge: '✏️ Edit Mode' },
     'based-on-existing': { icon: '🎨', label: 'By Reference', tip: 'Create new design using existing style', badge: '🎨 By Reference Mode' },
     prototype: { icon: '🔗', label: 'Prototype', tip: 'Auto-generate prototype connections', badge: '🔗 Prototype Mode' },
@@ -92,6 +93,16 @@ export default function AiTab({ sendMessage }) {
         if (mode === currentMode) return;
 
         switch (mode) {
+            case 'create':
+                setCurrentMode('create');
+                setView('chat');
+                setIsBasedOnExistingMode(false);
+                setSelectedLayerForEdit(null);
+                setSelectedLayerJson(null);
+                setReferenceDesignJson(null);
+                setReferenceLayerName('');
+                setSystemMessages(prev => [...prev, { badge: MODE_LABELS.create.badge }]);
+                break;
             case 'edit':
                 setCurrentMode('edit');
                 setView('chat');
