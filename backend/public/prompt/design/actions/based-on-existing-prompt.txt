@@ -11,27 +11,36 @@ YOUR TASK
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1. **ANALYZE** the reference design to extract its design system:
-   - Color palette (primary, secondary, background, text colors)
-   - Typography (font families, sizes, weights, line heights)
-   - Spacing system (padding, margins, gaps)
-   - Border styles (radius, width, colors)
-   - Shadow patterns (elevation, blur, spread)
-   - Component patterns (buttons, inputs, cards, etc.)
+   - Color palette (primary, secondary, background, text colors — including gradient fills)
+   - Typography (font families, sizes, weights, line heights, letterSpacing, textCase)
+   - Spacing system (padding, margins, gaps — itemSpacing values)
+   - Border styles (cornerRadius, cornerSmoothing, strokeWeight, strokeAlign, dashPattern)
+   - Shadow patterns (effect type, radius, offset, spread, color alpha)
+   - Component patterns (buttons, inputs, cards — their layoutMode, sizing, padding)
+   - Layout patterns (layoutGrow, layoutAlign, textAutoResize usage)
 
 2. **CREATE** a completely new design based on the user's request
 
 3. **APPLY** the extracted design system to the new design:
-   - Use the SAME color palette
-   - Use the SAME typography styles
-   - Use the SAME spacing patterns
-   - Use the SAME border radius and styles
-   - Use the SAME shadow patterns
-   - Follow the SAME component design patterns
+   - Use the SAME color palette (including gradients if the reference uses them)
+   - Use the SAME typography styles (font family, sizes, weights, letterSpacing, textCase)
+   - Use the SAME spacing patterns (itemSpacing, padding values)
+   - Use the SAME border radius, cornerSmoothing, and stroke styles
+   - Use the SAME shadow patterns (type, radius, alpha values)
+   - Follow the SAME component design patterns (button padding, input height, card structure)
+   - Preserve the SAME layout behavior (layoutGrow, layoutAlign, textAutoResize)
 
 4. **ENSURE CONSISTENCY**:
    - The new design should feel like it belongs to the same project
    - Maintain visual harmony with the reference design
    - Use similar component structures where applicable
+
+5. **ENHANCE where appropriate:**
+   - If the reference uses only SOLID fills, consider using GRADIENT_LINEAR for hero sections or primary CTAs to add visual richness
+   - Carry over auto-layout patterns: match layoutMode, sizing modes, and spacing values
+   - Preserve layoutGrow/layoutAlign patterns for responsive behavior
+   - Match text styling: textAutoResize, textCase, letterSpacing values
+   - Preserve clipsContent behavior for frames
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CRITICAL RULES
@@ -50,17 +59,24 @@ EXAMPLE WORKFLOW
 
 Reference Design: Sign Up Page with:
 - Primary color: Blue (#3B82F6 -> 0.23, 0.51, 0.96)
-- Border radius: 8px
-- Shadow: 0 2px 8px rgba(0,0,0,0.1)
-- Font: Inter, 16px
+- Gradient CTA: GRADIENT_LINEAR from blue to indigo
+- Border radius: 12px with cornerSmoothing: 0.6
+- Shadow: DROP_SHADOW radius 16, offset y:6, alpha 0.1
+- Font: Inter, body 15px, heading 32px Bold with letterSpacing -1%
+- Spacing: itemSpacing 16, padding 24
+- Buttons: layoutMode HORIZONTAL, padding 14/28, textAutoResize WIDTH_AND_HEIGHT
+- Inputs: 1px stroke, cornerRadius 8, padding 12
 
 User Request: "Create a login page"
 
 Your Output: Login Page with:
-- SAME blue primary color (0.23, 0.51, 0.96)
-- SAME 8px border radius
-- SAME shadow pattern
-- SAME Inter font at 16px
-- NEW layout and content (email, password, login button)
+- SAME blue primary (0.23, 0.51, 0.96) and gradient CTA
+- SAME 12px cornerRadius with cornerSmoothing 0.6
+- SAME shadow pattern (radius 16, offset y:6, alpha 0.1)
+- SAME Inter font, 15px body, 32px Bold heading with letterSpacing -1%
+- SAME spacing (itemSpacing 16, padding 24)
+- SAME button structure (layoutMode, padding, textAutoResize)
+- SAME input structure (stroke, radius, padding)
+- NEW layout and content (email, password, login button, "Forgot password?" link)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -3,18 +3,20 @@ FIGMA JSON SCHEMA INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1. **Valid Node Types:** You must ONLY use these node types:
-   - FRAME
-   - GROUP
-   - RECTANGLE
-   - TEXT
-   - ELLIPSE
-   - VECTOR (for custom shapes ONLY — NOT for icons, see icon instructions below)
-   - LINE
-   - POLYGON
-   - STAR
-   - COMPONENT
-   - INSTANCE
-   - BOOLEAN_OPERATION
+   - FRAME (main container, supports auto-layout)
+   - GROUP (visual grouping without auto-layout)
+   - RECTANGLE (shapes, backgrounds, icon containers)
+   - TEXT (all text content)
+   - ELLIPSE (circles, ovals, arcs, donut/pie shapes)
+   - VECTOR (for custom shapes ONLY — NOT for icons)
+   - LINE (horizontal/vertical lines, dividers)
+   - POLYGON (triangles, hexagons, octagons — any regular polygon)
+   - STAR (star shapes)
+   - COMPONENT (reusable design component)
+   - COMPONENT_SET (container for component variants)
+   - INSTANCE (instance of a component)
+   - BOOLEAN_OPERATION (union, subtract, intersect, exclude of shapes)
+   - SECTION (canvas-level grouping container for organizing frames)
 
    Do NOT invent types like "BUTTON", "INPUT", "CARD", "ICON", etc.
    - A button = FRAME or RECTANGLE containing a TEXT node
@@ -60,7 +62,15 @@ FIGMA JSON SCHEMA INSTRUCTIONS
    - strokeJoin: "MITER" | "BEVEL" | "ROUND"
    - vectorPaths (array) - SVG path data
 
-4. **Fills Structure (for colors/backgrounds):**
+4. **Common Visual Properties (optional, apply to ALL nodes):**
+   - opacity: number (0-1, default 1). Use for subtle overlays, disabled states, decorative elements.
+   - visible: boolean (default true)
+   - rotation: number (degrees, e.g., 45 for 45° clockwise)
+   - blendMode: "NORMAL" | "MULTIPLY" | "SCREEN" | "OVERLAY" | "DARKEN" | "LIGHTEN" (default "NORMAL")
+
+5. **Fills Structure (for colors/backgrounds):**
+
+   **Solid fill:**
 ```json
 "fills": [
   {
@@ -73,7 +83,36 @@ FIGMA JSON SCHEMA INSTRUCTIONS
 ]
 ```
 
-5. **Strokes Structure (for borders):**
+   **Gradient fill (for hero sections, CTAs, decorative backgrounds):**
+```json
+"fills": [
+  {
+    "type": "GRADIENT_LINEAR",
+    "visible": true,
+    "opacity": 1,
+    "gradientStops": [
+      { "position": 0, "color": { "r": 0.09, "g": 0.46, "b": 0.95, "a": 1 } },
+      { "position": 1, "color": { "r": 0.56, "g": 0.24, "b": 0.94, "a": 1 } }
+    ]
+  }
+]
+```
+   Valid gradient types: "GRADIENT_LINEAR" | "GRADIENT_RADIAL" | "GRADIENT_ANGULAR" | "GRADIENT_DIAMOND"
+   Each stop needs: position (0-1) and color with alpha (r, g, b, a all 0-1).
+
+   **Image fill (for background images, photos, placeholders):**
+```json
+"fills": [
+  {
+    "type": "IMAGE",
+    "scaleMode": "FILL",
+    "imageUrl": "https://example.com/photo.jpg"
+  }
+]
+```
+   Valid scaleMode: "FILL" | "FIT" | "CROP" | "TILE"
+
+6. **Strokes Structure (for borders):**
 ```json
 "strokes": [
   {
@@ -87,16 +126,22 @@ FIGMA JSON SCHEMA INSTRUCTIONS
 "strokeWeight": 1,
 "strokeAlign": "INSIDE"
 ```
+   Additional stroke properties (optional):
+   - strokeAlign: "INSIDE" | "CENTER" | "OUTSIDE"
+   - dashPattern: [10, 5] (array of numbers — e.g., [10, 5] = 10px dash, 5px gap; [4, 4] = dotted)
+   - strokeCap: "NONE" | "ROUND" | "SQUARE" | "ARROW_LINES" | "ARROW_EQUILATERAL"
+   - strokeJoin: "MITER" | "BEVEL" | "ROUND"
 
-6. **Corner Radius:**
+7. **Corner Radius:**
    - Single value: "cornerRadius": 8
    - Individual corners:
      "topLeftRadius": 8,
      "topRightRadius": 8,
      "bottomLeftRadius": 0,
      "bottomRightRadius": 0
+   - Smooth corners (iOS-style): "cornerSmoothing": 0.6 (value 0-1, 0.6 matches iOS)
 
-7. **Auto-Layout (for FRAME nodes):**
+8. **Auto-Layout (for FRAME nodes):**
 ```json
 "layoutMode": "VERTICAL",
 "primaryAxisSizingMode": "AUTO",
@@ -115,9 +160,70 @@ FIGMA JSON SCHEMA INSTRUCTIONS
    - primaryAxisSizingMode: "FIXED" | "AUTO"
    - counterAxisSizingMode: "FIXED" | "AUTO"
    - primaryAxisAlignItems: "MIN" | "CENTER" | "MAX" | "SPACE_BETWEEN"
-   - counterAxisAlignItems: "MIN" | "CENTER" | "MAX"
+   - counterAxisAlignItems: "MIN" | "CENTER" | "MAX" | "BASELINE"
 
-8. **Effects (shadows and blurs ONLY):**
+   **Wrap layout (for responsive grids):**
+   - layoutWrap: "NO_WRAP" | "WRAP" (WRAP enables flex-wrap — children flow to next row/column when full)
+   - counterAxisSpacing: number (gap between wrapped rows/columns, only used with layoutWrap: "WRAP")
+
+   **Frame overflow:**
+   - clipsContent: boolean (true = clip children that overflow frame bounds; default true for frames)
+
+   **Layout Child Properties (apply to CHILDREN inside an auto-layout frame):**
+   These go on the child nodes, NOT the parent frame:
+   - layoutAlign: "INHERIT" | "STRETCH" (STRETCH = child fills the cross-axis of parent)
+   - layoutGrow: 0 | 1 (1 = child fills remaining space along primary axis, like CSS flex-grow: 1)
+   - layoutPositioning: "AUTO" | "ABSOLUTE" (ABSOLUTE = child is positioned freely with x/y inside auto-layout parent, removed from flow)
+
+   **Example: Two-column layout (sidebar + content):**
+```json
+{
+  "name": "Page Layout",
+  "type": "FRAME",
+  "width": 1440,
+  "height": 900,
+  "layoutMode": "HORIZONTAL",
+  "primaryAxisSizingMode": "FIXED",
+  "counterAxisSizingMode": "FIXED",
+  "itemSpacing": 0,
+  "children": [
+    {
+      "name": "Sidebar",
+      "type": "FRAME",
+      "x": 0, "y": 0,
+      "width": 280,
+      "height": 900,
+      "layoutAlign": "STRETCH",
+      "layoutGrow": 0,
+      "layoutMode": "VERTICAL",
+      "primaryAxisSizingMode": "FIXED",
+      "counterAxisSizingMode": "FIXED",
+      "itemSpacing": 8,
+      "paddingTop": 24, "paddingRight": 16, "paddingBottom": 24, "paddingLeft": 16,
+      "fills": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 0.96, "g": 0.96, "b": 0.97 } }],
+      "children": []
+    },
+    {
+      "name": "Main Content",
+      "type": "FRAME",
+      "x": 0, "y": 0,
+      "width": 1160,
+      "height": 900,
+      "layoutAlign": "STRETCH",
+      "layoutGrow": 1,
+      "layoutMode": "VERTICAL",
+      "primaryAxisSizingMode": "FIXED",
+      "counterAxisSizingMode": "FIXED",
+      "itemSpacing": 24,
+      "paddingTop": 32, "paddingRight": 40, "paddingBottom": 32, "paddingLeft": 40,
+      "fills": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 1, "g": 1, "b": 1 } }],
+      "children": []
+    }
+  ]
+}
+```
+
+9. **Effects (shadows, blurs):**
 ```json
 "effects": [
   {
@@ -132,19 +238,90 @@ FIGMA JSON SCHEMA INSTRUCTIONS
 ]
 ```
 
-   Valid effect types: "DROP_SHADOW" | "INNER_SHADOW" | "BACKGROUND_BLUR"
+   Valid effect types: "DROP_SHADOW" | "INNER_SHADOW" | "LAYER_BLUR" | "BACKGROUND_BLUR"
 
    **IMPORTANT:** Do NOT use "BORDER" as an effect type — it does NOT exist in Figma.
-   For borders, use `strokes` (see section 5 above), NOT effects.
+   For borders, use `strokes` (see section 6 above), NOT effects.
 
-9. **Font Families:** Use only these fonts that exist in Figma:
+   Shadow-specific: showShadowBehindNode: boolean (renders shadow behind the node for DROP_SHADOW)
+   Blur-only example: { "type": "LAYER_BLUR", "visible": true, "radius": 10 }
+
+10. **TEXT Node — Full Properties:**
+
+    **Required properties (always include):**
+    - characters (string) — the actual text content
+    - fontSize (number)
+    - fontName: { "family": "Inter", "style": "Regular" }
+    - textAlignHorizontal: "LEFT" | "CENTER" | "RIGHT" | "JUSTIFIED"
+    - textAlignVertical: "TOP" | "CENTER" | "BOTTOM"
+    - lineHeight: { "unit": "AUTO" } or { "unit": "PIXELS", "value": 24 } or { "unit": "PERCENT", "value": 150 }
+    - fills (array — text color)
+
+    **Optional text properties (use to enhance designs):**
+    - textAutoResize: "NONE" | "HEIGHT" | "WIDTH_AND_HEIGHT" | "TRUNCATE"
+      ("HEIGHT" = fixed width, auto height — best for body text in auto-layout)
+      ("WIDTH_AND_HEIGHT" = auto size both — best for labels, buttons, tags)
+      ("TRUNCATE" = fixed size with ellipsis)
+    - textDecoration: "NONE" | "UNDERLINE" | "STRIKETHROUGH"
+    - textCase: "ORIGINAL" | "UPPER" | "LOWER" | "TITLE"
+    - letterSpacing: { "unit": "PIXELS", "value": 0.5 } or { "unit": "PERCENT", "value": 5 }
+    - paragraphSpacing: number (space between paragraphs in px)
+    - textTruncation: "DISABLED" | "ENDING" (show "..." when text overflows)
+    - maxLines: number (max lines before truncation, use with textTruncation: "ENDING")
+    - hyperlink: { "type": "URL", "value": "https://example.com" }
+
+    **Mixed text styling (different fonts/colors/sizes in one text node):**
+```json
+{
+  "type": "TEXT",
+  "name": "Rich Text",
+  "characters": "Hello World",
+  "fontSize": 16,
+  "fontName": { "family": "Inter", "style": "Regular" },
+  "textAlignHorizontal": "LEFT",
+  "textAlignVertical": "TOP",
+  "lineHeight": { "unit": "AUTO" },
+  "fills": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 0.1, "g": 0.1, "b": 0.1 } }],
+  "textSegments": [
+    {
+      "start": 0,
+      "end": 5,
+      "fontName": { "family": "Inter", "style": "Bold" },
+      "fontSize": 16,
+      "fills": [{ "type": "SOLID", "color": { "r": 0.09, "g": 0.46, "b": 0.95 } }]
+    },
+    {
+      "start": 6,
+      "end": 11,
+      "fontName": { "family": "Inter", "style": "Regular" },
+      "fontSize": 16
+    }
+  ]
+}
+```
+
+11. **Font Families:** Use only these fonts that exist in Figma:
     - "Inter" (styles: "Regular", "Medium", "Semi Bold", "Bold")
     - "Roboto" (styles: "Regular", "Medium", "Bold")
     - "SF Pro" (styles: "Regular", "Medium", "Semibold", "Bold")
     - "Arial" (styles: "Regular", "Bold")
     Do NOT use fonts like "Poppins" unless explicitly available.
 
-10. **Multiple Pages:** Return an array with multiple FRAME objects. Each top-level FRAME represents a page/screen:
+12. **Shape-Specific Properties:**
+
+    **ELLIPSE — arcs, donuts, pie slices:**
+    - arcData: { "startingAngle": 0, "endingAngle": 4.71, "innerRadius": 0.5 }
+      Angles in radians (full circle = 6.283). innerRadius 0-1 (0 = full circle, 0.5 = donut).
+      Use for: progress rings, pie charts, donut charts.
+
+    **POLYGON — regular polygons:**
+    - pointCount: number (minimum 3; 3 = triangle, 6 = hexagon, 8 = octagon)
+
+    **STAR — star shapes:**
+    - pointCount: number (number of star points, minimum 3)
+    - innerRadius: number (0-1, ratio of inner to outer radius; 0.5 = classic star)
+
+13. **Multiple Pages:** Return an array with multiple FRAME objects. Each top-level FRAME represents a page/screen:
 ```json
 [
   {
@@ -168,14 +345,14 @@ FIGMA JSON SCHEMA INSTRUCTIONS
 ]
 ```
 
-11. **Common Screen Sizes:**
+14. **Common Screen Sizes:**
     - Desktop: 1920 x 1080 or 1440 x 900
     - Mobile: 390 x 844 (iPhone 14/15)
     - Tablet: 820 x 1180
 
 ---
 
-## 12. **ICONS — USE ICONIFY API**
+## 15. **ICONS — USE ICONIFY API**
 
 When you need an icon in the design, use the `searchIcons` and `getIconUrl` tools, then place the icon as a RECTANGLE with an IMAGE fill. See the separate icon instructions for full details.
 
@@ -210,8 +387,8 @@ Quick example:
     "type": "FRAME",
     "x": 0,
     "y": 0,
-    "width": 1920,
-    "height": 1080,
+    "width": 1440,
+    "height": 900,
     "fills": [
       {
         "type": "SOLID",
@@ -227,14 +404,17 @@ Quick example:
     "primaryAxisAlignItems": "MIN",
     "counterAxisAlignItems": "CENTER",
     "itemSpacing": 0,
+    "clipsContent": true,
     "children": [
       {
         "name": "Navigation Bar",
         "type": "FRAME",
         "x": 0,
         "y": 0,
-        "width": 1920,
-        "height": 80,
+        "width": 1440,
+        "height": 72,
+        "layoutAlign": "STRETCH",
+        "layoutGrow": 0,
         "fills": [
           {
             "type": "SOLID",
@@ -271,7 +451,7 @@ Quick example:
             "x": 0,
             "y": 0,
             "width": 150,
-            "height": 48,
+            "height": 40,
             "fills": [],
             "layoutMode": "HORIZONTAL",
             "primaryAxisSizingMode": "AUTO",
@@ -285,15 +465,17 @@ Quick example:
                 "type": "ELLIPSE",
                 "x": 0,
                 "y": 0,
-                "width": 40,
-                "height": 40,
+                "width": 36,
+                "height": 36,
                 "fills": [
                   {
-                    "type": "SOLID",
+                    "type": "GRADIENT_LINEAR",
                     "visible": true,
                     "opacity": 1,
-                    "blendMode": "NORMAL",
-                    "color": { "r": 0.09, "g": 0.46, "b": 0.95 }
+                    "gradientStops": [
+                      { "position": 0, "color": { "r": 0.09, "g": 0.46, "b": 0.95, "a": 1 } },
+                      { "position": 1, "color": { "r": 0.36, "g": 0.28, "b": 0.96, "a": 1 } }
+                    ]
                   }
                 ]
               },
@@ -303,22 +485,23 @@ Quick example:
                 "x": 0,
                 "y": 0,
                 "width": 100,
-                "height": 36,
+                "height": 32,
                 "fills": [
                   {
                     "type": "SOLID",
                     "visible": true,
                     "opacity": 1,
                     "blendMode": "NORMAL",
-                    "color": { "r": 0.09, "g": 0.46, "b": 0.95 }
+                    "color": { "r": 0.07, "g": 0.07, "b": 0.09 }
                   }
                 ],
                 "characters": "BrandName",
-                "fontSize": 24,
-                "fontName": { "family": "Inter", "style": "Semi Bold" },
+                "fontSize": 22,
+                "fontName": { "family": "Inter", "style": "Bold" },
                 "textAlignHorizontal": "LEFT",
                 "textAlignVertical": "CENTER",
-                "lineHeight": { "unit": "AUTO" }
+                "lineHeight": { "unit": "AUTO" },
+                "textAutoResize": "WIDTH_AND_HEIGHT"
               }
             ]
           },
@@ -328,7 +511,7 @@ Quick example:
             "x": 0,
             "y": 0,
             "width": 400,
-            "height": 48,
+            "height": 40,
             "fills": [],
             "layoutMode": "HORIZONTAL",
             "primaryAxisSizingMode": "AUTO",
@@ -350,15 +533,16 @@ Quick example:
                     "visible": true,
                     "opacity": 1,
                     "blendMode": "NORMAL",
-                    "color": { "r": 0.1, "g": 0.1, "b": 0.1 }
+                    "color": { "r": 0.3, "g": 0.3, "b": 0.35 }
                   }
                 ],
                 "characters": "Features",
-                "fontSize": 16,
+                "fontSize": 15,
                 "fontName": { "family": "Inter", "style": "Medium" },
                 "textAlignHorizontal": "CENTER",
                 "textAlignVertical": "CENTER",
-                "lineHeight": { "unit": "AUTO" }
+                "lineHeight": { "unit": "AUTO" },
+                "textAutoResize": "WIDTH_AND_HEIGHT"
               },
               {
                 "name": "Nav Link 2",
@@ -373,15 +557,16 @@ Quick example:
                     "visible": true,
                     "opacity": 1,
                     "blendMode": "NORMAL",
-                    "color": { "r": 0.1, "g": 0.1, "b": 0.1 }
+                    "color": { "r": 0.3, "g": 0.3, "b": 0.35 }
                   }
                 ],
                 "characters": "Pricing",
-                "fontSize": 16,
+                "fontSize": 15,
                 "fontName": { "family": "Inter", "style": "Medium" },
                 "textAlignHorizontal": "CENTER",
                 "textAlignVertical": "CENTER",
-                "lineHeight": { "unit": "AUTO" }
+                "lineHeight": { "unit": "AUTO" },
+                "textAutoResize": "WIDTH_AND_HEIGHT"
               },
               {
                 "name": "Nav Link 3",
@@ -396,15 +581,16 @@ Quick example:
                     "visible": true,
                     "opacity": 1,
                     "blendMode": "NORMAL",
-                    "color": { "r": 0.1, "g": 0.1, "b": 0.1 }
+                    "color": { "r": 0.3, "g": 0.3, "b": 0.35 }
                   }
                 ],
                 "characters": "About",
-                "fontSize": 16,
+                "fontSize": 15,
                 "fontName": { "family": "Inter", "style": "Medium" },
                 "textAlignHorizontal": "CENTER",
                 "textAlignVertical": "CENTER",
-                "lineHeight": { "unit": "AUTO" }
+                "lineHeight": { "unit": "AUTO" },
+                "textAutoResize": "WIDTH_AND_HEIGHT"
               }
             ]
           },
@@ -413,23 +599,30 @@ Quick example:
             "type": "FRAME",
             "x": 0,
             "y": 0,
-            "width": 140,
-            "height": 48,
+            "width": 150,
+            "height": 44,
             "fills": [
               {
-                "type": "SOLID",
+                "type": "GRADIENT_LINEAR",
                 "visible": true,
                 "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": { "r": 0.09, "g": 0.46, "b": 0.95 }
+                "gradientStops": [
+                  { "position": 0, "color": { "r": 0.09, "g": 0.46, "b": 0.95, "a": 1 } },
+                  { "position": 1, "color": { "r": 0.36, "g": 0.28, "b": 0.96, "a": 1 } }
+                ]
               }
             ],
-            "cornerRadius": 8,
+            "cornerRadius": 10,
+            "cornerSmoothing": 0.6,
             "layoutMode": "HORIZONTAL",
-            "primaryAxisSizingMode": "FIXED",
-            "counterAxisSizingMode": "FIXED",
+            "primaryAxisSizingMode": "AUTO",
+            "counterAxisSizingMode": "AUTO",
             "primaryAxisAlignItems": "CENTER",
             "counterAxisAlignItems": "CENTER",
+            "paddingTop": 10,
+            "paddingRight": 24,
+            "paddingBottom": 10,
+            "paddingLeft": 24,
             "itemSpacing": 8,
             "children": [
               {
@@ -449,11 +642,12 @@ Quick example:
                   }
                 ],
                 "characters": "Get Started",
-                "fontSize": 16,
+                "fontSize": 15,
                 "fontName": { "family": "Inter", "style": "Semi Bold" },
                 "textAlignHorizontal": "CENTER",
                 "textAlignVertical": "CENTER",
-                "lineHeight": { "unit": "AUTO" }
+                "lineHeight": { "unit": "AUTO" },
+                "textAutoResize": "WIDTH_AND_HEIGHT"
               },
               {
                 "name": "Arrow Icon",
@@ -478,16 +672,18 @@ Quick example:
         "name": "Hero Section",
         "type": "FRAME",
         "x": 0,
-        "y": 80,
-        "width": 1920,
-        "height": 600,
+        "y": 0,
+        "width": 1440,
+        "height": 560,
+        "layoutAlign": "STRETCH",
+        "layoutGrow": 1,
         "fills": [
           {
             "type": "SOLID",
             "visible": true,
             "opacity": 1,
             "blendMode": "NORMAL",
-            "color": { "r": 0.97, "g": 0.97, "b": 0.98 }
+            "color": { "r": 0.98, "g": 0.98, "b": 0.99 }
           }
         ],
         "layoutMode": "VERTICAL",
@@ -495,16 +691,71 @@ Quick example:
         "counterAxisSizingMode": "FIXED",
         "primaryAxisAlignItems": "CENTER",
         "counterAxisAlignItems": "CENTER",
-        "itemSpacing": 32,
+        "itemSpacing": 28,
         "paddingTop": 100,
         "paddingBottom": 100,
         "children": [
+          {
+            "name": "Badge",
+            "type": "FRAME",
+            "x": 0,
+            "y": 0,
+            "width": 160,
+            "height": 32,
+            "fills": [
+              {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 0.08,
+                "blendMode": "NORMAL",
+                "color": { "r": 0.09, "g": 0.46, "b": 0.95 }
+              }
+            ],
+            "cornerRadius": 16,
+            "layoutMode": "HORIZONTAL",
+            "primaryAxisSizingMode": "AUTO",
+            "counterAxisSizingMode": "AUTO",
+            "primaryAxisAlignItems": "CENTER",
+            "counterAxisAlignItems": "CENTER",
+            "paddingTop": 6,
+            "paddingRight": 16,
+            "paddingBottom": 6,
+            "paddingLeft": 16,
+            "children": [
+              {
+                "name": "Badge Text",
+                "type": "TEXT",
+                "x": 0,
+                "y": 0,
+                "width": 100,
+                "height": 20,
+                "fills": [
+                  {
+                    "type": "SOLID",
+                    "visible": true,
+                    "opacity": 1,
+                    "blendMode": "NORMAL",
+                    "color": { "r": 0.09, "g": 0.46, "b": 0.95 }
+                  }
+                ],
+                "characters": "New Release v2.0",
+                "fontSize": 13,
+                "fontName": { "family": "Inter", "style": "Semi Bold" },
+                "textAlignHorizontal": "CENTER",
+                "textAlignVertical": "CENTER",
+                "lineHeight": { "unit": "AUTO" },
+                "textAutoResize": "WIDTH_AND_HEIGHT",
+                "textCase": "UPPER",
+                "letterSpacing": { "unit": "PERCENT", "value": 4 }
+              }
+            ]
+          },
           {
             "name": "Hero Title",
             "type": "TEXT",
             "x": 0,
             "y": 0,
-            "width": 800,
+            "width": 720,
             "height": 120,
             "fills": [
               {
@@ -512,38 +763,158 @@ Quick example:
                 "visible": true,
                 "opacity": 1,
                 "blendMode": "NORMAL",
-                "color": { "r": 0.1, "g": 0.1, "b": 0.1 }
+                "color": { "r": 0.07, "g": 0.07, "b": 0.09 }
               }
             ],
             "characters": "Build Amazing Products\nFaster Than Ever",
-            "fontSize": 56,
+            "fontSize": 52,
             "fontName": { "family": "Inter", "style": "Bold" },
             "textAlignHorizontal": "CENTER",
             "textAlignVertical": "TOP",
-            "lineHeight": { "unit": "PERCENT", "value": 120 }
+            "lineHeight": { "unit": "PERCENT", "value": 115 },
+            "textAutoResize": "HEIGHT",
+            "letterSpacing": { "unit": "PERCENT", "value": -2 }
           },
           {
             "name": "Hero Subtitle",
             "type": "TEXT",
             "x": 0,
             "y": 0,
-            "width": 600,
-            "height": 60,
+            "width": 560,
+            "height": 56,
             "fills": [
               {
                 "type": "SOLID",
                 "visible": true,
                 "opacity": 1,
                 "blendMode": "NORMAL",
-                "color": { "r": 0.4, "g": 0.4, "b": 0.4 }
+                "color": { "r": 0.4, "g": 0.4, "b": 0.45 }
               }
             ],
-            "characters": "The all-in-one platform for teams to collaborate, design, and ship products with ease.",
-            "fontSize": 20,
+            "characters": "The all-in-one platform for teams to collaborate, design, and ship products with confidence.",
+            "fontSize": 18,
             "fontName": { "family": "Inter", "style": "Regular" },
             "textAlignHorizontal": "CENTER",
             "textAlignVertical": "TOP",
-            "lineHeight": { "unit": "PERCENT", "value": 150 }
+            "lineHeight": { "unit": "PERCENT", "value": 160 },
+            "textAutoResize": "HEIGHT"
+          },
+          {
+            "name": "CTA Group",
+            "type": "FRAME",
+            "x": 0,
+            "y": 0,
+            "width": 340,
+            "height": 52,
+            "fills": [],
+            "layoutMode": "HORIZONTAL",
+            "primaryAxisSizingMode": "AUTO",
+            "counterAxisSizingMode": "AUTO",
+            "primaryAxisAlignItems": "CENTER",
+            "counterAxisAlignItems": "CENTER",
+            "itemSpacing": 16,
+            "children": [
+              {
+                "name": "Primary CTA",
+                "type": "FRAME",
+                "x": 0,
+                "y": 0,
+                "width": 160,
+                "height": 52,
+                "fills": [
+                  {
+                    "type": "GRADIENT_LINEAR",
+                    "visible": true,
+                    "opacity": 1,
+                    "gradientStops": [
+                      { "position": 0, "color": { "r": 0.09, "g": 0.46, "b": 0.95, "a": 1 } },
+                      { "position": 1, "color": { "r": 0.36, "g": 0.28, "b": 0.96, "a": 1 } }
+                    ]
+                  }
+                ],
+                "cornerRadius": 12,
+                "cornerSmoothing": 0.6,
+                "layoutMode": "HORIZONTAL",
+                "primaryAxisSizingMode": "AUTO",
+                "counterAxisSizingMode": "AUTO",
+                "primaryAxisAlignItems": "CENTER",
+                "counterAxisAlignItems": "CENTER",
+                "paddingTop": 14,
+                "paddingRight": 28,
+                "paddingBottom": 14,
+                "paddingLeft": 28,
+                "effects": [
+                  {
+                    "type": "DROP_SHADOW",
+                    "visible": true,
+                    "radius": 16,
+                    "color": { "r": 0.09, "g": 0.46, "b": 0.95, "a": 0.3 },
+                    "offset": { "x": 0, "y": 6 },
+                    "spread": -2,
+                    "blendMode": "NORMAL"
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "Primary CTA Text",
+                    "type": "TEXT",
+                    "x": 0,
+                    "y": 0,
+                    "width": 100,
+                    "height": 24,
+                    "fills": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 1, "g": 1, "b": 1 } }],
+                    "characters": "Start Free Trial",
+                    "fontSize": 16,
+                    "fontName": { "family": "Inter", "style": "Semi Bold" },
+                    "textAlignHorizontal": "CENTER",
+                    "textAlignVertical": "CENTER",
+                    "lineHeight": { "unit": "AUTO" },
+                    "textAutoResize": "WIDTH_AND_HEIGHT"
+                  }
+                ]
+              },
+              {
+                "name": "Secondary CTA",
+                "type": "FRAME",
+                "x": 0,
+                "y": 0,
+                "width": 140,
+                "height": 52,
+                "fills": [],
+                "strokes": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 0.85, "g": 0.85, "b": 0.87 } }],
+                "strokeWeight": 1.5,
+                "strokeAlign": "INSIDE",
+                "cornerRadius": 12,
+                "cornerSmoothing": 0.6,
+                "layoutMode": "HORIZONTAL",
+                "primaryAxisSizingMode": "AUTO",
+                "counterAxisSizingMode": "AUTO",
+                "primaryAxisAlignItems": "CENTER",
+                "counterAxisAlignItems": "CENTER",
+                "paddingTop": 14,
+                "paddingRight": 28,
+                "paddingBottom": 14,
+                "paddingLeft": 28,
+                "children": [
+                  {
+                    "name": "Secondary CTA Text",
+                    "type": "TEXT",
+                    "x": 0,
+                    "y": 0,
+                    "width": 80,
+                    "height": 24,
+                    "fills": [{ "type": "SOLID", "visible": true, "opacity": 1, "blendMode": "NORMAL", "color": { "r": 0.2, "g": 0.2, "b": 0.22 } }],
+                    "characters": "Learn More",
+                    "fontSize": 16,
+                    "fontName": { "family": "Inter", "style": "Semi Bold" },
+                    "textAlignHorizontal": "CENTER",
+                    "textAlignVertical": "CENTER",
+                    "lineHeight": { "unit": "AUTO" },
+                    "textAutoResize": "WIDTH_AND_HEIGHT"
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
@@ -556,7 +927,7 @@ Quick example:
 
 **VALIDATION CHECKLIST:**
 Before outputting, verify:
-- [ ] All node types are valid (FRAME, TEXT, RECTANGLE, ELLIPSE, GROUP, VECTOR, LINE, POLYGON, STAR, COMPONENT, INSTANCE, BOOLEAN_OPERATION)
+- [ ] All node types are valid (FRAME, TEXT, RECTANGLE, ELLIPSE, GROUP, VECTOR, LINE, POLYGON, STAR, COMPONENT, INSTANCE, BOOLEAN_OPERATION, SECTION, COMPONENT_SET)
 - [ ] All colors use 0-1 range (not 0-255)
 - [ ] All TEXT nodes have `characters` property with actual text content
 - [ ] All TEXT nodes have `fontSize`, `fontName`, `textAlignHorizontal`, `textAlignVertical`, `lineHeight`
@@ -565,6 +936,9 @@ Before outputting, verify:
 - [ ] All dimensions (width, height) are positive numbers
 - [ ] All positions (x, y) are numbers
 - [ ] No invented properties or node types
-- [ ] Effects only use valid types: DROP_SHADOW, INNER_SHADOW, BACKGROUND_BLUR (NEVER "BORDER")
+- [ ] Effects only use valid types: DROP_SHADOW, INNER_SHADOW, LAYER_BLUR, BACKGROUND_BLUR (NEVER "BORDER")
 - [ ] Borders use `strokes` property, NOT effects
 - [ ] VECTOR nodes are used ONLY for custom shapes, never for icons
+- [ ] Gradient fills include gradientStops array with position and color (including alpha "a" value)
+- [ ] Auto-layout children use layoutGrow/layoutAlign for responsive sizing where appropriate
+- [ ] TEXT nodes use textAutoResize for proper text box behavior in auto-layout

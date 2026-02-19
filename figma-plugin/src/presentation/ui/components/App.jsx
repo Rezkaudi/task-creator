@@ -326,7 +326,7 @@ function AppContent() {
             )}
 
             <div className='content-container'>
-                {/* <StatusBar /> */}
+                <StatusBar />
                 <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
 
                 {/* Tab Content */}

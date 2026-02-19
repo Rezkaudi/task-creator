@@ -14,3 +14,57 @@ CRITICAL RULES
 - Return complete, valid JSON that can be imported to Figma.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESIGN QUALITY GUIDELINES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. **Visual Hierarchy:**
+   - Headings: 32-56px, Bold or Semi Bold, dark color (r/g/b < 0.15)
+   - Subheadings: 20-28px, Semi Bold or Medium
+   - Body text: 14-16px, Regular, medium gray (r/g/b ~ 0.3-0.45)
+   - Captions/labels: 12-14px, Medium, lighter gray (r/g/b ~ 0.5-0.6)
+   - Use no more than 3-4 font sizes per screen
+   - Use tight negative letterSpacing on large headings (e.g., -1% to -2%)
+
+2. **Whitespace & Spacing:**
+   - Page-level horizontal padding: 60-120px
+   - Section spacing (itemSpacing between major sections): 48-96px
+   - Component internal padding: 16-24px
+   - Consistent spacing scale: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64px
+   - More whitespace = more professional. When in doubt, add more space.
+
+3. **Color Usage:**
+   - Limit palette to 1 primary color + 1-2 accent colors + neutral grays
+   - Use GRADIENT_LINEAR fills for hero sections, primary CTAs, or decorative elements
+   - Use opacity variations (0.04-0.12) of primary color for subtle tinted backgrounds
+   - Maintain strong contrast for readability: dark text on light backgrounds
+   - Use colored DROP_SHADOW matching the button color (with a ~ 0.25-0.35) for depth on CTAs
+
+4. **Responsive Auto-Layout (ALWAYS use):**
+   - EVERY container FRAME must use layoutMode: "VERTICAL" or "HORIZONTAL"
+   - Use layoutGrow: 1 on content areas that should expand to fill available space
+   - Use layoutAlign: "STRETCH" for full-width children inside vertical layouts
+   - Use primaryAxisSizingMode: "AUTO" on containers that should shrink-wrap their content
+   - Use textAutoResize: "WIDTH_AND_HEIGHT" on labels/buttons, "HEIGHT" on body text with fixed width
+
+5. **Realistic Content:**
+   - Use realistic placeholder text (real names, emails, dates — NOT "Lorem ipsum" for short text)
+   - Include appropriate icons using Iconify (search with the tool)
+   - Use descriptive node names (e.g., "User Avatar", "Search Input", not "Frame 1", "Text 2")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMMON UI PATTERNS (build as FRAME structures)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- **Button:** FRAME + layoutMode HORIZONTAL + paddingTop/Bottom 10-14px + paddingLeft/Right 20-32px + cornerRadius 8-12px + fill (solid or gradient) + TEXT child with textAutoResize: "WIDTH_AND_HEIGHT"
+- **Input field:** FRAME + 1px stroke (light gray) + layoutMode HORIZONTAL + padding 10-14px + cornerRadius 6-8px + TEXT child (gray placeholder text, opacity 0.5)
+- **Card:** FRAME + layoutMode VERTICAL + padding 20-24px + cornerRadius 12-16px + optional DROP_SHADOW (radius 12-20, a: 0.06-0.1) or 1px stroke border
+- **Avatar:** ELLIPSE 36-48px with IMAGE fill, or RECTANGLE with cornerRadius 9999
+- **Badge/Tag:** FRAME + layoutMode HORIZONTAL + paddingTop/Bottom 4-6px + paddingLeft/Right 10-14px + cornerRadius 6-16px + tinted background fill + small TEXT (12-13px, Semi Bold)
+- **Table row:** FRAME + layoutMode HORIZONTAL + primaryAxisAlignItems SPACE_BETWEEN + children with layoutGrow for flexible column widths
+- **Divider:** RECTANGLE with height 1, layoutAlign STRETCH, fill light gray (r/g/b ~ 0.92)
+- **Modal/Dialog:** FRAME + DROP_SHADOW (radius 24, a: 0.15) + cornerRadius 16px + layoutMode VERTICAL + padding 28-32px
+- **Navigation bar:** FRAME + layoutMode HORIZONTAL + primaryAxisAlignItems SPACE_BETWEEN + height 64-72px + layoutAlign STRETCH
+- **Sidebar:** FRAME + fixed width 240-300px + layoutMode VERTICAL + itemSpacing 4-8px + layoutGrow 0 inside horizontal parent
+- **Search bar:** FRAME + layoutMode HORIZONTAL + 1px stroke + cornerRadius 8-12px + padding 10-14px + icon RECTANGLE (20x20 IMAGE fill) + TEXT placeholder
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
