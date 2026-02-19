@@ -2,11 +2,23 @@ import { DesignNode } from '../entities/design-node';
 import { FrameInfo, PrototypeConnection, ApplyPrototypeResult } from '../entities/prototype-connection.entity';
 
 /**
+ * Basic info about a selected node
+ */
+export interface SelectedNodeInfo {
+  readonly id: string;
+  readonly name: string;
+  readonly type: string;
+  readonly width: number;
+  readonly height: number;
+}
+
+/**
  * Selection info returned from the canvas
  */
 export interface SelectionInfo {
   readonly count: number;
   readonly names: string[];
+  readonly nodes: SelectedNodeInfo[];
 }
 
 /**

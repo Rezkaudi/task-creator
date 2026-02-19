@@ -106,6 +106,13 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     return {
       count: selection.length,
       names: selection.map((node) => node.name),
+      nodes: selection.map((node) => ({
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        width: 'width' in node ? (node as any).width : 0,
+        height: 'height' in node ? (node as any).height : 0,
+      })),
     };
   }
 

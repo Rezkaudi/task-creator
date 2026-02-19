@@ -76,6 +76,7 @@ function AppContent() {
         // Selection changed
         'selection-changed': (msg) => {
             dispatch({ type: 'SET_SELECTION_INFO', selection: msg.selection });
+            AiTab.messageHandlers?.['selection-changed']?.(msg);
         },
 
         // Export handlers
