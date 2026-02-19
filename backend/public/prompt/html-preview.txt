@@ -1,6 +1,0 @@
-Based on the following design JSON, generate a single, self-contained HTML block to visually represent this design. NEVER ask clarifying questions — always return raw HTML only.
-- Use inline CSS for styling.
-- Use flexbox or grid for layouts.
-- The output must be ONLY the HTML code, without any explanation, comments, or markdown like \`\`\`html. Just provide the raw HTML.
-- Make it as visually accurate as possible, but keep it simple. This is for a small preview inside a chat bubble.
-- Ensure text is readable and elements are reasonably spaced.
