@@ -125,6 +125,18 @@ class PluginApplication {
     console.log('Your User ID:', figma.currentUser?.id);
     console.log('Your Name:', figma.currentUser?.name);
     console.log('==================');
+    console.log('fileKey:', figma.fileKey);
+    console.log("documentId", figma.root.id);
+    console.log("documentName", figma.root.name);
+    console.log("currentPage", {
+      id: figma.currentPage.id,
+      name: figma.currentPage.name,
+    });
+    console.log("allPages", figma.root.children.map(page => ({
+      id: page.id,
+      name: page.name,
+    })));
+    console.log("editorType", figma.editorType);
 
     if (!AccessControlService.checkAccess()) {
       console.log('❌ Access Denied - Plugin closing');

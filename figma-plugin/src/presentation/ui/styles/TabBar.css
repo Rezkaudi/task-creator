@@ -36,6 +36,7 @@
     flex: 1;
     flex-direction: column;
     overflow: hidden;
+    padding: 8px;
 }
 
 .tab-content.active {

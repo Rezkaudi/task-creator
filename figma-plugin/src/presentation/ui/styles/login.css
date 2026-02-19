@@ -227,7 +227,7 @@
 }
 
 .credits-trigger-value {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
     color: #3730a3;
 }
@@ -256,8 +256,15 @@
 }
 
 @keyframes ddFadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .credits-dd-section {
@@ -294,8 +301,13 @@
     line-height: 1.2;
 }
 
-.credits-dd-value.green { color: #166534; }
-.credits-dd-value.blue { color: #1e40af; }
+.credits-dd-value.green {
+    color: #166534;
+}
+
+.credits-dd-value.blue {
+    color: #1e40af;
+}
 
 .credits-dd-sub {
     font-size: 10px;
@@ -363,12 +375,13 @@
     padding: 4px 10px;
     background: transparent;
     border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    font-size: 11px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
     color: #6b7280;
     cursor: pointer;
     transition: all 0.2s;
-    background-color: #f5d0d0;
+    /* background-color: #f5d0d0; */
 }
 
 .logout-btn:hover {
