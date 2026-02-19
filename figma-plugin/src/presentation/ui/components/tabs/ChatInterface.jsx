@@ -159,6 +159,7 @@ export default function ChatInterface({
 
         addMessage('user', message);
         setInputValue('');
+        console.log("clear");
         setIsGenerating(true);
 
         const newHistory = [...conversationHistory, { role: 'user', content: message }];
@@ -445,8 +446,8 @@ export default function ChatInterface({
                             className="btn-primary"
                             style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                             onClick={() => {
-                                sendChatMessage()
                                 setInputValue('Generate connections between the attached frames');
+                                sendChatMessage();
                             }}
                             disabled={isGenerating || selectedFrames.length < 2}
                         >
