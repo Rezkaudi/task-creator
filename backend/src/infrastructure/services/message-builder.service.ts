@@ -29,11 +29,11 @@ export class MessageBuilderService {
     ): AiMessage[] {
         const designSystem = getDesignSystemById(designSystemId);
         const systemPrompt = [
+            createDesignPrompt,
             schemaInstructionsPrompt,
-            designSystem.promptTemplate,
             iconInstructionsPrompt,
+            designSystem.promptTemplate,
             responseInstructionsPrompt,
-            createDesignPrompt
         ].join('\n\n');
 
         const messages: AiMessage[] = [
@@ -64,11 +64,11 @@ export class MessageBuilderService {
     ): AiMessage[] {
         const designSystem = getDesignSystemById(designSystemId);
         const systemPrompt = [
+            editDesignPrompt,
             schemaInstructionsPrompt,
-            designSystem.promptTemplate,
             iconInstructionsPrompt,
-            responseInstructionsPrompt,
-            editDesignPrompt
+            designSystem.promptTemplate,
+            responseInstructionsPrompt
         ].join('\n\n');
 
         const messages: AiMessage[] = [
@@ -97,10 +97,10 @@ export class MessageBuilderService {
         referenceToon: string
     ): AiMessage[] {
         const systemPrompt = [
+            basedOnExistingPrompt,
             schemaInstructionsPrompt,
             iconInstructionsPrompt,
             responseInstructionsPrompt,
-            basedOnExistingPrompt
         ].join('\n\n');
 
         const messages: AiMessage[] = [

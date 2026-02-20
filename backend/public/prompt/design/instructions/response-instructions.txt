@@ -1,10 +1,11 @@
 RESPONSE FORMAT
 
-Return a single JSON object with two keys:
-- data: The design array (array of FRAME objects)
-- message: One sentence explaining what was created or modified
+Return a single JSON object with exactly two keys:
+- "data": The design array (array of FRAME objects)
+- "message": One sentence explaining what was created or modified
 
-Rules:
+STRICT RULES
+
 1. The "data" array MUST contain only FRAME objects at the top level. Every design element must be nested inside a FRAME.
 2. When creating multiple pages/screens, each MUST be a separate FRAME in the data array.
 3. Every top-level FRAME must have explicit width and height matching the target device:
@@ -13,16 +14,17 @@ Rules:
    - Tablet: 820x1180
 4. Position all top-level frames at x: 0, y: 0 (the plugin handles placement on canvas).
 5. Every node must be self-contained with all required properties. Do not reference external styles or variables.
-6. Output must be valid, parseable JSON. No trailing commas, no comments, no JavaScript expressions.
+6. Output must be valid, parseable JSON. No trailing commas. No comments. No JavaScript expressions. No markdown. No code fences.
 7. The "message" string should describe what was created in 1-2 sentences, mentioning the key screens or components.
+8. Do NOT include any text before or after the JSON object.
+9. Do NOT wrap the JSON in markdown code blocks (no ```json or ```).
 
-Example:
+REQUIRED OUTPUT STRUCTURE
 
-```json
 {
   "data": [
     {
-      "name": "Landing Page",
+      "name": "Page Name",
       "type": "FRAME",
       "x": 0,
       "y": 0,
@@ -37,4 +39,3 @@ Example:
   ],
   "message": "Created a landing page with navigation bar, hero section, and feature grid."
 }
-```

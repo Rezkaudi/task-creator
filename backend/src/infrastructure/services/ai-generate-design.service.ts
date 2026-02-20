@@ -217,7 +217,8 @@ export class AiGenerateDesignService implements IAiDesignService {
         try {
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
-                messages
+                messages,
+                response_format: { type: 'json_object' },
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -257,6 +258,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             model: aiModel.id,
             messages: messages,
             tools: iconTools,
+            response_format: { type: 'json_object' },
         });
 
         // Handle tool calls loop
@@ -281,6 +283,7 @@ export class AiGenerateDesignService implements IAiDesignService {
                 model: aiModel.id,
                 messages: messages,
                 tools: iconTools,
+                response_format: { type: 'json_object' },
             });
         }
 
