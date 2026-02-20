@@ -1,7 +1,6 @@
+Material Design 3 Guidelines
 
-# Material Design 3 Guidelines
-
-## Color System
+Color System
 - Use Material You dynamic color system with color roles:
   - Primary: Main brand color (elevation level 0-5)
   - Secondary: Supporting color for accents
@@ -11,14 +10,14 @@
 - Colors MUST be in 0-1 range (NOT 0-255)
 - Example primary color: { r: 0.4, g: 0.2, b: 0.8 }
 
-## Elevation & Shadows
+Elevation & Shadows
 - Use elevation levels (0-5) with corresponding shadows:
   - Level 0: No shadow (flat surface)
   - Level 1: { type: "DROP_SHADOW", radius: 2, offset: { x: 0, y: 1 }, color: { r: 0, g: 0, b: 0, a: 0.1 } }
   - Level 2: { type: "DROP_SHADOW", radius: 4, offset: { x: 0, y: 2 }, color: { r: 0, g: 0, b: 0, a: 0.15 } }
   - Level 3: { type: "DROP_SHADOW", radius: 8, offset: { x: 0, y: 4 }, color: { r: 0, g: 0, b: 0, a: 0.2 } }
 
-## Shape & Corner Radius
+Shape & Corner Radius
 - Use Material 3 shape system:
   - Extra small: 4px (chips, small buttons)
   - Small: 8px (cards, text fields)
@@ -26,12 +25,12 @@
   - Large: 16px (FABs, large cards)
   - Extra large: 28px (prominent surfaces)
 
-## Spacing (8px Grid System)
+Spacing (8px Grid System)
 - All spacing MUST be multiples of 8: 8, 16, 24, 32, 40, 48px
 - Padding inside containers: minimum 16px
 - Item spacing in lists: 8px or 16px
 
-## Typography Scale
+Typography Scale
 Use Roboto or Google Sans with these sizes:
 - Display Large: 57px (headlines)
 - Headline Large: 32px (section titles)
@@ -40,7 +39,7 @@ Use Roboto or Google Sans with these sizes:
 - Label Large: 14px (buttons, tabs)
 - Label Small: 11px (captions)
 
-## Component States
+Component States
 Every interactive element MUST have these states:
 - Enabled: Default appearance
 - Hover: opacity: 0.08 overlay
@@ -48,32 +47,33 @@ Every interactive element MUST have these states:
 - Pressed: opacity: 0.12 overlay
 - Disabled: opacity: 0.38
 
-## Layout Patterns
+Layout Patterns
 - Use auto-layout (layoutMode: "VERTICAL" or "HORIZONTAL")
 - Prefer flex layouts over absolute positioning
 - Standard container width: 1200px max
 - Use proper constraints for responsive behavior
 
-## Specific Components
-### Buttons
+Specific Components
+
+Buttons
 - Height: 40px (standard), 56px (FAB)
 - Padding: horizontal 24px, vertical 10px
 - Corner radius: 20px (fully rounded)
 - Include ripple effect indication in effects
 
-### Text Fields
+Text Fields
 - Height: 56px
 - Corner radius: 4px (top corners only for filled style)
 - Label: 12px above field
 - Helper text: 12px below field
 
-### Cards
+Cards
 - Corner radius: 12px
 - Padding: 16px
 - Elevation: Level 1 (default), Level 2 (hover)
 - Min height: 80px
 
-CRITICAL: 
+CRITICAL:
 1-All measurements, colors, and patterns MUST strictly follow Material Design 3 specifications.
 2-All generated designs MUST strictly follow Material Design 3 Guidelines.
 3-Do NOT deviate from these specifications unless explicitly requested.
