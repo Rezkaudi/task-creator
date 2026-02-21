@@ -1,5 +1,5 @@
 // src/infrastructure/services/response-parser.service.ts
-
+import fs from "fs";
 export class ResponseParserService {
 
     /**
@@ -32,6 +32,7 @@ export class ResponseParserService {
             };
 
         } catch (error: any) {
+            fs.writeFileSync('failed_response.txt', response);
             console.error('Failed to parse AI response:', error);
             console.error('Response preview:', response);
             throw new Error('Failed to parse AI response as JSON: ' + error);

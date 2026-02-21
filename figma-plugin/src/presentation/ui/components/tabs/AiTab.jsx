@@ -139,6 +139,34 @@ export default function AiTab({ sendMessage }) {
 
     // Plugin message handlers for this tab
     AiTab.messageHandlers = {
+        // Auto-attach selected layers from canvas
+        'selection-changed': (msg) => {
+            const nodes = msg.selection?.nodes || [];
+            if (nodes.length > 0) {
+                // Convert selected nodes to frame-like objects and set them as attached
+                const selectedNodes = nodes.map(node => ({
+                    id: node.id,
+                    name: node.name,
+                    width: node.width || 0,
+                    height: node.height || 0,
+                    interactiveElements: [],
+                }));
+
+                // Merge into availableFrames (add any new ones)
+                setAvailableFrames(prev => {
+                    const existingIds = new Set(prev.map(f => f.id));
+                    const newFrames = selectedNodes.filter(n => !existingIds.has(n.id));
+                    return newFrames.length > 0 ? [...prev, ...newFrames] : prev;
+                });
+
+                // Set the selected nodes as the attached frames
+                setSelectedFrameIds(new Set(nodes.map(n => n.id)));
+            } else {
+                // Nothing selected — clear attached frames
+                setSelectedFrameIds(new Set());
+            }
+        },
+
         'layer-selected-for-edit': (msg) => {
             setCurrentMode('edit');
             setSelectedLayerForEdit(msg.layerName);

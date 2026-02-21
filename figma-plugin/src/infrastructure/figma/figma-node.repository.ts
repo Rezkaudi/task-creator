@@ -39,15 +39,18 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       if (typeof nodeData.x === 'number') node.x = nodeData.x;
       if (typeof nodeData.y === 'number') node.y = nodeData.y;
 
-      // Apply common properties
+      // Apply common properties (opacity, effects, constraints, etc.)
       this.applyCommonProperties(node, nodeData);
 
-      // Append to parent or page
+      // Append to parent or page first so node.parent is set
       if (parentNode && 'appendChild' in parentNode) {
         (parentNode as FrameNode).appendChild(node);
       } else {
         this.appendToPage(node);
       }
+
+      // Apply layout child properties after appending (needs parent context)
+      this.applyLayoutChildProperties(node, nodeData);
 
       return node;
     } catch (error) {
@@ -106,6 +109,13 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     return {
       count: selection.length,
       names: selection.map((node) => node.name),
+      nodes: selection.map((node) => ({
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        width: 'width' in node ? (node as any).width : 0,
+        height: 'height' in node ? (node as any).height : 0,
+      })),
     };
   }
 
@@ -458,10 +468,14 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       if (typeof childData.x === 'number') childNode.x = childData.x;
       if (typeof childData.y === 'number') childNode.y = childData.y;
 
-      // Apply common properties
+      // Apply common properties (opacity, effects, constraints, etc.)
       this.applyCommonProperties(childNode, childData);
 
+      // Append to parent first so node.parent is set
       parentNode.appendChild(childNode);
+
+      // Apply layout child properties after appending (needs parent context)
+      this.applyLayoutChildProperties(childNode, childData);
     }
   }
 
@@ -485,6 +499,7 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
           if (typeof childData.y === 'number') childNode.y = childData.y;
           this.applyCommonProperties(childNode, childData);
           this.appendToPage(childNode);
+          this.applyLayoutChildProperties(childNode, childData);
           childNodes.push(childNode);
         }
       }
@@ -567,6 +582,7 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
         if (typeof childData.y === 'number') childNode.y = childData.y;
         this.applyCommonProperties(childNode, childData);
         targetParent.appendChild(childNode);
+        this.applyLayoutChildProperties(childNode, childData);
         childNodes.push(childNode);
       }
     }

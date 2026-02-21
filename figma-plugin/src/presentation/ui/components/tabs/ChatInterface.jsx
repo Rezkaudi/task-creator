@@ -131,7 +131,7 @@ export default function ChatInterface({
 
     const sendChatMessage = useCallback(() => {
         const message = inputValue.trim();
-        if ((!message && currentMode !== 'prototype') || isGenerating) return;
+        if ((!message) || isGenerating) return;
 
         // Validation for Edit Mode: Must have exactly one frame attached
         if (currentMode === 'edit') {
@@ -159,6 +159,7 @@ export default function ChatInterface({
 
         addMessage('user', message);
         setInputValue('');
+        console.log("clear");
         setIsGenerating(true);
 
         const newHistory = [...conversationHistory, { role: 'user', content: message }];
@@ -444,7 +445,10 @@ export default function ChatInterface({
                         <button
                             className="btn-primary"
                             style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                            onClick={sendChatMessage}
+                            onClick={() => {
+                                setInputValue('Generate connections between the attached frames');
+                                sendChatMessage();
+                            }}
                             disabled={isGenerating || selectedFrames.length < 2}
                         >
                             {isGenerating ? <div className="spinner" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }} /> : '⚡'}

@@ -41,6 +41,12 @@ export default function ExportTab({ sendMessage }) {
         }
     }, [currentExportData, showStatus]);
 
+    const handleClear = useCallback(() => {
+        setExportOutput('');
+        setExportStats('');
+        showStatus('🗑️ Export data cleared.', 'info');
+    }, [showStatus]);
+
     const handleDownload = useCallback(() => {
         if (!currentExportData) return;
         const jsonString = JSON.stringify(currentExportData);
@@ -119,6 +125,7 @@ export default function ExportTab({ sendMessage }) {
                 <div className="copy-btn-wrapper">
                     <button className="btn-secondary" onClick={handleCopy} disabled={!currentExportData}>📋 Copy</button>
                     <button className="btn-secondary" onClick={handleDownload} disabled={!currentExportData}>💾 Download</button>
+                    <button className="btn-secondary" onClick={handleClear} disabled={!currentExportData}>🗑️ Clear</button>
                     <button className="btn-primary" onClick={handleSaveToDb} disabled={!currentExportData}>💾 Save to DB</button>
                 </div>
             </div>

@@ -7,6 +7,7 @@
 
 .export-options button {
     flex: 1;
+    padding: 8px;
 }
 
 .export-output {

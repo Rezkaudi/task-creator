@@ -5,11 +5,13 @@ import { getDesignSystemById } from '../config/design-systems.config';
 import { FrameInfo } from '../../domain/entities/prototype-connection.entity';
 
 import {
-    basedOnExistingSystemPrompt,
-    editDesignSystemPrompt,
+    schemaInstructionsPrompt,
     iconInstructionsPrompt,
-    prototypeConnectionsPrompt,
-    textToDesignSystemPrompt
+    responseInstructionsPrompt,
+    createDesignPrompt,
+    editDesignPrompt,
+    basedOnExistingPrompt,
+    prototypeConnectionsPrompt
 } from '../config/prompt.config';
 
 
@@ -25,8 +27,14 @@ export class MessageBuilderService {
         history: ConversationMessage[],
         designSystemId: string
     ): AiMessage[] {
-        const basePrompt = this.buildPromptAccordingToDesignSystem(designSystemId);
-        const systemPrompt = `${basePrompt} ${iconInstructionsPrompt}`;
+        const designSystem = getDesignSystemById(designSystemId);
+        const systemPrompt = [
+            createDesignPrompt,
+            schemaInstructionsPrompt,
+            iconInstructionsPrompt,
+            designSystem.promptTemplate,
+            responseInstructionsPrompt,
+        ].join('\n\n');
 
         const messages: AiMessage[] = [
             { role: 'system', content: systemPrompt }
@@ -54,8 +62,14 @@ export class MessageBuilderService {
         currentDesign: any,
         designSystemId: string
     ): AiMessage[] {
-        const basePrompt = this.buildPromptAccordingToDesignSystem(designSystemId);
-        const systemPrompt = `${basePrompt} ${iconInstructionsPrompt}\n\n${editDesignSystemPrompt}`;
+        const designSystem = getDesignSystemById(designSystemId);
+        const systemPrompt = [
+            editDesignPrompt,
+            schemaInstructionsPrompt,
+            iconInstructionsPrompt,
+            designSystem.promptTemplate,
+            responseInstructionsPrompt
+        ].join('\n\n');
 
         const messages: AiMessage[] = [
             { role: 'system', content: systemPrompt }
@@ -82,7 +96,12 @@ export class MessageBuilderService {
         history: ConversationMessage[],
         referenceToon: string
     ): AiMessage[] {
-        const systemPrompt = `${textToDesignSystemPrompt} ${iconInstructionsPrompt}\n\n${basedOnExistingSystemPrompt}`;
+        const systemPrompt = [
+            basedOnExistingPrompt,
+            schemaInstructionsPrompt,
+            iconInstructionsPrompt,
+            responseInstructionsPrompt,
+        ].join('\n\n');
 
         const messages: AiMessage[] = [
             { role: 'system', content: systemPrompt }
@@ -109,10 +128,5 @@ export class MessageBuilderService {
             { role: 'system', content: prototypeConnectionsPrompt },
             { role: 'user', content: `\`\`\`json\n${JSON.stringify(frames)}\n\`\`\`` }
         ];
-    }
-
-    private buildPromptAccordingToDesignSystem(designSystemId: string): string {
-        const designSystem = getDesignSystemById(designSystemId);
-        return `${textToDesignSystemPrompt} ${designSystem.promptTemplate}`;
     }
 }
