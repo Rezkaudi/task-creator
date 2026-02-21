@@ -87,6 +87,7 @@
     background: #F4F5F7;
     color: #111827;
     border-bottom-left-radius: 3px;
+    /* max-width: 80%; */
 }
 
 .message-content strong {

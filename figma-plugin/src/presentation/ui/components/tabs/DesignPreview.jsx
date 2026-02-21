@@ -1,12 +1,26 @@
-import React, { useState, useCallback } from 'react';
-import { escapeHtml, getElementIcon } from '../../utils.js';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { escapeHtml } from '../../utils.js';
+import { figmaJsonToHtml } from '../../figmaJsonToHtml.js';
 import '../../styles/DesignPreview.css';
 
 export default function DesignPreview({ designData, previewHtml, isEditMode, isBasedOnExistingMode, layerInfo, selectedLayerForEdit, onImport }) {
     const [currentZoom, setCurrentZoom] = useState(1);
+    const [containerWidth, setContainerWidth] = useState(300);
+    const viewportRef = useRef(null);
 
     const updateZoom = useCallback((newZoom) => {
-        setCurrentZoom(Math.max(0.1, Math.min(2, newZoom)));
+        setCurrentZoom(Math.max(0.25, Math.min(4, newZoom)));
+    }, []);
+
+    useEffect(() => {
+        const el = viewportRef.current;
+        if (!el) return;
+        setContainerWidth(el.offsetWidth || 300);
+        const ro = new ResizeObserver(([entry]) => {
+            setContainerWidth(entry.contentRect.width || 300);
+        });
+        ro.observe(el);
+        return () => ro.disconnect();
     }, []);
 
     if (!designData && !previewHtml) return null;
@@ -27,6 +41,19 @@ export default function DesignPreview({ designData, previewHtml, isEditMode, isB
         modeBadge = <span className="create-badge">NEW</span>;
     }
 
+    // Get natural design dimensions from the root node
+    const rootNode = designData
+        ? (Array.isArray(designData) ? designData[0] : designData)
+        : null;
+    const designWidth = rootNode?.width || 300;
+    const designHeight = rootNode?.height || 200;
+
+    // fitScale makes the design fill the container width exactly at zoom=1
+    const fitScale = containerWidth > 0 ? containerWidth / designWidth : 1;
+    const effectiveScale = fitScale * currentZoom;
+    const scaledHeight = Math.round(designHeight * effectiveScale);
+    const viewportHeight = Math.min(Math.max(scaledHeight, 160), 420);
+
     const visualContent = previewHtml || generateDefaultPreview(designData, isEditMode, selectedLayerForEdit);
 
     return (
@@ -37,10 +64,10 @@ export default function DesignPreview({ designData, previewHtml, isEditMode, isB
                 </span>
                 <div className="preview-actions">
                     <div className="zoom-controls">
-                        <button className="zoom-btn zoom-out" onClick={() => updateZoom(currentZoom - 0.1)}>-</button>
+                        <button className="zoom-btn" onClick={() => updateZoom(currentZoom - 0.25)}>−</button>
                         <span className="zoom-level">{Math.round(currentZoom * 100)}%</span>
-                        <button className="zoom-btn zoom-in" onClick={() => updateZoom(currentZoom + 0.1)}>+</button>
-                        <button className="zoom-btn zoom-reset" onClick={() => updateZoom(1)}>Reset</button>
+                        <button className="zoom-btn" onClick={() => updateZoom(currentZoom + 0.25)}>+</button>
+                        <button className="zoom-btn" onClick={() => updateZoom(1)}>Fit</button>
                     </div>
                     <button
                         className="import-to-figma-btn"
@@ -60,13 +87,18 @@ export default function DesignPreview({ designData, previewHtml, isEditMode, isB
                 </div>
             )}
 
-            <div className={`design-preview-visual ${isEditMode ? 'edit-mode' : 'create-mode'}`}>
+            <div
+                ref={viewportRef}
+                className={`design-preview-visual ${isEditMode ? 'edit-mode' : 'create-mode'}`}
+                style={{ height: viewportHeight }}
+            >
                 <div
                     className="design-preview-content"
                     style={{
-                        transform: `scale(${currentZoom})`,
+                        transform: `scale(${effectiveScale})`,
                         transformOrigin: 'top left',
-                        transition: 'transform 0.2s'
+                        width: designWidth,
+                        transition: 'transform 0.2s',
                     }}
                     dangerouslySetInnerHTML={{ __html: visualContent }}
                 />
@@ -93,41 +125,7 @@ function generateDefaultPreview(designData, isEditMode, selectedLayerForEdit) {
 }
 
 function generateCreateModePreview(designData) {
-    let html = '<div class="create-preview-container">';
-    const name = designData.name || 'New Design';
-    const type = designData.type || 'FRAME';
-    const childrenCount = designData.children ? designData.children.length : 0;
-
-    html += `
-        <div class="design-summary">
-            <div class="design-name">${escapeHtml(name)}</div>
-            <div class="design-type">${escapeHtml(type)}</div>
-            <div class="design-stats">${childrenCount} elements</div>
-        </div>
-    `;
-
-    if (designData.children && designData.children.length > 0) {
-        html += '<div class="design-elements">';
-        designData.children.slice(0, 5).forEach((child, index) => {
-            const childName = child.name || `Element ${index + 1}`;
-            const childType = child.type || 'NODE';
-            const icon = getElementIcon(childType);
-            html += `
-                <div class="design-element">
-                    <span class="element-icon">${icon}</span>
-                    <span class="element-name">${escapeHtml(childName)}</span>
-                    <span class="element-type">${escapeHtml(childType)}</span>
-                </div>
-            `;
-        });
-        if (designData.children.length > 5) {
-            html += `<div class="more-elements">+ ${designData.children.length - 5} more elements</div>`;
-        }
-        html += '</div>';
-    }
-
-    html += '</div>';
-    return html;
+    return figmaJsonToHtml(designData);
 }
 
 function generateEditModePreview(designData, selectedLayerForEdit) {

@@ -77,12 +77,15 @@
 
 .design-preview-visual {
     background: white;
-    padding: 16px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     margin-top: 8px;
-    min-height: 180px;
-    max-height: 350px;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
+}
+
+.design-preview-content {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
