@@ -75,6 +75,7 @@ export default function SaveModal() {
 
     useEffect(() => {
         if (!saveModalOpen) return;
+        setDescription(componentName);
 
         const loadProjects = async () => {
             try {
@@ -132,7 +133,7 @@ export default function SaveModal() {
 
             const data = await apiPost('/api/ui-library/components', {
                 projectId: selectedProjectId,
-                name: componentName,
+                name: description.trim(),
                 description: description.trim(),
                 designJson: currentExportData,
                 previewImage,
@@ -245,10 +246,10 @@ export default function SaveModal() {
                 />
 
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <button className="btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={isSaving || projects.length === 0}>
+                    <button className="btn-primary" style={{ flex: 1, padding: '12px' }} onClick={handleSave} disabled={isSaving || projects.length === 0}>
                         {isSaving ? <><span className="loading"></span> Saving...</> : 'Save'}
                     </button>
-                    <button className="btn-secondary" style={{ flex: 1 }} onClick={handleCancel}>
+                    <button className="btn-secondary" style={{ flex: 1, padding: '12px' }} onClick={handleCancel}>
                         Cancel
                     </button>
                 </div>

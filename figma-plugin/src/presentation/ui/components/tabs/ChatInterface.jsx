@@ -136,7 +136,7 @@ export default function ChatInterface({
         // Validation for Edit Mode: Must have exactly one frame attached
         if (currentMode === 'edit') {
             if (selectedFrames.length === 0) {
-                addMessage('assistant', '⚠️ Please attach a frame to edit using the 📎 button.');
+                addMessage('assistant', '⚠️ Please attach a frame to edit using the 📎 button or select an existing frame in the canvas.');
                 return;
             }
             if (selectedFrames.length > 1) {
@@ -148,7 +148,7 @@ export default function ChatInterface({
         // Validation for By Reference Mode: Must have exactly one frame attached
         if (isBasedOnExistingMode) {
             if (selectedFrames.length === 0) {
-                addMessage('assistant', '⚠️ Please attach a reference frame using the 📎 button.');
+                addMessage('assistant', '⚠️ Please attach a reference frame using the 📎 button or select an existing reference frame in the canvas.');
                 return;
             }
             if (selectedFrames.length > 1) {
