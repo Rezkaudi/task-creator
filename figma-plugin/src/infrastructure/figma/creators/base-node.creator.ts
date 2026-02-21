@@ -247,32 +247,9 @@ export abstract class BaseNodeCreator {
       };
     }
 
-    // Layout properties for children in auto-layout
-    // These properties only work when the parent has auto-layout enabled
-    if ('layoutGrow' in node || 'layoutAlign' in node || 'layoutPositioning' in node) {
-      // Check if parent has auto-layout before applying these properties
-      const parent = node.parent;
-      const parentHasAutoLayout = parent &&
-        'layoutMode' in parent &&
-        (parent as any).layoutMode !== 'NONE';
-
-      if (parentHasAutoLayout) {
-        if (typeof nodeData.layoutGrow === 'number' && 'layoutGrow' in node) {
-          (node as any).layoutGrow = nodeData.layoutGrow;
-        }
-        if (nodeData.layoutAlign && 'layoutAlign' in node) {
-          (node as any).layoutAlign = nodeData.layoutAlign;
-        }
-        if (nodeData.layoutPositioning && 'layoutPositioning' in node) {
-          (node as any).layoutPositioning = nodeData.layoutPositioning;
-        }
-      } else {
-        // Log warning for debugging but don't crash
-        if (nodeData.layoutPositioning === 'ABSOLUTE') {
-          console.warn(`Cannot set layoutPositioning to ABSOLUTE on "${nodeData.name}" - parent doesn't have auto-layout`);
-        }
-      }
-    }
+    // NOTE: Layout child properties (layoutGrow, layoutAlign, layoutPositioning)
+    // are applied separately via applyLayoutChildProperties() AFTER the node
+    // has been appended to its parent, so that node.parent is available.
 
     // Mask
     if (nodeData.isMask && 'isMask' in node) {
@@ -290,6 +267,36 @@ export abstract class BaseNodeCreator {
           value: setting.constraint.value,
         } : { type: 'SCALE', value: 1 },
       }));
+    }
+  }
+
+  /**
+   * Apply layout child properties (layoutGrow, layoutAlign, layoutPositioning).
+   * Must be called AFTER the node has been appended to its parent,
+   * so that node.parent is available for the auto-layout check.
+   */
+  protected applyLayoutChildProperties(node: SceneNode, nodeData: DesignNode): void {
+    if ('layoutGrow' in node || 'layoutAlign' in node || 'layoutPositioning' in node) {
+      const parent = node.parent;
+      const parentHasAutoLayout = parent &&
+        'layoutMode' in parent &&
+        (parent as any).layoutMode !== 'NONE';
+
+      if (parentHasAutoLayout) {
+        if (typeof nodeData.layoutGrow === 'number' && 'layoutGrow' in node) {
+          (node as any).layoutGrow = nodeData.layoutGrow;
+        }
+        if (nodeData.layoutAlign && 'layoutAlign' in node) {
+          (node as any).layoutAlign = nodeData.layoutAlign;
+        }
+        if (nodeData.layoutPositioning && 'layoutPositioning' in node) {
+          (node as any).layoutPositioning = nodeData.layoutPositioning;
+        }
+      } else {
+        if (nodeData.layoutPositioning === 'ABSOLUTE') {
+          console.warn(`Cannot set layoutPositioning to ABSOLUTE on "${nodeData.name}" - parent doesn't have auto-layout`);
+        }
+      }
     }
   }
 

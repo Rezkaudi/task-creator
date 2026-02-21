@@ -171,13 +171,14 @@ Smooth corners (iOS-style): "cornerSmoothing": 0.0–1.0 (0.6 matches iOS)
 - "maskType": "ALPHA" | "VECTOR" | "LUMINANCE"
 
 ══════════════════════════════════════════
-9. EFFECTS (shadows, blurs)
+9. EFFECTS (shadows only)
 ══════════════════════════════════════════
 
 "effects" is an array of Effect objects. Each MUST have "type".
 
-Allowed effect types: DROP_SHADOW, INNER_SHADOW, LAYER_BLUR, BACKGROUND_BLUR
+Allowed effect types: DROP_SHADOW, INNER_SHADOW
 NEVER use "BORDER" — it does NOT exist.
+NEVER use "LAYER_BLUR" or "BACKGROUND_BLUR" — do NOT add any blur effects to any node.
 
 --- Drop shadow ---
 {
@@ -202,12 +203,7 @@ NEVER use "BORDER" — it does NOT exist.
   "blendMode": "NORMAL"
 }
 
---- Blur ---
-{"type": "LAYER_BLUR", "visible": true, "radius": 10}
-{"type": "BACKGROUND_BLUR", "visible": true, "radius": 10}
-
 Shadow properties: "radius" (>= 0), "offset" ({"x": n, "y": n}), "color" (with alpha), "spread", "blendMode", "showShadowBehindNode" (DROP_SHADOW only)
-Blur properties: "radius" only
 
 ══════════════════════════════════════════
 10. AUTO-LAYOUT (FRAME, COMPONENT, SECTION)
@@ -237,6 +233,16 @@ Blur properties: "radius" only
   (1 = fill remaining space along primary axis, like flex-grow: 1)
 - "layoutPositioning": "AUTO" | "ABSOLUTE"
   (ABSOLUTE = removed from auto-layout flow, positioned with x/y)
+
+CRITICAL — OVERLAY / BACKGROUND LAYERS:
+  "layoutPositioning": "ABSOLUTE" can ONLY be used when the PARENT frame has layoutMode "HORIZONTAL" or "VERTICAL".
+  NEVER set layoutPositioning on a child whose parent has layoutMode "NONE" or no layoutMode at all — it will cause an error.
+
+  When a child should visually overlap its siblings (e.g., gradient overlays, vignette layers,
+  dimming backgrounds, floating elements) AND the parent has auto-layout, set "layoutPositioning": "ABSOLUTE" on that child.
+  Without it, the child participates in auto-layout and pushes other children down/right instead of stacking on top.
+
+  If the parent does NOT have auto-layout, overlapping is handled naturally by x/y positioning — no layoutPositioning needed.
 
 Example — horizontal layout with sidebar + expanding content:
 {
@@ -920,3 +926,4 @@ Before outputting, verify EVERY rule:
 18. Every node has "name" and "type"
 19. Font families are from the allowed list (Inter, Roboto, SF Pro, Arial)
 20. Output is valid, parseable JSON
+21. Overlay/background layers inside auto-layout frames use "layoutPositioning": "ABSOLUTE" — but NEVER set layoutPositioning when parent has no auto-layout

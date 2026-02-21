@@ -218,7 +218,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages,
-                response_format: { type: 'json_object' },
+                // response_format: { type: 'json_object' },
             });
 
             const responseText = completion.choices[0]?.message?.content;
@@ -258,7 +258,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             model: aiModel.id,
             messages: messages,
             tools: iconTools,
-            response_format: { type: 'json_object' },
         });
 
         // Handle tool calls loop
@@ -283,7 +282,6 @@ export class AiGenerateDesignService implements IAiDesignService {
                 model: aiModel.id,
                 messages: messages,
                 tools: iconTools,
-                response_format: { type: 'json_object' },
             });
         }
 
@@ -291,7 +289,7 @@ export class AiGenerateDesignService implements IAiDesignService {
         console.log('--- responseText ---', responseText);
 
         if (!responseText) {
-            throw new Error('GPT API returned empty response.');
+            throw new Error('LLM API returned empty response.');
         }
 
         return {

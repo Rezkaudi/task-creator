@@ -65,6 +65,7 @@ COMMON UI PATTERNS (build as FRAME structures)
 - Avatar: ELLIPSE 36-48px with IMAGE fill, or RECTANGLE with cornerRadius 9999
 - Badge/Tag: FRAME + layoutMode HORIZONTAL + paddingTop/Bottom 4-6px + paddingLeft/Right 10-14px + cornerRadius 6-16px + tinted background fill + small TEXT (12-13px, Semi Bold)
 - Table row: FRAME + layoutMode HORIZONTAL + primaryAxisAlignItems SPACE_BETWEEN + children with layoutGrow for flexible column widths
+- Overlay/Background layer: RECTANGLE or FRAME with same width/height as parent. If the parent has auto-layout (layoutMode HORIZONTAL or VERTICAL), set layoutPositioning: "ABSOLUTE" on the overlay so it doesn't push siblings. If the parent has NO auto-layout, just use x/y positioning (do NOT set layoutPositioning).
 - Divider: RECTANGLE with height 1, layoutAlign STRETCH, fill light gray (r/g/b ~ 0.92)
 - Modal/Dialog: FRAME + DROP_SHADOW (radius 24, a: 0.15) + cornerRadius 16px + layoutMode VERTICAL + padding 28-32px
 - Navigation bar: FRAME + layoutMode HORIZONTAL + primaryAxisAlignItems SPACE_BETWEEN + height 64-72px + layoutAlign STRETCH
