@@ -1,163 +1,31 @@
-import React, { useState, useCallback } from 'react';
-import { escapeHtml, getElementIcon } from '../../utils.js';
+import React from 'react';
 import '../../styles/DesignPreview.css';
 
-export default function DesignPreview({ designData, previewHtml, isEditMode, isBasedOnExistingMode, layerInfo, selectedLayerForEdit, onImport }) {
-    const [currentZoom, setCurrentZoom] = useState(1);
-
-    const updateZoom = useCallback((newZoom) => {
-        setCurrentZoom(Math.max(0.1, Math.min(2, newZoom)));
-    }, []);
-
+export default function DesignPreview({ designData, previewHtml, isEditMode, isBasedOnExistingMode, onImport }) {
     if (!designData && !previewHtml) return null;
 
-    // Determine mode text
-    let modeText, buttonText, modeBadge;
-    if (isBasedOnExistingMode) {
-        modeText = '🎨 Generated Design (Based on Existing)';
-        buttonText = 'Import to Figma';
-        modeBadge = <span className="create-badge">NEW</span>;
-    } else if (isEditMode) {
-        modeText = '✏️ Edited Design Preview';
-        buttonText = 'Update in Figma';
-        modeBadge = <span className="edit-badge">EDIT</span>;
-    } else {
-        modeText = '✨ New Design Preview';
-        buttonText = 'Import to Figma';
-        modeBadge = <span className="create-badge">NEW</span>;
-    }
+    const buttonText = 'Add to Figma';
 
-    const visualContent = previewHtml || generateDefaultPreview(designData, isEditMode, selectedLayerForEdit);
+    const figmaIcon = (
+        <svg className="figma-icon" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE" />
+            <path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83" />
+            <path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262" />
+            <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E" />
+            <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF" />
+        </svg>
+    );
 
     return (
         <div className="design-preview">
-            <div className="design-preview-header">
-                <span className="design-preview-title">
-                    {modeText} {modeBadge}
-                </span>
-                <div className="preview-actions">
-                    <div className="zoom-controls">
-                        <button className="zoom-btn zoom-out" onClick={() => updateZoom(currentZoom - 0.1)}>-</button>
-                        <span className="zoom-level">{Math.round(currentZoom * 100)}%</span>
-                        <button className="zoom-btn zoom-in" onClick={() => updateZoom(currentZoom + 0.1)}>+</button>
-                        <button className="zoom-btn zoom-reset" onClick={() => updateZoom(1)}>Reset</button>
-                    </div>
-                    <button
-                        className="import-to-figma-btn"
-                        disabled={!designData}
-                        onClick={onImport}
-                    >
-                        {buttonText}
-                    </button>
-                </div>
-            </div>
-
-            {isEditMode && layerInfo && (
-                <div className="edit-layer-info">
-                    <span className="editing-label">Editing:</span>
-                    <span className="layer-name">{escapeHtml(layerInfo.name)}</span>
-                    <span className="layer-type">({escapeHtml(layerInfo.type)})</span>
-                </div>
-            )}
-
-            <div className={`design-preview-visual ${isEditMode ? 'edit-mode' : 'create-mode'}`}>
-                <div
-                    className="design-preview-content"
-                    style={{
-                        transform: `scale(${currentZoom})`,
-                        transformOrigin: 'top left',
-                        transition: 'transform 0.2s'
-                    }}
-                    dangerouslySetInnerHTML={{ __html: visualContent }}
-                />
-            </div>
+            <button
+                className="import-to-figma-btn"
+                disabled={!designData}
+                onClick={onImport}
+            >
+                {figmaIcon}
+                {buttonText}
+            </button>
         </div>
     );
-}
-
-function generateDefaultPreview(designData, isEditMode, selectedLayerForEdit) {
-    if (!designData) {
-        return '<div style="padding: 40px; color: #999; text-align: center;">Preview unavailable</div>';
-    }
-
-    try {
-        if (isEditMode) {
-            return generateEditModePreview(designData, selectedLayerForEdit);
-        } else {
-            return generateCreateModePreview(designData);
-        }
-    } catch (error) {
-        console.error('Error generating preview:', error);
-        return '<div style="padding: 20px; background: #fef2f2; color: #dc2626; border-radius: 8px;">Error generating preview</div>';
-    }
-}
-
-function generateCreateModePreview(designData) {
-    let html = '<div class="create-preview-container">';
-    const name = designData.name || 'New Design';
-    const type = designData.type || 'FRAME';
-    const childrenCount = designData.children ? designData.children.length : 0;
-
-    html += `
-        <div class="design-summary">
-            <div class="design-name">${escapeHtml(name)}</div>
-            <div class="design-type">${escapeHtml(type)}</div>
-            <div class="design-stats">${childrenCount} elements</div>
-        </div>
-    `;
-
-    if (designData.children && designData.children.length > 0) {
-        html += '<div class="design-elements">';
-        designData.children.slice(0, 5).forEach((child, index) => {
-            const childName = child.name || `Element ${index + 1}`;
-            const childType = child.type || 'NODE';
-            const icon = getElementIcon(childType);
-            html += `
-                <div class="design-element">
-                    <span class="element-icon">${icon}</span>
-                    <span class="element-name">${escapeHtml(childName)}</span>
-                    <span class="element-type">${escapeHtml(childType)}</span>
-                </div>
-            `;
-        });
-        if (designData.children.length > 5) {
-            html += `<div class="more-elements">+ ${designData.children.length - 5} more elements</div>`;
-        }
-        html += '</div>';
-    }
-
-    html += '</div>';
-    return html;
-}
-
-function generateEditModePreview(designData, selectedLayerForEdit) {
-    let html = '<div class="edit-preview-container">';
-    html += `
-        <div class="edit-notice">
-            <div class="notice-icon">✏️</div>
-            <div class="notice-text">
-                <strong>Editing Mode Active</strong>
-                <small>Preview shows the updated design</small>
-            </div>
-        </div>
-    `;
-
-    if (designData.children && designData.children.length > 0) {
-        html += '<div class="edited-design">';
-        designData.children.forEach((child, index) => {
-            const isSelected = selectedLayerForEdit &&
-                (child.name === selectedLayerForEdit || child.id === selectedLayerForEdit);
-            html += `
-                <div class="edited-element ${isSelected ? 'selected-element' : ''}">
-                    <span class="element-status">${isSelected ? '🎯' : '🔹'}</span>
-                    <span class="element-name">${escapeHtml(child.name || `Element ${index + 1}`)}</span>
-                    <span class="element-type">${escapeHtml(child.type || 'NODE')}</span>
-                </div>
-            `;
-        });
-        html += '</div>';
-    }
-
-    html += '</div>';
-    return html;
 }

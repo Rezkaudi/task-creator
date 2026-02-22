@@ -1,88 +1,45 @@
 /* === DesignPreview === */
-.zoom-controls {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-}
-
-.zoom-btn {
-    padding: 4px 8px;
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    color: #374151;
-    transition: all 0.2s;
-}
-
-.zoom-btn:hover {
-    background: #e5e7eb;
-}
-
-.zoom-level {
-    font-size: 11px;
-    color: #6b7280;
-    min-width: 45px;
-    text-align: center;
-}
-
 .design-preview {
     margin-top: 12px;
-    padding: 12px;
-    background: #f9fafb;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-}
-
-.design-preview-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.design-preview-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: #6366f1;
-}
-
-.preview-actions {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
 }
 
 .import-to-figma-btn {
-    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 20px;
     color: white;
     border: none;
-    border-radius: 6px;
-    font-size: 11px;
+    border-radius: 10px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    transition: all 0.25s ease;
+    background: linear-gradient(135deg, #4F46E5 0%, #6366f1 100%);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    letter-spacing: 0.02em;
 }
 
-.import-to-figma-btn:hover {
+.import-to-figma-btn:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+    background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
 }
 
-.design-preview-visual {
-    background: white;
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    margin-top: 8px;
-    min-height: 180px;
-    max-height: 350px;
-    overflow: auto;
-    position: relative;
+.import-to-figma-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
+}
+
+.import-to-figma-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.figma-icon {
+    width: 14px;
+    height: 21px;
+    flex-shrink: 0;
 }

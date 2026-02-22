@@ -6,6 +6,7 @@ import DesignPreview from './DesignPreview.jsx';
 import CostBreakdown from './CostBreakdown.jsx';
 import '../../styles/ChatInterface.css';
 import { defaultModel, defaultDesignSystem } from '../../../../shared/constants/plugin-config.js';
+import { playNotificationSound } from '../../utils/notificationSound.js';
 
 export default function ChatInterface({
     currentMode,
@@ -222,6 +223,7 @@ export default function ChatInterface({
     const handleResponse = useCallback((msg) => {
         setIsGenerating(false);
         removeLoadingMessages();
+        playNotificationSound();
 
         const isEdit = msg.type === 'ai-edit-response';
         const isBased = msg.type === 'ai-based-on-existing-response';
@@ -257,11 +259,17 @@ export default function ChatInterface({
         });
 
         setConversationHistory(prev => [...prev, { role: 'assistant', content: msg.message }]);
+
+        // Auto-import the design to Figma immediately
+        if (msg.designData) {
+            handleImportDesignRef.current(msg.designData, isEdit);
+        }
     }, [selectedLayerForEdit, selectedLayerJson, referenceLayerName, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
 
     const handleError = useCallback((msg) => {
         setIsGenerating(false);
         removeLoadingMessages();
+        playNotificationSound();
         addMessage('assistant', `Error: ${msg.error}`);
 
         const errorText = `${msg.error || ''}`.toLowerCase();
@@ -273,6 +281,7 @@ export default function ChatInterface({
     const handlePrototypeResponse = useCallback((msg) => {
         setIsGenerating(false);
         removeLoadingMessages();
+        playNotificationSound();
 
         if (msg.points) {
             dispatch({ type: 'SET_POINTS_BALANCE', balance: msg.points.remaining || 0 });
@@ -324,6 +333,12 @@ export default function ChatInterface({
             ...(isEditMode && { layerId: selectedLayerForEdit })
         });
     }, [isBasedOnExistingMode, selectedLayerForEdit, sendMessage]);
+
+    // Ref so handleResponse can call handleImportDesign without circular deps
+    const handleImportDesignRef = useRef(handleImportDesign);
+    useEffect(() => {
+        handleImportDesignRef.current = handleImportDesign;
+    }, [handleImportDesign]);
 
     const placeholder = isBasedOnExistingMode
         ? `e.g., Create a login page based on "${referenceLayerName}" style...`
