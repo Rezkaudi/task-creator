@@ -38,6 +38,7 @@ function AppContent() {
     const [creditsDropdownOpen, setCreditsDropdownOpen] = useState(false);
     const creditsDropdownRef = useRef(null);
     const jsonInputRef = useRef(null);
+    const pendingSaveRef = useRef(false);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -83,6 +84,10 @@ function AppContent() {
         'export-success': (msg) => {
             showStatus(`✅ Exported ${msg.nodeCount} nodes!`, 'success');
             dispatch({ type: 'SET_EXPORT_DATA', data: msg.data });
+            if (pendingSaveRef.current) {
+                pendingSaveRef.current = false;
+                dispatch({ type: 'OPEN_SAVE_MODAL' });
+            }
         },
         'export-error': (msg) => {
             showStatus(`❌ Export failed: ${msg.error}`, 'error');
@@ -186,6 +191,15 @@ function AppContent() {
         dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(authHasPurchased) });
         dispatch({ type: 'SET_SUBSCRIPTION', subscription: authSubscription });
     }, [isAuthenticated, authPointsBalance, authHasPurchased, authSubscription, dispatch]);
+
+    const handleSaveSelected = useCallback(() => {
+        if (!state.selectionInfo || state.selectionInfo.count === 0) {
+            showStatus('⚠️ Select a layer in Figma to save', 'warning');
+            return;
+        }
+        pendingSaveRef.current = true;
+        sendMessage('export-selected');
+    }, [state.selectionInfo, sendMessage, showStatus]);
 
     const handleTabChange = useCallback((tabId) => {
         setActiveTab(tabId);
@@ -321,6 +335,12 @@ function AppContent() {
                     </div>
 
                     {/* <button className="logout-btn" onClick={logout}>Sign out</button> */}
+                    <button
+                        className="import-export-btn"
+                        title={state.selectionInfo?.count > 0 ? `Save selected to Library` : 'Select a layer to save'}
+                        onClick={handleSaveSelected}
+                        disabled={!state.selectionInfo || state.selectionInfo.count === 0}
+                    >💾</button>
                     <button className="import-export-btn" title='Import / Export' onClick={() => {
                         setActiveTab(activeTab === 'import-export' ? 'ai' : 'import-export');
                     }}>📋</button>
