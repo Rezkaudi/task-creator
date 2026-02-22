@@ -237,6 +237,12 @@
     overflow: hidden;
 }
 
+.uil-component-date {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 3px;
+}
+
 
 /* ── Component Card Actions (always visible) ── */
 
@@ -616,14 +622,26 @@
     background: #eef2ff;
 }
 
-.ps-project-name {
+.ps-project-info {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.ps-project-name {
     font-size: 13px;
     font-weight: 600;
     color: #1e293b;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.ps-project-date {
+    font-size: 10px;
+    color: #94a3b8;
 }
 
 .ps-project-count {

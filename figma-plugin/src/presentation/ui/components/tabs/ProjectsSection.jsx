@@ -171,7 +171,12 @@ export default function ProjectsSection({ sendMessage }) {
                             onClick={() => setSelectedProjectId(project.id)}
                         >
                             <FolderOpen size={16} color="#93C5FD" />
-                            <span className="ps-project-name">{project.name}</span>
+                            <div className="ps-project-info">
+                                <span className="ps-project-name">{project.name}</span>
+                                {project.createdAt && (
+                                    <span className="ps-project-date">{formatDate(project.createdAt)}</span>
+                                )}
+                            </div>
                             {project.componentCount != null && (
                                 <span className="ps-project-count">{project.componentCount}</span>
                             )}
@@ -210,7 +215,7 @@ export default function ProjectsSection({ sendMessage }) {
                     <span>No components yet</span>
                 </div>
             ) : (
-                <div className="uil-components-grid" style={{ padding: '0 4px' }}>
+                <div className="uil-components-grid" style={{ padding: '8px 4px' }}>
                     {components.map((component) => (
                         <div key={component.id} className="uil-component-card">
                             <div className="uil-component-preview-wrap">
@@ -224,6 +229,9 @@ export default function ProjectsSection({ sendMessage }) {
                                 <div className="uil-component-name">{component.name}</div>
                                 {component.description && (
                                     <div className="uil-component-desc">{component.description}</div>
+                                )}
+                                {component.createdAt && (
+                                    <div className="uil-component-date">{formatDate(component.createdAt)}</div>
                                 )}
                             </div>
                             <div className="uil-component-actions">
