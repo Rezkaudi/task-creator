@@ -60,9 +60,52 @@ function requestPreviewImage({ maxWidth = 320, timeoutMs = 8000 } = {}) {
     });
 }
 
+function requestPreviewFromDesignData({ designData, maxWidth = 320, timeoutMs = 15000 } = {}) {
+    return new Promise((resolve, reject) => {
+        const requestId = `preview_data_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        let timeoutId = null;
+
+        function cleanup() {
+            window.removeEventListener('message', onMessage);
+            if (timeoutId) clearTimeout(timeoutId);
+        }
+
+        function onMessage(event) {
+            const message = event.data?.pluginMessage;
+            if (!message || message.requestId !== requestId) return;
+
+            if (message.type === 'preview-image-generated') {
+                cleanup();
+                resolve(message.previewImage || null);
+                return;
+            }
+
+            if (message.type === 'preview-image-error') {
+                cleanup();
+                reject(new Error(message.error || 'Failed to generate preview image'));
+            }
+        }
+
+        timeoutId = setTimeout(() => {
+            cleanup();
+            reject(new Error('Preview image generation timed out'));
+        }, timeoutMs);
+
+        window.addEventListener('message', onMessage);
+        parent.postMessage({
+            pluginMessage: {
+                type: 'generate-preview-from-design-data',
+                requestId,
+                designData,
+                maxWidth,
+            },
+        }, '*');
+    });
+}
+
 export default function SaveModal() {
     const { state, dispatch, showStatus } = useAppContext();
-    const { saveModalOpen, currentExportData } = state;
+    const { saveModalOpen, saveModalFromChat, currentExportData } = state;
     const { apiGet, apiPost } = useApiClient();
 
     const [description, setDescription] = useState('');
@@ -122,7 +165,11 @@ export default function SaveModal() {
 
             let previewImage = null;
             try {
-                previewImage = await requestPreviewImage({ maxWidth: 320 });
+                if (saveModalFromChat) {
+                    previewImage = await requestPreviewFromDesignData({ designData: currentExportData, maxWidth: 320 });
+                } else {
+                    previewImage = await requestPreviewImage({ maxWidth: 320 });
+                }
             } catch (previewError) {
                 showStatus('⚠️ Could not generate preview image. Saving without preview.', 'warning');
                 reportErrorAsync(previewError, {

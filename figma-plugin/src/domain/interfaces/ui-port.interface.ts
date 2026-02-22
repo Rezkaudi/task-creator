@@ -127,6 +127,7 @@ export type PluginMessage =
   | { type: 'generate-prototype-connections'; frames?: FrameInfo[]; frameIds?: string[]; modelId?: string }
   | { type: 'apply-prototype-connections'; connections: PrototypeConnection[] }
   | { type: 'generate-preview-image'; requestId?: string; maxWidth?: number }
+  | { type: 'generate-preview-from-design-data'; requestId?: string; designData: unknown; maxWidth?: number }
 
 /**
  * UI Port interface

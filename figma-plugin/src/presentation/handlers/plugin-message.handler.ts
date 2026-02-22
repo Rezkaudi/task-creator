@@ -196,6 +196,9 @@ export class PluginMessageHandler {
         case 'generate-preview-image':
           await this.handleGeneratePreviewImage(message.requestId, message.maxWidth);
           break;
+        case 'generate-preview-from-design-data':
+          await this.handleGeneratePreviewFromDesignData(message.requestId, message.designData, message.maxWidth);
+          break;
         default:
           console.warn('Unknown message type:', message.type);
       }
@@ -1035,6 +1038,64 @@ export class PluginMessageHandler {
       errorReporter.reportErrorAsync(error as Error, {
         componentName: 'PluginMessageHandler',
         actionType: 'handleGeneratePreviewImage',
+      });
+    }
+  }
+
+  private async handleGeneratePreviewFromDesignData(requestId?: string, designData?: unknown, maxWidth?: number): Promise<void> {
+    const previousSelection = [...figma.currentPage.selection];
+    const createdNodes: SceneNode[] = [];
+
+    try {
+      const result = await this.importAIDesignUseCase.execute(designData);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create nodes for preview');
+      }
+
+      // The use case sets selection to the created nodes
+      createdNodes.push(...(figma.currentPage.selection as SceneNode[]));
+
+      if (createdNodes.length === 0) {
+        throw new Error('No nodes were created for preview');
+      }
+
+      const nodeToExport = createdNodes[0];
+      if (!('exportAsync' in nodeToExport)) {
+        throw new Error('Created node cannot be exported as an image');
+      }
+
+      const width = Math.max(64, Math.min(maxWidth ?? 320, 2000));
+      const bytes = await (nodeToExport as ExportMixin).exportAsync({
+        format: 'PNG',
+        constraint: { type: 'WIDTH', value: width },
+      });
+
+      const base64 = figma.base64Encode(bytes);
+
+      // Delete temp nodes and restore selection
+      for (const node of createdNodes) {
+        node.remove();
+      }
+      figma.currentPage.selection = previousSelection.filter(n => !n.removed);
+
+      this.uiPort.postMessage({
+        type: 'preview-image-generated',
+        requestId,
+        previewImage: `data:image/png;base64,${base64}`,
+      });
+    } catch (error) {
+      // Clean up any created nodes on error
+      for (const node of createdNodes) {
+        try { node.remove(); } catch (_) { /* already removed */ }
+      }
+      figma.currentPage.selection = previousSelection.filter(n => !n.removed);
+
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate preview from design data';
+      this.uiPort.postMessage({
+        type: 'preview-image-error',
+        requestId,
+        error: errorMessage,
       });
     }
   }

@@ -22,6 +22,7 @@ const initialState = {
 
     // Save Modal
     saveModalOpen: false,
+    saveModalFromChat: false,
 
     // Payments
     buyPointsModalOpen: false,
@@ -64,9 +65,9 @@ function appReducer(state, action) {
             return { ...state, designSystemPanelOpen: false };
 
         case 'OPEN_SAVE_MODAL':
-            return { ...state, saveModalOpen: true };
+            return { ...state, saveModalOpen: true, saveModalFromChat: action.fromChat ?? false };
         case 'CLOSE_SAVE_MODAL':
-            return { ...state, saveModalOpen: false };
+            return { ...state, saveModalOpen: false, saveModalFromChat: false };
 
         case 'OPEN_BUY_POINTS_MODAL':
             return { ...state, buyPointsModalOpen: true };

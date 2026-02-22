@@ -3,12 +3,17 @@
     margin-top: 12px;
 }
 
+.design-preview-actions {
+    display: flex;
+    gap: 8px;
+}
+
 .import-to-figma-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    width: 100%;
+    flex: 1;
     padding: 11px 20px;
     color: white;
     border: none;
@@ -42,4 +47,35 @@
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+}
+
+.save-design-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 16px;
+    color: #374151;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.save-design-btn:hover:not(:disabled) {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+.save-design-btn:active:not(:disabled) {
+    background: #d1d5db;
+}
+
+.save-design-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
