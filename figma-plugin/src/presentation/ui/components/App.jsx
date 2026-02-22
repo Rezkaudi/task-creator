@@ -321,7 +321,7 @@ function AppContent() {
                         )}
                     </div>
 
-                    <button className="logout-btn" onClick={logout}>Sign out</button>
+                    {/* <button className="logout-btn" onClick={logout}>Sign out</button> */}
                 </div>
             )}
 
