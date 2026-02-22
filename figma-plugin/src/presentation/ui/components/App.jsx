@@ -329,7 +329,7 @@ function AppContent() {
 
             <div className='content-container'>
                 <ToastContainer position="top-right" autoClose={5000} />
-                <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
+                {/* <TabBar activeTab={activeTab} onTabChange={handleTabChange} /> */}
 
                 {/* Tab Content */}
                 {activeTab === 'ai' && (
