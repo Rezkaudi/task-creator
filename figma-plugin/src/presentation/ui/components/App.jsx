@@ -335,27 +335,24 @@ function AppContent() {
                     <AiTab sendMessage={sendMessage} />
                 )}
 
-                {activeTab === 'manual' && (
-                    <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
-                )}
-
-                {activeTab === 'export' && (
-                    <ExportTab sendMessage={sendMessage} />
+                {activeTab === 'import-export' && (
+                    <div className="import-export-wrapper">
+                        <ExportTab sendMessage={sendMessage} />
+                        <div className="section-divider">
+                            <span>Paste JSON</span>
+                        </div>
+                        <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
+                        <div className="button-group import-btn-group">
+                            <button className="btn-primary import-to-figma-btn" onClick={handleManualImport}>
+                                <FigmaIcon />
+                                Add to Figma
+                            </button>
+                        </div>
+                    </div>
                 )}
 
                 {activeTab === 'ui-library' && (
                     <UILibraryTab sendMessage={sendMessage} />
-                )}
-
-                {/* Button group for manual tab */}
-                {activeTab === 'manual' && (
-                    <div className="button-group" id="main-button-group" style={{ display: 'flex' }}>
-                        <button className="btn-primary import-to-figma-btn" onClick={handleManualImport}>
-                            <FigmaIcon />
-                            Add to Figma
-                        </button>
-                        {/* <button className="btn-secondary" onClick={() => sendMessage('cancel')}>Cancel</button> */}
-                    </div>
                 )}
 
                 {/* Global Panels */}
