@@ -111,7 +111,7 @@ body {
 
 /* === Form Elements === */
 .input-group {
-    margin-bottom: 16px;
+    /* margin-bottom: 16px; */
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -172,9 +172,9 @@ textarea.valid:not(.design-preview textarea) {
 .button-group {
     display: flex;
     gap: 12px;
-    margin-top: 16px;
+    /* margin-top: 16px; */
     padding: 8px;
-    padding-top: 16px;
+    /* padding-top: 16px; */
 }
 
 .button-group button:not(.design-preview button),

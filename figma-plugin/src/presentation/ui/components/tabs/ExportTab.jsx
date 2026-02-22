@@ -114,7 +114,7 @@ export default function ExportTab({ sendMessage }) {
             </div>
 
             <div className="export-output">
-                <label htmlFor="export-output">Exported JSON</label>
+                {/* <label htmlFor="export-output">Exported JSON</label> */}
                 <textarea
                     id="export-output"
                     readOnly

@@ -5,6 +5,7 @@ import { reportErrorAsync } from '../../errorReporter.js';
 import { formatDate } from '../../utils.js';
 import { Plus, ChevronRight, ChevronLeft, Trash2, FolderOpen, Download, AlertTriangle, Import } from 'lucide-react';
 import '../../styles/UILibraryTab.css';
+import FigmaIcon from '../FigmaIcon.jsx';
 
 function getPreviewSrc(component) {
     if (component.previewImage) return component.previewImage;
@@ -303,14 +304,15 @@ export default function UILibraryTab({ sendMessage }) {
                                     className="uil-btn-import"
                                     onClick={() => handleImportComponent(component)}
                                 >
-                                    <Import size={16} />
+                                    {/* <Import size={16} /> */}
+                                    <FigmaIcon />
                                 </button>
                                 <button
                                     className="uil-btn-delete-icon"
                                     onClick={() => setDeleteConfirm({ type: 'component', id: component.id, name: component.name })}
                                     title="Delete component"
                                 >
-                                    <Trash2 size={16} />
+                                    <Trash2 size={20} />
                                 </button>
                             </div>
                         </div>

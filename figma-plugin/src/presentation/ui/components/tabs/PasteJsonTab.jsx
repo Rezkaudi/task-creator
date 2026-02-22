@@ -38,7 +38,7 @@ export default function PasteJsonTab({ onImport, valueRef }) {
     return (
         <div id="manual-tab" className="tab-content active">
             <div className="input-group">
-                <label htmlFor="json-input">Design JSON</label>
+                {/* <label htmlFor="json-input">Design JSON</label> */}
                 <textarea
                     id="json-input"
                     className={validityClass}

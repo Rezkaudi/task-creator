@@ -16,6 +16,7 @@ import SaveModal from './SaveModal.jsx';
 import ResizeHandle from './ResizeHandle.jsx';
 import LoginScreen from './LoginScreen.jsx';
 import BuyPointsModal from './BuyPointsModal.jsx';
+import FigmaIcon from './FigmaIcon.jsx';
 
 function AppContent() {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
@@ -349,8 +350,11 @@ function AppContent() {
                 {/* Button group for manual tab */}
                 {activeTab === 'manual' && (
                     <div className="button-group" id="main-button-group" style={{ display: 'flex' }}>
-                        <button className="btn-primary" onClick={handleManualImport}>📋 Import JSON</button>
-                        <button className="btn-secondary" onClick={() => sendMessage('cancel')}>Cancel</button>
+                        <button className="btn-primary import-to-figma-btn" onClick={handleManualImport}>
+                            <FigmaIcon />
+                            Add to Figma
+                        </button>
+                        {/* <button className="btn-secondary" onClick={() => sendMessage('cancel')}>Cancel</button> */}
                     </div>
                 )}
 
