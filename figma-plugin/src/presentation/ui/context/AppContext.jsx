@@ -1,12 +1,10 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import { defaultModel, defaultDesignSystem } from '../../../shared/constants/plugin-config.js';
 
 const AppContext = createContext(null);
 
 const initialState = {
-    // Status
-    status: { message: '', type: '' },
-
     // Models
     currentModelId: defaultModel.id,
     availableModels: [],
@@ -35,11 +33,6 @@ const initialState = {
 
 function appReducer(state, action) {
     switch (action.type) {
-        case 'SHOW_STATUS':
-            return { ...state, status: { message: action.message, type: action.statusType } };
-        case 'HIDE_STATUS':
-            return { ...state, status: { message: '', type: '' } };
-
         case 'SET_MODEL':
             return { ...state, currentModelId: action.modelId };
         case 'SET_AVAILABLE_MODELS':
@@ -94,11 +87,12 @@ export function AppProvider({ children }) {
     const [state, dispatch] = useReducer(appReducer, initialState);
 
     const showStatus = useCallback((message, type) => {
-        dispatch({ type: 'SHOW_STATUS', message, statusType: type });
+        const fn = toast[type] ?? toast;
+        fn(message, { autoClose: 5000 });
     }, []);
 
     const hideStatus = useCallback(() => {
-        dispatch({ type: 'HIDE_STATUS' });
+        toast.dismiss();
     }, []);
 
     const value = { state, dispatch, showStatus, hideStatus };

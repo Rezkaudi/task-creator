@@ -4,7 +4,8 @@ import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
 import { usePluginMessage } from '../hooks/usePluginMessage.js';
 import { useApiClient } from '../hooks/useApiClient.js';
 import { reportErrorAsync, setHeaders as setErrorHeaders, setupGlobalHandlers } from '../errorReporter.js';
-import StatusBar from './StatusBar.jsx';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import TabBar from './TabBar.jsx';
 import AiTab from './tabs/AiTab.jsx';
 import PasteJsonTab from './tabs/PasteJsonTab.jsx';
@@ -63,11 +64,9 @@ function AppContent() {
         // Import status handlers
         'import-success': (msg) => {
             showStatus('✅ Design imported successfully!', 'success');
-            setTimeout(hideStatus, 3000);
         },
         'import-error': (msg) => {
             showStatus(`❌ Import failed: ${msg.error}`, 'error');
-            setTimeout(hideStatus, 3000);
             reportErrorAsync(new Error(msg.error), {
                 componentName: 'ImportHandler',
                 actionType: 'import-error'
@@ -87,7 +86,6 @@ function AppContent() {
         },
         'export-error': (msg) => {
             showStatus(`❌ Export failed: ${msg.error}`, 'error');
-            setTimeout(hideStatus, 3000);
             reportErrorAsync(new Error(msg.error), {
                 componentName: 'ExportHandler',
                 actionType: 'export-error'
@@ -327,7 +325,7 @@ function AppContent() {
             )}
 
             <div className='content-container'>
-                <StatusBar />
+                <ToastContainer position="top-right" autoClose={5000} />
                 <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
 
                 {/* Tab Content */}
