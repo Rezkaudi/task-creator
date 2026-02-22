@@ -17,20 +17,20 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.25s ease;
-    background: #F24E1E;
-    box-shadow: 0 2px 8px rgba(242, 78, 30, 0.25);
+    background: linear-gradient(135deg, #4F46E5 0%, #6366f1 100%);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
     letter-spacing: 0.02em;
 }
 
 .import-to-figma-btn:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(242, 78, 30, 0.35);
-    background: #e0431a;
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+    background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
 }
 
 .import-to-figma-btn:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(242, 78, 30, 0.2);
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
 }
 
 .import-to-figma-btn:disabled {

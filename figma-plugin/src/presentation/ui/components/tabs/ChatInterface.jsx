@@ -259,6 +259,11 @@ export default function ChatInterface({
         });
 
         setConversationHistory(prev => [...prev, { role: 'assistant', content: msg.message }]);
+
+        // Auto-import the design to Figma immediately
+        if (msg.designData) {
+            handleImportDesignRef.current(msg.designData, isEdit);
+        }
     }, [selectedLayerForEdit, selectedLayerJson, referenceLayerName, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
 
     const handleError = useCallback((msg) => {
@@ -328,6 +333,12 @@ export default function ChatInterface({
             ...(isEditMode && { layerId: selectedLayerForEdit })
         });
     }, [isBasedOnExistingMode, selectedLayerForEdit, sendMessage]);
+
+    // Ref so handleResponse can call handleImportDesign without circular deps
+    const handleImportDesignRef = useRef(handleImportDesign);
+    useEffect(() => {
+        handleImportDesignRef.current = handleImportDesign;
+    }, [handleImportDesign]);
 
     const placeholder = isBasedOnExistingMode
         ? `e.g., Create a login page based on "${referenceLayerName}" style...`
