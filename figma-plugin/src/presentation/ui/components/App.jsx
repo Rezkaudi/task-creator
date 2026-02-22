@@ -321,6 +321,9 @@ function AppContent() {
                     </div>
 
                     {/* <button className="logout-btn" onClick={logout}>Sign out</button> */}
+                    <button className="import-export-btn" title='Import / Export' onClick={() => {
+                        setActiveTab('import-export');
+                    }}>📋</button>
                 </div>
             )}
 
