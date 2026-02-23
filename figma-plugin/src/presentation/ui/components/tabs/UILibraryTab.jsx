@@ -124,7 +124,7 @@ export default function UILibraryTab({ sendMessage }) {
                 throw new Error(data.message || 'Failed to create project');
             }
 
-            showStatus('✅ Project created', 'success');
+            // showStatus('✅ Project created', 'success');
             setShowCreateProjectModal(false);
             setNewProjectName('');
             await loadProjects();
@@ -154,7 +154,7 @@ export default function UILibraryTab({ sendMessage }) {
                 if (!data.success) {
                     throw new Error(data.message || 'Failed to delete project');
                 }
-                showStatus('✅ Project deleted', 'success');
+                // showStatus('✅ Project deleted', 'success');
                 setSelectedProjectId(null);
                 setComponents([]);
                 await loadProjects();
@@ -163,7 +163,7 @@ export default function UILibraryTab({ sendMessage }) {
                 if (!data.success) {
                     throw new Error(data.message || 'Failed to delete component');
                 }
-                showStatus('✅ Component deleted', 'success');
+                // showStatus('✅ Component deleted', 'success');
                 await loadComponents(selectedProjectId);
             }
         } catch (error) {
@@ -184,7 +184,7 @@ export default function UILibraryTab({ sendMessage }) {
             return;
         }
 
-        showStatus('📥 Importing component to Figma...', 'info');
+        // showStatus('📥 Importing component to Figma...', 'info');
         sendMessage('import-ui-library-component', { designJson: component.designJson });
     };
 

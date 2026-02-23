@@ -15,13 +15,13 @@ export default function ExportTab({ sendMessage }) {
 
     const handleExportSelected = useCallback(() => {
         setIsExportingSelected(true);
-        showStatus('📦 Exporting selected layers...', 'info');
+        // showStatus('📦 Exporting selected layers...', 'info');
         sendMessage('export-selected');
     }, [sendMessage, showStatus]);
 
     const handleExportAll = useCallback(() => {
         setIsExportingAll(true);
-        showStatus('📄 Exporting all layers on page...', 'info');
+        // showStatus('📄 Exporting all layers on page...', 'info');
         sendMessage('export-all');
     }, [sendMessage, showStatus]);
 
@@ -29,7 +29,7 @@ export default function ExportTab({ sendMessage }) {
         if (!currentExportData) return;
         try {
             await navigator.clipboard.writeText(JSON.stringify(currentExportData, null, 2));
-            showStatus('✅ Copied to clipboard!', 'success');
+            // showStatus('✅ Copied to clipboard!', 'success');
         } catch (err) {
             const textarea = document.createElement('textarea');
             textarea.value = JSON.stringify(currentExportData, null, 2);
@@ -37,14 +37,14 @@ export default function ExportTab({ sendMessage }) {
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-            showStatus('✅ Copied to clipboard!', 'success');
+            // showStatus('✅ Copied to clipboard!', 'success');
         }
     }, [currentExportData, showStatus]);
 
     const handleClear = useCallback(() => {
         setExportOutput('');
         setExportStats('');
-        showStatus('🗑️ Export data cleared.', 'info');
+        // showStatus('🗑️ Export data cleared.', 'info');
     }, [showStatus]);
 
     const handleDownload = useCallback(() => {
@@ -63,7 +63,7 @@ export default function ExportTab({ sendMessage }) {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showStatus('✅ Downloaded!', 'success');
+        // showStatus('✅ Downloaded!', 'success');
     }, [currentExportData, showStatus]);
 
     const handleSaveToDb = useCallback(() => {

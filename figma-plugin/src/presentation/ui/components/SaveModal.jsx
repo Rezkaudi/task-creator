@@ -161,7 +161,7 @@ export default function SaveModal() {
 
         try {
             setIsSaving(true);
-            showStatus('💾 Saving component to UI Library...', 'info');
+            // showStatus('💾 Saving component to UI Library...', 'info');
 
             let previewImage = null;
             try {
@@ -190,7 +190,7 @@ export default function SaveModal() {
                 throw new Error(data.message || 'Failed to save component');
             }
 
-            showStatus(`✅ Saved ${componentName} to UI Library`, 'success');
+            // showStatus(`✅ Saved ${componentName} to UI Library`, 'success');
             dispatch({ type: 'CLOSE_SAVE_MODAL' });
             setDescription('');
             setSelectedProjectId('');

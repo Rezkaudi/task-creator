@@ -89,7 +89,7 @@ export default function ProjectsSection({ sendMessage }) {
             setIsCreatingProject(true);
             const data = await apiPost('/api/ui-library/projects', { name: newProjectName.trim() });
             if (!data.success) throw new Error(data.message || 'Failed to create project');
-            showStatus('✅ Project created', 'success');
+            // showStatus('✅ Project created', 'success');
             setShowCreateProjectModal(false);
             setNewProjectName('');
             await loadProjects();
@@ -109,14 +109,14 @@ export default function ProjectsSection({ sendMessage }) {
             if (deleteConfirm.type === 'project') {
                 const data = await apiDelete(`/api/ui-library/projects/${deleteConfirm.id}`);
                 if (!data.success) throw new Error(data.message || 'Failed to delete project');
-                showStatus('✅ Project deleted', 'success');
+                // showStatus('✅ Project deleted', 'success');
                 setSelectedProjectId(null);
                 setComponents([]);
                 await loadProjects();
             } else {
                 const data = await apiDelete(`/api/ui-library/components/${deleteConfirm.id}`);
                 if (!data.success) throw new Error(data.message || 'Failed to delete component');
-                showStatus('✅ Component deleted', 'success');
+                // showStatus('✅ Component deleted', 'success');
                 await loadComponents(selectedProjectId);
             }
         } catch (error) {
@@ -130,7 +130,7 @@ export default function ProjectsSection({ sendMessage }) {
 
     const handleImportComponent = (component) => {
         if (!component?.designJson) { showStatus('⚠️ Missing design JSON for this component', 'warning'); return; }
-        showStatus('📥 Importing component to Figma...', 'info');
+        // showStatus('📥 Importing component to Figma...', 'info');
         sendMessage('import-ui-library-component', { designJson: component.designJson });
     };
 

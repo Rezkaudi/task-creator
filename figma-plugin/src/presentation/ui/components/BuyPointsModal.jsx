@@ -93,7 +93,7 @@ export default function BuyPointsModal() {
                     // Update AuthContext to immediately reflect changes in UI
                     updatePointsBalance(result.pointsBalance || 0, Boolean(result.hasPurchased));
 
-                    showStatus(`Points updated: ${result.pointsBalance || 0} pts`, 'success');
+                    // showStatus(`Points updated: ${result.pointsBalance || 0} pts`, 'success');
                     setTimeout(hideStatus, 2500);
                 }
             } catch (_error) {
@@ -128,7 +128,7 @@ export default function BuyPointsModal() {
                     updateSubscription(result.subscription);
                     updatePointsBalance(0, true); // Subscription has hasPurchased=true, but balance might be 0
 
-                    showStatus('Subscription activated!', 'success');
+                    // showStatus('Subscription activated!', 'success');
                     setTimeout(hideStatus, 2500);
                 }
             } catch (_error) {
@@ -210,7 +210,7 @@ export default function BuyPointsModal() {
             }
 
             setSubscription((prev) => prev ? { ...prev, cancelAtPeriodEnd: true } : null);
-            showStatus('Subscription will cancel at end of billing period', 'success');
+            // showStatus('Subscription will cancel at end of billing period', 'success');
             setTimeout(hideStatus, 3000);
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to cancel subscription';

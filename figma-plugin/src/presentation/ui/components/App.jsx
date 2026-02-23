@@ -64,7 +64,7 @@ function AppContent() {
     const sendMessage = usePluginMessage({
         // Import status handlers
         'import-success': (msg) => {
-            showStatus('✅ Design imported successfully!', 'success');
+            // showStatus('✅ Design imported successfully!', 'success');
         },
         'import-error': (msg) => {
             showStatus(`❌ Import failed: ${msg.error}`, 'error');
@@ -82,7 +82,7 @@ function AppContent() {
 
         // Export handlers
         'export-success': (msg) => {
-            showStatus(`✅ Exported ${msg.nodeCount} nodes!`, 'success');
+            // showStatus(`✅ Exported ${msg.nodeCount} nodes!`, 'success');
             dispatch({ type: 'SET_EXPORT_DATA', data: msg.data });
             if (pendingSaveRef.current) {
                 pendingSaveRef.current = false;
@@ -214,7 +214,7 @@ function AppContent() {
         }
         try {
             const designData = JSON.parse(val);
-            showStatus('📋 Importing to Figma...', 'info');
+            // showStatus('📋 Importing to Figma...', 'info');
             sendMessage('import-design', { designData });
         } catch (e) {
             showStatus(`❌ Invalid JSON: ${e.message}`, 'error');

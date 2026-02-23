@@ -127,7 +127,7 @@ export default function PrototypePanel({ onBack, sendMessage }) {
                 updatePointsBalanceRef.current(msg.points.remaining || 0, msg.points.hasPurchased);
             }
         }
-        showStatus(`✅ Generated ${(msg.connections || []).length} connections`, 'success');
+        // showStatus(`✅ Generated ${(msg.connections || []).length} connections`, 'success');
         setTimeout(hideStatus, 3000);
     };
 

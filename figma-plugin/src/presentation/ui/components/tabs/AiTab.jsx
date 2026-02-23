@@ -212,7 +212,7 @@ export default function AiTab({ sendMessage }) {
 
         'design-updated': (msg) => {
             setSelectedLayerJson(msg.layerJson);
-            showStatus('✅ Design updated! You can continue editing.', 'success');
+            // showStatus('✅ Design updated! You can continue editing.', 'success');
             setTimeout(hideStatus, 2000);
         },
 
@@ -239,7 +239,7 @@ export default function AiTab({ sendMessage }) {
         },
         'prototype-applied': (msg) => {
             // Just show status for now, maybe add chat message later
-            showStatus(`✅ Applied ${msg.appliedCount} prototype connections!`, 'success');
+            // showStatus(`✅ Applied ${msg.appliedCount} prototype connections!`, 'success');
             setTimeout(hideStatus, 3000);
         },
         'prototype-apply-error': (msg) => {
