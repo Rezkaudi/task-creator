@@ -4,7 +4,8 @@ import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
 import { usePluginMessage } from '../hooks/usePluginMessage.js';
 import { useApiClient } from '../hooks/useApiClient.js';
 import { reportErrorAsync, setHeaders as setErrorHeaders, setupGlobalHandlers } from '../errorReporter.js';
-import StatusBar from './StatusBar.jsx';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import TabBar from './TabBar.jsx';
 import AiTab from './tabs/AiTab.jsx';
 import PasteJsonTab from './tabs/PasteJsonTab.jsx';
@@ -16,6 +17,7 @@ import SaveModal from './SaveModal.jsx';
 import ResizeHandle from './ResizeHandle.jsx';
 import LoginScreen from './LoginScreen.jsx';
 import BuyPointsModal from './BuyPointsModal.jsx';
+import FigmaIcon from './FigmaIcon.jsx';
 
 function AppContent() {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
@@ -36,6 +38,7 @@ function AppContent() {
     const [creditsDropdownOpen, setCreditsDropdownOpen] = useState(false);
     const creditsDropdownRef = useRef(null);
     const jsonInputRef = useRef(null);
+    const pendingSaveRef = useRef(false);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -62,11 +65,9 @@ function AppContent() {
         // Import status handlers
         'import-success': (msg) => {
             showStatus('✅ Design imported successfully!', 'success');
-            setTimeout(hideStatus, 3000);
         },
         'import-error': (msg) => {
             showStatus(`❌ Import failed: ${msg.error}`, 'error');
-            setTimeout(hideStatus, 3000);
             reportErrorAsync(new Error(msg.error), {
                 componentName: 'ImportHandler',
                 actionType: 'import-error'
@@ -83,10 +84,13 @@ function AppContent() {
         'export-success': (msg) => {
             showStatus(`✅ Exported ${msg.nodeCount} nodes!`, 'success');
             dispatch({ type: 'SET_EXPORT_DATA', data: msg.data });
+            if (pendingSaveRef.current) {
+                pendingSaveRef.current = false;
+                dispatch({ type: 'OPEN_SAVE_MODAL' });
+            }
         },
         'export-error': (msg) => {
             showStatus(`❌ Export failed: ${msg.error}`, 'error');
-            setTimeout(hideStatus, 3000);
             reportErrorAsync(new Error(msg.error), {
                 componentName: 'ExportHandler',
                 actionType: 'export-error'
@@ -187,6 +191,15 @@ function AppContent() {
         dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(authHasPurchased) });
         dispatch({ type: 'SET_SUBSCRIPTION', subscription: authSubscription });
     }, [isAuthenticated, authPointsBalance, authHasPurchased, authSubscription, dispatch]);
+
+    const handleSaveSelected = useCallback(() => {
+        if (!state.selectionInfo || state.selectionInfo.count === 0) {
+            showStatus('⚠️ Select a layer in Figma to save', 'warning');
+            return;
+        }
+        pendingSaveRef.current = true;
+        sendMessage('export-selected');
+    }, [state.selectionInfo, sendMessage, showStatus]);
 
     const handleTabChange = useCallback((tabId) => {
         setActiveTab(tabId);
@@ -321,37 +334,46 @@ function AppContent() {
                         )}
                     </div>
 
-                    <button className="logout-btn" onClick={logout}>Sign out</button>
+                    {/* <button className="logout-btn" onClick={logout}>Sign out</button> */}
+                    <button
+                        className="import-export-btn"
+                        title={state.selectionInfo?.count > 0 ? `Save selected to Library` : 'Select a layer to save'}
+                        onClick={handleSaveSelected}
+                        disabled={!state.selectionInfo || state.selectionInfo.count === 0}
+                    >💾</button>
+                    <button className="import-export-btn" title='Import / Export' onClick={() => {
+                        setActiveTab(activeTab === 'import-export' ? 'ai' : 'import-export');
+                    }}>📋</button>
                 </div>
             )}
 
             <div className='content-container'>
-                <StatusBar />
-                <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
+                <ToastContainer position="top-right" autoClose={5000} />
+                {/* <TabBar activeTab={activeTab} onTabChange={handleTabChange} /> */}
 
                 {/* Tab Content */}
                 {activeTab === 'ai' && (
                     <AiTab sendMessage={sendMessage} />
                 )}
 
-                {activeTab === 'manual' && (
-                    <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
-                )}
-
-                {activeTab === 'export' && (
-                    <ExportTab sendMessage={sendMessage} />
+                {activeTab === 'import-export' && (
+                    <div className="import-export-wrapper">
+                        <ExportTab sendMessage={sendMessage} />
+                        <div className="section-divider">
+                            <span>Paste JSON</span>
+                        </div>
+                        <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
+                        <div className="button-group import-btn-group">
+                            <button className="btn-primary import-to-figma-btn" onClick={handleManualImport}>
+                                <FigmaIcon />
+                                Add to Figma
+                            </button>
+                        </div>
+                    </div>
                 )}
 
                 {activeTab === 'ui-library' && (
                     <UILibraryTab sendMessage={sendMessage} />
-                )}
-
-                {/* Button group for manual tab */}
-                {activeTab === 'manual' && (
-                    <div className="button-group" id="main-button-group" style={{ display: 'flex' }}>
-                        <button className="btn-primary" onClick={handleManualImport}>📋 Import JSON</button>
-                        <button className="btn-secondary" onClick={() => sendMessage('cancel')}>Cancel</button>
-                    </div>
                 )}
 
                 {/* Global Panels */}

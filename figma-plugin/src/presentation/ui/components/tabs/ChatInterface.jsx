@@ -317,6 +317,11 @@ export default function ChatInterface({
     ChatInterface.handleError = handleError;
     ChatInterface.handlePrototypeResponse = handlePrototypeResponse;
 
+    const handleSaveDesign = useCallback((designData) => {
+        dispatch({ type: 'SET_EXPORT_DATA', data: designData });
+        dispatch({ type: 'OPEN_SAVE_MODAL', fromChat: true });
+    }, [dispatch]);
+
     const handleImportDesign = useCallback((designData, isEditMode) => {
         let messageType;
         if (isBasedOnExistingMode) {
@@ -403,6 +408,7 @@ export default function ChatInterface({
                                         layerInfo={msg.layerInfo}
                                         selectedLayerForEdit={selectedLayerForEdit}
                                         onImport={() => handleImportDesign(msg.designData, msg.isEditMode)}
+                                        onSave={() => handleSaveDesign(msg.designData)}
                                     />
                                 )}
                                 {msg.isPrototypeResponse && msg.connections && (

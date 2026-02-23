@@ -388,3 +388,25 @@
     background: #f3f4f6;
     border-color: #d1d5db;
 }
+
+.import-export-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.import-export-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}

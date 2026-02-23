@@ -3,9 +3,8 @@ import '../styles/TabBar.css';
 
 const TABS = [
     { id: 'ai', label: '🤖 AI Generate' },
-    { id: 'manual', label: '📋 Paste JSON' },
-    { id: 'export', label: '📤 Export' },
-    { id: 'ui-library', label: '🧩 UI Library' },
+    // { id: 'import-export', label: '📋 Import / Export' },
+    // { id: 'ui-library', label: '🧩 UI Library' },
 ];
 
 export default function TabBar({ activeTab, onTabChange }) {

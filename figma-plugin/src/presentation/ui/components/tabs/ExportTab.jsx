@@ -94,6 +94,9 @@ export default function ExportTab({ sendMessage }) {
 
     return (
         <div id="export-tab" className="tab-content active">
+            <div className="section-divider">
+                <span>Export JSON</span>
+            </div>
             <div className="selection-info" dangerouslySetInnerHTML={{ __html: selectionDisplay }} />
 
             <div className="export-options">
@@ -114,7 +117,7 @@ export default function ExportTab({ sendMessage }) {
             </div>
 
             <div className="export-output">
-                <label htmlFor="export-output">Exported JSON</label>
+                {/* <label htmlFor="export-output">Exported JSON</label> */}
                 <textarea
                     id="export-output"
                     readOnly
@@ -124,7 +127,7 @@ export default function ExportTab({ sendMessage }) {
                 {exportStats && <div className="export-stats">{exportStats}</div>}
                 <div className="copy-btn-wrapper">
                     <button className="btn-secondary" onClick={handleCopy} disabled={!currentExportData}>📋 Copy</button>
-                    <button className="btn-secondary" onClick={handleDownload} disabled={!currentExportData}>💾 Download</button>
+                    {/* <button className="btn-secondary" onClick={handleDownload} disabled={!currentExportData}>💾 Download</button> */}
                     <button className="btn-secondary" onClick={handleClear} disabled={!currentExportData}>🗑️ Clear</button>
                     <button className="btn-primary" onClick={handleSaveToDb} disabled={!currentExportData}>💾 Save to DB</button>
                 </div>

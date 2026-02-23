@@ -1,3 +1,57 @@
+/* === Combined Import/Export Tab === */
+.import-export-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.import-export-wrapper .tab-content {
+    flex: none;
+    overflow: visible;
+}
+
+.import-export-wrapper .export-output textarea {
+    flex: none;
+    min-height: 220px;
+}
+
+.import-export-wrapper #json-input {
+    flex: none;
+    min-height: 220px;
+}
+
+.section-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 8px;
+    flex-shrink: 0;
+}
+
+.section-divider::before,
+.section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-medium);
+}
+
+.section-divider span {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.import-btn-group {
+    display: flex;
+    padding: 8px;
+    flex-shrink: 0;
+}
+
 /* === ExportTab === */
 .export-options {
     display: flex;
@@ -7,7 +61,7 @@
 
 .export-options button {
     flex: 1;
-    padding: 8px;
+    padding: 14px 12px;
 }
 
 .export-output {

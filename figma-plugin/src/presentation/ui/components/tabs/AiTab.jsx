@@ -3,7 +3,9 @@ import { useAppContext } from '../../context/AppContext.jsx';
 import { reportErrorAsync } from '../../errorReporter.js';
 import ChatInterface from './ChatInterface.jsx';
 import PrototypePanel from './PrototypePanel.jsx';
+import ProjectsSection from './ProjectsSection.jsx';
 import '../../styles/ModeBar.css';
+import '../../styles/UILibraryTab.css';
 
 const MODE_LABELS = {
     create: { icon: '✨', label: 'Create', tip: 'Generate a new design from scratch', badge: '✨ Create Mode' },
@@ -248,6 +250,9 @@ export default function AiTab({ sendMessage }) {
 
     return (
         <div id="ai-tab" className="tab-content active" style={{ position: 'relative' }}>
+            {/* Projects (UI Library) — collapsible panel */}
+            <ProjectsSection sendMessage={sendMessage} />
+
             {/* Mode Bar */}
             <div className="mode-bar">
                 {Object.entries(MODE_LABELS).map(([mode, { icon, label, tip }]) => (
