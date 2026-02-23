@@ -49,7 +49,7 @@
     gap: 16px;
     padding: 18px 20px;
     background: #fff;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--border-light);
     border-radius: 14px;
     cursor: pointer;
     transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
@@ -80,7 +80,7 @@
 .uil-project-name {
     font-size: 15px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
     margin-bottom: 3px;
     white-space: nowrap;
     overflow: hidden;
@@ -89,7 +89,7 @@
 
 .uil-project-meta {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-tertiary);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -122,7 +122,7 @@
 .uil-back-btn {
     background: none;
     border: none;
-    color: #64748b;
+    color: var(--text-secondary);
     cursor: pointer;
     padding: 4px;
     border-radius: 6px;
@@ -146,7 +146,7 @@
 .uil-components-title {
     font-size: 20px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -155,14 +155,14 @@
 
 .uil-components-subtitle {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-tertiary);
     margin-top: 2px;
 }
 
 .uil-delete-project-btn {
     background: none;
     border: none;
-    color: #94a3b8;
+    color: var(--text-tertiary);
     cursor: pointer;
     padding: 6px;
     border-radius: 6px;
@@ -185,7 +185,7 @@
 
 .uil-component-card {
     background: #fff;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--border-light);
     border-radius: 14px;
     overflow: hidden;
     display: flex;
@@ -220,7 +220,7 @@
 .uil-component-name {
     font-size: 14px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -229,7 +229,7 @@
 
 .uil-component-desc {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-tertiary);
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -239,7 +239,7 @@
 
 .uil-component-date {
     font-size: 10px;
-    color: #94a3b8;
+    color: var(--text-tertiary);
     margin-top: 3px;
 }
 
@@ -276,7 +276,7 @@
     flex: 1;
     background: none;
     border: none;
-    color: #94a3b8;
+    color: var(--text-tertiary);
     cursor: pointer;
     padding: 6px;
     border-radius: 6px;
@@ -301,7 +301,7 @@
     justify-content: center;
     gap: 8px;
     padding: 48px 16px;
-    color: #94a3b8;
+    color: var(--text-tertiary);
     font-size: 13px;
 }
 
@@ -319,7 +319,7 @@
 }
 
 .uil-empty-state p {
-    color: #94a3b8;
+    color: var(--text-tertiary);
     font-size: 13px;
     margin: 0;
     max-width: 260px;
@@ -353,7 +353,7 @@
     margin: 0 0 16px;
     font-size: 17px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
 }
 
 .uil-modal label {
@@ -361,7 +361,7 @@
     margin-bottom: 6px;
     font-size: 12px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-secondary);
 }
 
 .uil-modal input {
@@ -414,13 +414,13 @@
 
 .uil-delete-modal-text {
     font-size: 13px;
-    color: #64748b;
+    color: var(--text-secondary);
     line-height: 1.6;
     margin: 0 0 20px;
 }
 
 .uil-delete-modal-text strong {
-    color: #1e293b;
+    color: var(--text-primary);
 }
 
 
@@ -506,217 +506,4 @@
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 12px;
     }
-}
-
-
-/* ═══════════════════════════════════════════
-   ProjectsSection — Collapsible panel in AI tab
-   ═══════════════════════════════════════════ */
-
-.ps-wrapper {
-    background: #fff;
-    border-bottom: 1.5px solid #e9ecef;
-    flex-shrink: 0;
-}
-
-/* ── Toggle header ── */
-.ps-toggle {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 14px;
-    background: var(--accent-light);
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--accent);
-    text-align: left;
-    transition: background 0.15s;
-    letter-spacing: -0.1px;
-    margin-bottom: 8px;
-}
-
-.ps-toggle:hover {
-    background: rgba(99, 102, 241, 0.12);
-}
-
-.ps-toggle-icon {
-    font-size: 14px;
-    flex-shrink: 0;
-    line-height: 1;
-}
-
-.ps-toggle-label {
-    flex: 1;
-}
-
-.ps-chevron {
-    flex-shrink: 0;
-    color: #6366f1;
-    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ps-chevron-open {
-    transform: rotate(180deg);
-}
-
-/* ── Collapsible body ── */
-.ps-body {
-    border-top: 1px solid #e9ecef;
-    max-height: 320px;
-    overflow-y: auto;
-    background: #fafbff;
-}
-
-/* ── Projects sub-header ── */
-.ps-subheader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px 6px;
-    border-bottom: 1px solid #f0f0f5;
-}
-
-.ps-refresh-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-    padding: 3px 5px;
-    border-radius: 5px;
-    opacity: 0.55;
-    transition: opacity 0.15s, background 0.15s;
-    line-height: 1;
-}
-
-.ps-refresh-btn:hover {
-    opacity: 1;
-    background: var(--accent-light);
-}
-
-.ps-subheader-right {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.ps-save-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #6ee7b7;
-    border-radius: 5px;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-    line-height: 1.4;
-}
-
-.ps-save-btn:hover:not(:disabled) {
-    background: #a7f3d0;
-}
-
-.ps-save-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-}
-
-/* ── Project rows ── */
-.ps-projects-view {
-    padding-bottom: 6px;
-}
-
-.ps-projects-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    padding: 6px 8px 8px;
-}
-
-.ps-project-row {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 8px 10px;
-    border-radius: 9px;
-    cursor: pointer;
-    transition: background 0.14s;
-}
-
-.ps-project-row:hover {
-    background: var(--accent-light);
-}
-
-.ps-project-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
-
-.ps-project-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: #1e293b;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ps-project-date {
-    font-size: 10px;
-    color: #94a3b8;
-}
-
-.ps-project-count {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--accent);
-    background: var(--accent-light);
-    border-radius: 20px;
-    padding: 2px 7px;
-    flex-shrink: 0;
-}
-
-/* ── Empty state ── */
-.ps-empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 8px;
-    padding: 24px 12px;
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-/* ── Components view ── */
-.ps-components-view {
-    padding-bottom: 8px;
-}
-
-.ps-comp-topbar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 10px 6px;
-    border-bottom: 1px solid #f0f0f5;
-    background: #fff;
-}
-
-.ps-comp-title {
-    flex: 1;
-    font-size: 13px;
-    font-weight: 700;
-    color: #1e293b;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }

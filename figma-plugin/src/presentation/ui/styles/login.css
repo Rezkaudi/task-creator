@@ -12,17 +12,19 @@
 }
 
 .login-logo {
-    width: 52px;
-    height: 52px;
-    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 145px;
+    height: 64px;
+    /* border-radius: 10px; */
     margin: 0 auto 14px;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
-    font-size: 26px;
-    line-height: 1;
+    overflow: hidden;
+    /* box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25); */
+}
+
+.logo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .login-title {
