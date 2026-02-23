@@ -48,8 +48,8 @@
 }
 
 .modal-select:focus {
-    border-color: #3b5bdb;
-    box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
 
 .modal-select:disabled {
@@ -73,8 +73,8 @@
 }
 
 .modal-textarea:focus {
-    border-color: #3b5bdb;
-    box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
 
 .modal-buttons {

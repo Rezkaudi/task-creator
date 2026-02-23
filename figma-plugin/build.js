@@ -27,7 +27,7 @@ async function buildUI() {
   try {
     // 1. Bundle React JSX + CSS imports with esbuild
     const result = await esbuild.build({
-      entryPoints: [path.join(UI_SRC, "index.jsx")],
+      entryPoints: [path.join(UI_SRC, "index.tsx")],
       bundle: true,
       write: false,
       outdir: DIST,
@@ -36,7 +36,7 @@ async function buildUI() {
       minify: isProd,
       define,
       jsx: "automatic",
-      loader: { ".jsx": "jsx", ".js": "js", ".css": "css" },
+      loader: { ".jsx": "jsx", ".tsx": "tsx", ".js": "js", ".ts": "ts", ".css": "css", ".jpeg": "dataurl", ".jpg": "dataurl", ".png": "dataurl", ".gif": "dataurl", ".webp": "dataurl", ".svg": "dataurl" },
       logLevel: "info",
     });
 
