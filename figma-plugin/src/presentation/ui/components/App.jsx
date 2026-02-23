@@ -386,9 +386,9 @@ function AppContent() {
                                     Contact Us
                                 </button>
 
-                                <div className="profile-dd-divider" />
+                                {/* <div className="profile-dd-divider" /> */}
 
-                                <button
+                                {/* <button
                                     className="profile-dd-item danger"
                                     onClick={() => {
                                         setProfileDropdownOpen(false);
@@ -397,7 +397,7 @@ function AppContent() {
                                 >
                                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 4.5l3 2.5-3 2.5M12 7H5.5M5.5 2.5h-3v9h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                                     Sign Out
-                                </button>
+                                </button> */}
                             </div>
                         )}
                     </div>
