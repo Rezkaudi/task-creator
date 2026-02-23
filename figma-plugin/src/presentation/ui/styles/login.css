@@ -168,7 +168,7 @@
     padding: 8px 12px;
     background: #f9fafb;
     border-radius: 8px;
-    margin-bottom: 12px;
+    /* margin-bottom: 12px; */
     font-size: 12px;
     color: #6b7280;
     border-bottom: 1px solid #e5e7eb;
@@ -409,4 +409,236 @@
 .import-export-btn:hover {
     background: #f3f4f6;
     border-color: #d1d5db;
+}
+
+/* === Profile Dropdown === */
+.profile-dropdown-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.profile-avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 2px 5px 2px 2px;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    line-height: 0;
+}
+
+.profile-avatar-btn:hover,
+.profile-avatar-btn.open {
+    background: #f0f0ff;
+    border-color: #a5b4fc;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.profile-avatar-chevron {
+    color: #9ca3af;
+    flex-shrink: 0;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.profile-avatar-btn:hover .profile-avatar-chevron,
+.profile-avatar-btn.open .profile-avatar-chevron {
+    color: #6366f1;
+}
+
+.profile-avatar-btn.open .profile-avatar-chevron {
+    transform: rotate(180deg);
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 230px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 12px 36px rgba(15, 23, 42, 0.14), 0 3px 10px rgba(15, 23, 42, 0.07);
+    z-index: 200;
+    padding: 8px;
+    animation: ddFadeIn 0.12s ease-out;
+}
+
+.profile-dd-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px 10px;
+}
+
+.profile-dd-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.profile-dd-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profile-dd-user-info {
+    overflow: hidden;
+}
+
+.profile-dd-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-dd-email {
+    font-size: 10px;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+}
+
+.profile-dd-divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 4px 0;
+}
+
+.profile-dd-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+    padding: 4px 8px 2px;
+}
+
+.profile-dd-points-row {
+    padding: 2px 8px 4px;
+}
+
+.profile-dd-points-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.profile-dd-points-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: #16a34a;
+    color: white;
+}
+
+.profile-dd-points-val {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.profile-dd-points-val.green {
+    color: #166534;
+}
+
+.profile-dd-points-val.blue {
+    color: #1e40af;
+}
+
+.profile-dd-points-sub {
+    font-size: 10px;
+    color: #9ca3af;
+    padding-left: 10px;
+}
+
+.profile-dd-bar {
+    height: 3px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.profile-dd-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.profile-dd-empty {
+    font-size: 11px;
+    color: #9ca3af;
+    padding: 4px 8px;
+}
+
+.profile-dd-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s ease, color 0.1s ease;
+}
+
+.profile-dd-item:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.profile-dd-item:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.profile-dd-item:disabled:hover {
+    background: transparent;
+    color: #374151;
+}
+
+.profile-dd-item.accent {
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.profile-dd-item.accent:hover {
+    background: #eef2ff;
+    color: #3730a3;
+}
+
+.profile-dd-item.danger {
+    color: #dc2626;
+}
+
+.profile-dd-item.danger:hover {
+    background: #fef2f2;
+    color: #b91c1c;
 }

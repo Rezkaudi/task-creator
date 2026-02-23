@@ -37,10 +37,12 @@ function AppContent() {
     const [activeTab, setActiveTab] = useState('ai');
     const [creditsDropdownOpen, setCreditsDropdownOpen] = useState(false);
     const creditsDropdownRef = useRef(null);
+    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const profileDropdownRef = useRef(null);
     const jsonInputRef = useRef(null);
     const pendingSaveRef = useRef(false);
 
-    // Close dropdown on outside click
+    // Close credits dropdown on outside click
     useEffect(() => {
         if (!creditsDropdownOpen) return;
         const handleClick = (e) => {
@@ -51,6 +53,18 @@ function AppContent() {
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
     }, [creditsDropdownOpen]);
+
+    // Close profile dropdown on outside click
+    useEffect(() => {
+        if (!profileDropdownOpen) return;
+        const handleClick = (e) => {
+            if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+                setProfileDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [profileDropdownOpen]);
 
     const totalCredits = useMemo(() => {
         let total = Number(state.pointsBalance || 0);
@@ -249,18 +263,150 @@ function AppContent() {
             {/* User info bar */}
             {user && (
                 <div className="user-info-bar">
-                    {user.profilePicture ? (
-                        <img className="user-avatar" src={user.profilePicture} alt="" />
-                    ) : (
-                        <div className="user-avatar-placeholder">
-                            {(user.userName || user.email || '?')[0].toUpperCase()}
-                        </div>
-                    )}
-                    <div className="user-name">
-                        <span>{user.userName || user.email}</span>
+                    {/* Profile avatar — click to open profile dropdown */}
+                    <div className="profile-dropdown-wrapper" ref={profileDropdownRef}>
+                        <button
+                            className={`profile-avatar-btn ${profileDropdownOpen ? 'open' : ''}`}
+                            onClick={() => setProfileDropdownOpen(prev => !prev)}
+                            title="Profile"
+                        >
+                            {user.profilePicture ? (
+                                <img className="user-avatar" src={user.profilePicture} alt="" />
+                            ) : (
+                                <div className="user-avatar-placeholder">
+                                    {(user.userName || user.email || '?')[0].toUpperCase()}
+                                </div>
+                            )}
+                            <svg className="profile-avatar-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                <path d="M2.5 3.75L5 6.25L7.5 3.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
+
+                        {profileDropdownOpen && (
+                            <div className="profile-dropdown">
+                                {/* User header */}
+                                <div className="profile-dd-header">
+                                    {user.profilePicture ? (
+                                        <img className="profile-dd-avatar" src={user.profilePicture} alt="" />
+                                    ) : (
+                                        <div className="profile-dd-avatar-placeholder">
+                                            {(user.userName || user.email || '?')[0].toUpperCase()}
+                                        </div>
+                                    )}
+                                    <div className="profile-dd-user-info">
+                                        <div className="profile-dd-name">{user.userName || 'User'}</div>
+                                        <div className="profile-dd-email">{user.email}</div>
+                                    </div>
+                                </div>
+
+                                <div className="profile-dd-divider" />
+
+                                {/* Points section */}
+                                <div className="profile-dd-section-label">Points</div>
+                                {authSubscription && (
+                                    <div className="profile-dd-points-row">
+                                        <div className="profile-dd-points-info">
+                                            <span className="profile-dd-points-badge">
+                                                {authSubscription.planId === 'premium' ? 'Premium' : 'Basic'}
+                                            </span>
+                                            <span className="profile-dd-points-val green">
+                                                {Number((authSubscription.dailyPointsLimit || 0) - (authSubscription.dailyPointsUsed || 0)).toLocaleString()} pts
+                                            </span>
+                                            <span className="profile-dd-points-sub">remaining today</span>
+                                        </div>
+                                        <div className="profile-dd-bar">
+                                            <div
+                                                className="profile-dd-bar-fill"
+                                                style={{ width: `${Math.min(100, (authSubscription.dailyPointsUsed / authSubscription.dailyPointsLimit) * 100)}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                                {state.pointsBalance > 0 && (
+                                    <div className="profile-dd-points-row">
+                                        <span className="profile-dd-points-val blue">{Number(state.pointsBalance).toLocaleString()} pts</span>
+                                        <span className="profile-dd-points-sub">one-time balance</span>
+                                    </div>
+                                )}
+                                {!authSubscription && state.pointsBalance === 0 && (
+                                    <div className="profile-dd-empty">No credits yet</div>
+                                )}
+
+                                <div className="profile-dd-divider" />
+
+                                {/* Actions */}
+                                <button
+                                    className="profile-dd-item accent"
+                                    onClick={() => {
+                                        setProfileDropdownOpen(false);
+                                        dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
+                                    }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5v11M10.5 4.5H5.25a1.75 1.75 0 000 3.5h3.5a1.75 1.75 0 010 3.5H3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    Buy Points / Plan
+                                </button>
+
+                                <button
+                                    className="profile-dd-item"
+                                    onClick={() => {
+                                        setProfileDropdownOpen(false);
+                                        setActiveTab(activeTab === 'import-export' ? 'ai' : 'import-export');
+                                    }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 5.5L7 3 4.5 5.5M7 3v7M2.5 11h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    Import / Export
+                                </button>
+
+                                <button
+                                    className="profile-dd-item"
+                                    onClick={() => {
+                                        setProfileDropdownOpen(false);
+                                        handleSaveSelected();
+                                    }}
+                                    disabled={!state.selectionInfo || state.selectionInfo.count === 0}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 11.5h9M7 2v7.5M4 6.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    Save Selected to Library
+                                </button>
+
+                                <div className="profile-dd-divider" />
+
+                                <button className="profile-dd-item" onClick={() => { setProfileDropdownOpen(false); window.open('https://example.com/about', '_blank', 'noopener,noreferrer'); }}>
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.4" /><path d="M7 4.5v3l1.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                                    About Us
+                                </button>
+
+                                <button className="profile-dd-item" onClick={() => { setProfileDropdownOpen(false); window.open('https://example.com/privacy', '_blank', 'noopener,noreferrer'); }}>
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM7 5v4M7 9.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                                    Privacy Policy
+                                </button>
+
+                                <button className="profile-dd-item" onClick={() => { setProfileDropdownOpen(false); window.open('https://example.com/contact', '_blank', 'noopener,noreferrer'); }}>
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 4.5h9M2.5 9.5h9M1.5 7h11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                                    Contact Us
+                                </button>
+
+                                <div className="profile-dd-divider" />
+
+                                <button
+                                    className="profile-dd-item danger"
+                                    onClick={() => {
+                                        setProfileDropdownOpen(false);
+                                        logout();
+                                    }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 4.5l3 2.5-3 2.5M12 7H5.5M5.5 2.5h-3v9h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    Sign Out
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="credits-dropdown-wrapper" ref={creditsDropdownRef}>
+                    {/* <div className="user-name">
+                        <span>{user.userName || user.email}</span>
+                    </div> */}
+
+                    {/* <div className="credits-dropdown-wrapper" ref={creditsDropdownRef}>
                         <button
                             className={`credits-trigger ${creditsDropdownOpen ? 'open' : ''}`}
                             onClick={() => setCreditsDropdownOpen(prev => !prev)}
@@ -332,10 +478,10 @@ function AppContent() {
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </div> */}
 
                     {/* <button className="logout-btn" onClick={logout}>Sign out</button> */}
-                    <button
+                    {/* <button
                         className="import-export-btn"
                         title={state.selectionInfo?.count > 0 ? `Save selected to Library` : 'Select a layer to save'}
                         onClick={handleSaveSelected}
@@ -343,7 +489,7 @@ function AppContent() {
                     >💾</button>
                     <button className="import-export-btn" title='Import / Export' onClick={() => {
                         setActiveTab(activeTab === 'import-export' ? 'ai' : 'import-export');
-                    }}>📋</button>
+                    }}>📋</button> */}
                 </div>
             )}
 
