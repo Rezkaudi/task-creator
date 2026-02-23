@@ -12,7 +12,7 @@
     display: flex;
     align-items: center;
     gap: 3px;
-    padding: 6px 10px;
+    padding: 5px 8px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-light);
     flex-shrink: 0;
@@ -24,34 +24,34 @@
     font-size: 10px;
     font-weight: 500;
     color: var(--text-tertiary);
-    background: var(--bg-secondary);
+    background: transparent;
     border: 1.5px solid transparent;
-    padding: 6px 6px;
-    border-radius: 8px;
+    padding: 6px 4px;
+    border-radius: 7px;
     cursor: pointer;
-    transition: all 180ms var(--ease);
+    transition: all var(--transition-base);
     text-align: center;
     white-space: nowrap;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     line-height: 1.2;
     position: relative;
 }
 
 .mode-btn:hover {
     color: var(--text-secondary);
-    background: var(--bg-card);
-    border-color: var(--border-medium);
+    background: var(--bg-secondary);
+    border-color: var(--border-light);
 }
 
 .mode-btn.active {
     color: var(--accent);
     background: var(--accent-light);
-    border-color: var(--accent);
+    border-color: rgba(99, 102, 241, 0.35);
     font-weight: 600;
-    box-shadow: 0 1px 4px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 1px 5px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 
 .mode-btn .mode-icon {
@@ -565,19 +565,27 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: 150ms;
+    transition: all var(--transition-fast);
     padding: 0;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
 }
 
 .send-btn-icon:hover {
     background: var(--accent-dark);
-    transform: scale(1.04);
+    transform: scale(1.06);
+    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.4);
+}
+
+.send-btn-icon:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.2);
 }
 
 .send-btn-icon:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 .send-btn-icon svg {

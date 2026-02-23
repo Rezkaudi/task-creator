@@ -9,7 +9,7 @@
 
 #prototype-header {
     padding-bottom: 12px;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-medium);
 }
 
 .prototype-mode-info {
@@ -55,8 +55,8 @@
 .frames-list {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
     min-height: 150px;
     max-height: 250px;
 }
@@ -64,10 +64,10 @@
 .frame-item {
     display: flex;
     align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-light);
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background var(--transition-fast);
     gap: 12px;
 }
 
@@ -76,12 +76,12 @@
 }
 
 .frame-item:hover {
-    background: #f9fafb;
+    background: var(--bg-secondary);
 }
 
 .frame-item.selected {
-    background: #eff6ff;
-    border-left: 3px solid #6366f1;
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
 }
 
 .frame-checkbox {
@@ -140,10 +140,10 @@
     display: flex;
     gap: 12px;
     align-items: center;
-    padding: 16px;
-    background: #f8fafc;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    padding: 14px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
 }
 
 .prototype-generate-section .model-floating-btn {
@@ -160,10 +160,10 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-    padding: 16px;
-    background: #f9fafb;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
+    padding: 14px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
     margin-top: 12px;
 }
 
@@ -211,17 +211,17 @@
 }
 
 .connection-item {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
     position: relative;
-    transition: all 0.2s;
+    transition: all var(--transition-base);
 }
 
 .connection-item:hover {
-    border-color: #c7d2fe;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: var(--shadow-sm);
 }
 
 .connection-flow {
@@ -316,9 +316,9 @@
 .connections-actions {
     display: flex;
     gap: 12px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-light);
 }
 
 .connections-actions button {
