@@ -596,6 +596,37 @@
     background: #eef2ff;
 }
 
+.ps-subheader-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ps-save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    line-height: 1.4;
+}
+
+.ps-save-btn:hover:not(:disabled) {
+    background: #a7f3d0;
+}
+
+.ps-save-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
 /* ── Project rows ── */
 .ps-projects-view {
     padding-bottom: 6px;

@@ -14,7 +14,7 @@ const MODE_LABELS = {
     prototype: { icon: '🔗', label: 'Prototype', tip: 'Auto-generate prototype connections', badge: '🔗 Prototype Mode' },
 };
 
-export default function AiTab({ sendMessage }) {
+export default function AiTab({ sendMessage, onSaveSelected }) {
     const { dispatch, showStatus, hideStatus } = useAppContext();
 
     // Current mode: 'create' is default, others selectable via mode bar
@@ -251,7 +251,7 @@ export default function AiTab({ sendMessage }) {
     return (
         <div id="ai-tab" className="tab-content active" style={{ position: 'relative' }}>
             {/* Projects (UI Library) — collapsible panel */}
-            <ProjectsSection sendMessage={sendMessage} />
+            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} />
 
             {/* Mode Bar */}
             <div className="mode-bar">

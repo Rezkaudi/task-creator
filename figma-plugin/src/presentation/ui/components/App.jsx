@@ -499,7 +499,7 @@ function AppContent() {
 
                 {/* Tab Content */}
                 {activeTab === 'ai' && (
-                    <AiTab sendMessage={sendMessage} />
+                    <AiTab sendMessage={sendMessage} onSaveSelected={handleSaveSelected} />
                 )}
 
                 {activeTab === 'import-export' && (

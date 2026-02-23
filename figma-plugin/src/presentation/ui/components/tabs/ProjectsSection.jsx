@@ -19,8 +19,9 @@ function getPreviewSrc(component) {
     return `data:image/svg+xml,${fallbackSvg}`;
 }
 
-export default function ProjectsSection({ sendMessage }) {
-    const { showStatus } = useAppContext();
+export default function ProjectsSection({ sendMessage, onSaveSelected }) {
+    const { state, showStatus } = useAppContext();
+    const hasSelection = state.selectionInfo?.count > 0;
     const { apiGet, apiPost, apiDelete } = useApiClient();
 
     const [isOpen, setIsOpen] = useState(true);
@@ -147,9 +148,19 @@ export default function ProjectsSection({ sendMessage }) {
                     <Plus size={13} />
                     New Project
                 </button>
-                <button className="ps-refresh-btn" onClick={loadProjects} title="Refresh">
-                    🔄
-                </button>
+                <div className="ps-subheader-right">
+                    <button
+                        className="ps-save-btn"
+                        onClick={onSaveSelected}
+                        disabled={!hasSelection}
+                        title={hasSelection ? 'Save selected frame to library' : 'Select a frame in Figma to save'}
+                    >
+                        Save Frame
+                    </button>
+                    <button className="ps-refresh-btn" onClick={loadProjects} title="Refresh">
+                        🔄
+                    </button>
+                </div>
             </div>
 
             {loadingProjects ? (
@@ -196,6 +207,14 @@ export default function ProjectsSection({ sendMessage }) {
                     <ChevronLeft size={16} />
                 </button>
                 <span className="ps-comp-title">{selectedProject?.name}</span>
+                <button
+                    className="ps-save-btn"
+                    onClick={onSaveSelected}
+                    disabled={!hasSelection}
+                    title={hasSelection ? 'Save selected frame to library' : 'Select a frame in Figma to save'}
+                >
+                    Save Component
+                </button>
                 <button
                     className="uil-delete-project-btn"
                     onClick={() => setDeleteConfirm({ type: 'project', id: selectedProject.id, name: selectedProject.name })}
