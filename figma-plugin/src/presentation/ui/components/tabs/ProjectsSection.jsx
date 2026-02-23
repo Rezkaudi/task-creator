@@ -155,7 +155,7 @@ export default function ProjectsSection({ sendMessage, onSaveSelected }) {
                         disabled={!hasSelection}
                         title={hasSelection ? 'Save selected frame to library' : 'Select a frame in Figma to save'}
                     >
-                        Save Frame
+                        Save Components
                     </button>
                     <button className="ps-refresh-btn" onClick={loadProjects} title="Refresh">
                         🔄
