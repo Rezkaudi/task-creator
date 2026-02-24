@@ -11,7 +11,7 @@ export function getPreviewSrc(component: UIComponent): string {
 }
 
 export function useUILibrary(callerName: string): UseUILibraryReturn {
-    const { showStatus } = useAppContext();
+    const { state, dispatch, showStatus } = useAppContext();
     const { apiGet, apiPost, apiDelete } = useApiClient();
 
     const [projects, setProjects] = useState<Project[]>([]);
@@ -73,6 +73,14 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
         if (!selectedProjectId) { setComponents([]); return; }
         loadComponents(selectedProjectId);
     }, [selectedProjectId, loadComponents]);
+
+    useEffect(() => {
+        if (!state.lastSavedProjectId) return;
+        if (state.lastSavedProjectId === selectedProjectId) {
+            loadComponents(selectedProjectId);
+        }
+        dispatch({ type: 'CLEAR_COMPONENT_SAVED' });
+    }, [state.lastSavedProjectId]);
 
     const handleCreateProject = useCallback(async () => {
         if (!newProjectName.trim()) {

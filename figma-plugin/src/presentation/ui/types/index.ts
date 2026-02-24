@@ -150,6 +150,7 @@ export interface AppState {
     buyPointsModalOpen: boolean;
     currentExportData: unknown;
     selectionInfo: SelectionInfo | null;
+    lastSavedProjectId: string | null;
 }
 
 export type AppAction =
@@ -171,7 +172,9 @@ export type AppAction =
     | { type: 'OPEN_BUY_POINTS_MODAL' }
     | { type: 'CLOSE_BUY_POINTS_MODAL' }
     | { type: 'SET_EXPORT_DATA'; data: unknown }
-    | { type: 'SET_SELECTION_INFO'; selection: SelectionInfo | null };
+    | { type: 'SET_SELECTION_INFO'; selection: SelectionInfo | null }
+    | { type: 'COMPONENT_SAVED'; projectId: string }
+    | { type: 'CLEAR_COMPONENT_SAVED' };
 
 // ── Auth State ───────────────────────────────────────────────────────
 
