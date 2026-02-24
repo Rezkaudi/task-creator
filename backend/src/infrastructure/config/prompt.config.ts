@@ -53,14 +53,3 @@ export const prototypeConnectionsPrompt = fs.readFileSync(
     path.join(__dirname, '../../../public/prompt/design/actions/prototype-connections-prompt.txt'),
     'utf-8'
 ).trim();
-
-// Other prompts
-export const tasksToDesignSystemPrompt = fs.readFileSync(
-    path.join(__dirname, '../../../public/prompt/tasks/tasks-to-design-prompt.txt'),
-    'utf-8'
-).trim();
-
-export const meetingToTasksPrompt = fs.readFileSync(
-    path.join(__dirname, '../../../public/prompt/tasks/meeting-to-tasks-prompt.txt'),
-    'utf-8'
-).trim();

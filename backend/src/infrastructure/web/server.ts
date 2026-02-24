@@ -12,8 +12,6 @@ import { corsOptions } from '../config/cors.config';
 import swaggerSpec from '../config/swagger.config';
 
 // routes
-import taskRoutes from './routes/task.routes';
-import trelloRoutes from './routes/trello.routes';
 import designRoutes from './routes/design.routes';
 import aiModelsRoutes from './routes/ai-models.routes';
 import designSystemsRoutes from './routes/design-systems.routes';
@@ -86,8 +84,6 @@ export class Server {
     });
 
     this.app.use('/auth', authRoutes(this.container.authController));
-    this.app.use('/api/tasks', taskRoutes(this.container.taskController));
-    this.app.use('/api/trello', trelloRoutes(this.container.trelloController));
     this.app.use('/api/designs', designRoutes(this.container.designController));
     this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController));
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));

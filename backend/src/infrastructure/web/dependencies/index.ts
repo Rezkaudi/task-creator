@@ -2,12 +2,10 @@
 
 // Services
 import { IconService } from "../../services/icon.service";
-import { TrelloService } from "../../services/trello.service";
 import { JsonToToonService } from "../../services/json-to-toon.service";
 import { OpenAIClientFactory } from "../../services/openai-client.factory";
 import { MessageBuilderService } from "../../services/message-builder.service";
 import { ResponseParserService } from "../../services/response-parser.service";
-import { AiExtractTasksService } from "../../services/ai-extract-tasks.service";
 import { ToolCallHandlerService } from "../../services/tool-call-handler.service";
 import { AiGenerateDesignService } from "../../services/ai-generate-design.service";
 import { AiCostCalculatorService } from "../../services/ai-cost.calculator.service";
@@ -26,13 +24,7 @@ import { TypeORMPaymentTransactionRepository } from "../../repository/typeorm-pa
 import { TypeORMSubscriptionRepository } from "../../repository/typeorm-subscription.repository";
 
 
-// Use Cases - Tasks
-import { ExtractTasksUseCase } from "../../../application/use-cases/extract-tasks.use-case";
-import { AddTasksToTrelloUseCase } from "../../../application/use-cases/add-tasks-to-trello.use-case";
-import { GetBoardListsUseCase } from "../../../application/use-cases/get-board-lists-in-trello.use-case";
-
 // Use Cases - Design
-import { GenerateDesignUseCase } from "../../../application/use-cases/generate-design.use-case";
 import { EditDesignWithAIUseCase } from "../../../application/use-cases/edit-design-with-ai.use-case";
 import { GeneratePrototypeConnectionsUseCase } from "../../../application/use-cases/generate-prototype-connections.use-case";
 import { GenerateDesignBasedOnExistingUseCase } from "../../../application/use-cases/generate-design-based-on-existing.use-case";
@@ -64,8 +56,6 @@ import { GetAvailableSubscriptionPlansUseCase } from "../../../application/use-c
 import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
 
 // Controllers
-import { TaskController } from "../controllers/task.controller";
-import { TrelloController } from "../controllers/trello.controller";
 import { DesignController } from "../controllers/design.controller";
 import { AIModelsController } from "../controllers/ai-models.controller";
 import { ClientErrorController } from "../controllers/client-error.controller";
@@ -91,7 +81,6 @@ export const setupDependencies = () => {
 
 
     // Services
-    const trelloService = new TrelloService();
     const aiCostCalculatorService = new AiCostCalculatorService()
     const iconService = new IconService();
     const clientFactory = new OpenAIClientFactory();
@@ -102,8 +91,6 @@ export const setupDependencies = () => {
     const pointsService = new PointsService(userRepository);
     const jwtService = new JwtService();
 
-    const aiExtractTasksService = new AiExtractTasksService(aiCostCalculatorService);
-
     const defaultAiDesignService = new AiGenerateDesignService(
         aiCostCalculatorService,
         clientFactory,
@@ -111,12 +98,6 @@ export const setupDependencies = () => {
         responseParser,
         messageBuilder,
     );
-
-    // Use Cases - Tasks
-    const getBoardListsUseCase = new GetBoardListsUseCase(trelloService);
-    const extractTasksUseCase = new ExtractTasksUseCase(aiExtractTasksService);
-    const addTasksToTrelloUseCase = new AddTasksToTrelloUseCase(trelloService);
-    const generateDesignUseCase = new GenerateDesignUseCase(aiExtractTasksService);
 
     const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(defaultAiDesignService);
     const editDesignWithAIUseCase = new EditDesignWithAIUseCase(defaultAiDesignService);
@@ -173,10 +154,6 @@ export const setupDependencies = () => {
     const getSubscriptionStatusUseCase = new GetSubscriptionStatusUseCase(subscriptionRepository);
     const getAvailableSubscriptionPlansUseCase = new GetAvailableSubscriptionPlansUseCase();
 
-    // Controllers
-    const trelloController = new TrelloController(getBoardListsUseCase);
-    const taskController = new TaskController(extractTasksUseCase, addTasksToTrelloUseCase, generateDesignUseCase);
-
     const authMiddleware = new AuthMiddleware(userRepository, jwtService);
 
     const authController = new AuthController(googleSignInUseCase, tokenStoreService);
@@ -223,8 +200,6 @@ export const setupDependencies = () => {
     );
 
     return {
-        taskController,
-        trelloController,
         designController,
         uiLibraryController,
         aiModelsController,
