@@ -242,7 +242,7 @@ function ChatInterface({
                 modelId: currentModelId
             });
         } else {
-            addMessage('assistant', 'Creating in progress, please wait for me', { isLoading: true });
+            addMessage('assistant', 'Creating in progress ...', { isLoading: true });
             sendMessage('ai-chat-message', {
                 message,
                 history: newHistory,
