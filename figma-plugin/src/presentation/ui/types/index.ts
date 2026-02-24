@@ -125,6 +125,7 @@ export interface CostInfo {
     outputCost: string;
     outputTokens: number;
     totalCost: string;
+    duration?: number;
 }
 
 export interface PrototypeConnection {

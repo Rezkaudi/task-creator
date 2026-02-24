@@ -85,6 +85,7 @@ function ChatInterface({
 
     const chatMessagesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const requestStartTime = useRef<number | null>(null);
 
     const updateSubscriptionRef = useRef(updateSubscription);
     const updatePointsBalanceRef = useRef(updatePointsBalance);
@@ -204,6 +205,7 @@ function ChatInterface({
         addMessage('user', message);
         setInputValue('');
         setIsGenerating(true);
+        requestStartTime.current = Date.now();
 
         const newHistory = [...conversationHistory, { role: 'user', content: message }];
         setConversationHistory(newHistory);
@@ -261,6 +263,9 @@ function ChatInterface({
     }, [sendChatMessage, isComposing]);
 
     const handleResponse = useCallback((msg: PluginMessage) => {
+        const duration = requestStartTime.current != null ? (Date.now() - requestStartTime.current) / 1000 : undefined;
+        requestStartTime.current = null;
+
         setIsGenerating(false);
         removeLoadingMessages();
         playNotificationSound();
@@ -268,7 +273,7 @@ function ChatInterface({
         const isEdit = msg.type === 'ai-edit-response';
         const isBased = msg.type === 'ai-based-on-existing-response';
 
-        const points = msg.points as { remaining?: number; subscription?: Subscription; hasPurchased?: boolean; wasFree?: boolean } | undefined;
+        const points = msg.points as { remaining?: number; subscription?: Subscription; hasPurchased?: boolean; wasFree?: boolean; deducted?: number } | undefined;
         if (points) {
             dispatch({ type: 'SET_POINTS_BALANCE', balance: points.remaining || 0 });
             if (points.subscription) {
@@ -284,10 +289,13 @@ function ChatInterface({
             }
         }
 
+        const rawCost = msg.cost as CostInfo | null;
+        const cost: CostInfo | null = rawCost ? { ...rawCost, duration } : null;
+
         addMessage('assistant', msg.message as string, {
             designData: msg.designData,
             previewHtml: msg.previewHtml as string | null,
-            cost: msg.cost as CostInfo | null,
+            cost,
             isEditMode: isEdit,
             layerInfo: isEdit ? {
                 name: selectedLayerForEdit,
@@ -319,11 +327,14 @@ function ChatInterface({
     }, [removeLoadingMessages, addMessage, dispatch]);
 
     const handlePrototypeResponse = useCallback((msg: PluginMessage) => {
+        const duration = requestStartTime.current != null ? (Date.now() - requestStartTime.current) / 1000 : undefined;
+        requestStartTime.current = null;
+
         setIsGenerating(false);
         removeLoadingMessages();
         playNotificationSound();
 
-        const points = msg.points as { remaining?: number; subscription?: Subscription; hasPurchased?: boolean; wasFree?: boolean } | undefined;
+        const points = msg.points as { remaining?: number; subscription?: Subscription; hasPurchased?: boolean; wasFree?: boolean; deducted?: number } | undefined;
         if (points) {
             dispatch({ type: 'SET_POINTS_BALANCE', balance: points.remaining || 0 });
             if (points.subscription) {
@@ -344,9 +355,12 @@ function ChatInterface({
             Click <strong>Apply</strong> to add them to your Figma file.
         `;
 
+        const rawCost = msg.cost as CostInfo | null;
+        const cost: CostInfo | null = rawCost ? { ...rawCost, duration } : null;
+
         addMessage('assistant', messageContent, {
             isHtml: true,
-            cost: msg.cost as CostInfo | null,
+            cost,
             isPrototypeResponse: true,
             connections: msg.connections as PrototypeConnection[],
             timestamp: new Date()
