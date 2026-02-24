@@ -74,21 +74,6 @@ export const editWithAIValidation = [
         .isIn(DESIGN_SYSTEMS.map(designSystem => designSystem.id)).withMessage('Invalid design system'),
 ];
 
-// Task-related validations
-export const extractTasksValidation = [
-    body('text')
-        .notEmpty().withMessage('Text is required')
-        .isString().withMessage('Text must be a string'),
-
-    body('selectedListId')
-        .notEmpty().withMessage('Selected list ID is required')
-        .isString().withMessage('Selected list ID must be a string'),
-
-    body('generateDesign')
-        .optional()
-        .isBoolean().withMessage('generateDesign must be a boolean'),
-];
-
 export const generateBasedOnExistingValidation = [
     body('message')
         .notEmpty().withMessage('Message is required')

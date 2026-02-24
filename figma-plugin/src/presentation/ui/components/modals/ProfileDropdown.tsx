@@ -90,20 +90,9 @@ export function ProfileDropdown({
                 Import / Export
             </button>
 
-            <button
-                className="profile-dd-item"
-                onClick={() => { onClose(); onSaveSelected(); }}
-                disabled={!selectionInfo || selectionInfo.count === 0}
-            >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M2.5 11.5h9M7 2v7.5M4 6.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Save Selected to Library
-            </button>
-
             <div className="profile-dd-divider" />
 
-            <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://example.com/about', '_blank', 'noopener,noreferrer'); }}>
+            <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://rio-app.design/#about', '_blank', 'noopener,noreferrer'); }}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.4" />
                     <path d="M7 4.5v3l1.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -111,14 +100,14 @@ export function ProfileDropdown({
                 About Us
             </button>
 
-            <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://example.com/privacy', '_blank', 'noopener,noreferrer'); }}>
+            <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://rio-app.design/privacy-policy', '_blank', 'noopener,noreferrer'); }}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M7 1.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM7 5v4M7 9.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                 </svg>
                 Privacy Policy
             </button>
 
-            <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://example.com/contact', '_blank', 'noopener,noreferrer'); }}>
+            <button className="profile-dd-item" onClick={() => { onClose(); window.location.href = 'mailto:info@kuroworks.com'; }}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M2.5 4.5h9M2.5 9.5h9M1.5 7h11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                 </svg>

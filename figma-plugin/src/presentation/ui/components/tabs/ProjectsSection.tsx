@@ -33,13 +33,10 @@ export default function ProjectsSection({ sendMessage, onSaveSelected }: Project
                     <button
                         className="ps-save-btn"
                         onClick={onSaveSelected}
-                        disabled={!hasSelection}
+                        // disabled={!hasSelection}
                         title={hasSelection ? 'Save selected frame to library' : 'Select a frame in Figma to save'}
                     >
                         Save Components
-                    </button>
-                    <button className="ps-refresh-btn" onClick={lib.loadProjects} title="Refresh">
-                        🔄
                     </button>
                 </div>
             </div>
@@ -87,7 +84,7 @@ export default function ProjectsSection({ sendMessage, onSaveSelected }: Project
                 <button
                     className="ps-save-btn"
                     onClick={onSaveSelected}
-                    disabled={!hasSelection}
+                    // disabled={!hasSelection}
                     title={hasSelection ? 'Save selected frame to library' : 'Select a frame in Figma to save'}
                 >
                     Save Component

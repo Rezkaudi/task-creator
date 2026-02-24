@@ -32,6 +32,7 @@ const initialState: AppState = {
 
     currentExportData: null,
     selectionInfo: null,
+    lastSavedProjectId: null,
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -80,6 +81,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
             return { ...state, currentExportData: action.data };
         case 'SET_SELECTION_INFO':
             return { ...state, selectionInfo: action.selection };
+
+        case 'COMPONENT_SAVED':
+            return { ...state, lastSavedProjectId: action.projectId };
+        case 'CLEAR_COMPONENT_SAVED':
+            return { ...state, lastSavedProjectId: null };
 
         default:
             return state;

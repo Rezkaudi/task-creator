@@ -136,7 +136,7 @@ function AppContent(): React.JSX.Element {
 
     const handleSaveSelected = useCallback(() => {
         if (!state.selectionInfo || state.selectionInfo.count === 0) {
-            showStatus('⚠️ Select a layer in Figma to save', 'warning');
+            showStatus('Select a layer in Figma to save', 'warning');
             return;
         }
         pendingSaveRef.current = true;

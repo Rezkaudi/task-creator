@@ -201,6 +201,7 @@ export default function SaveModal(): React.JSX.Element | null {
                 throw new Error(data.message || 'Failed to save component');
             }
 
+            dispatch({ type: 'COMPONENT_SAVED', projectId: selectedProjectId });
             dispatch({ type: 'CLOSE_SAVE_MODAL' });
             setDescription('');
             setSelectedProjectId('');
