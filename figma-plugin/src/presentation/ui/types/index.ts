@@ -39,6 +39,7 @@ export interface Frame {
     width: number;
     height: number;
     interactiveElements?: unknown[];
+    designJson?: unknown;
 }
 
 export interface SelectionInfo {

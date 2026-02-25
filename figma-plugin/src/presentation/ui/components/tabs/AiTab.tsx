@@ -4,7 +4,7 @@ import { reportErrorAsync } from '../../errorReporter.ts';
 import ChatInterface from './ChatInterface.tsx';
 import PrototypePanel from './PrototypePanel.tsx';
 import ProjectsSection from './ProjectsSection.tsx';
-import { Frame, PluginMessage, SendMessageFn } from '../../types/index.ts';
+import { Frame, UIComponent, PluginMessage, SendMessageFn } from '../../types/index.ts';
 import '../../styles/ModeBar.css';
 import '../../styles/UILibraryTab.css';
 
@@ -34,7 +34,7 @@ interface SystemMessage {
 }
 
 function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
-    const { dispatch, showStatus, hideStatus } = useAppContext();
+    const { state, dispatch, showStatus, hideStatus } = useAppContext();
 
     const [currentMode, setCurrentMode] = useState<Mode>('create');
     const [view, setView] = useState<'chat' | 'prototype'>('chat');
@@ -98,6 +98,25 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
             return next;
         });
     }, []);
+
+    const handleAttachComponent = useCallback((component: UIComponent) => {
+        // Toggle: detach if already attached
+        if (selectedFrameIds.has(component.id)) {
+            setSelectedFrameIds(prev => { const next = new Set(prev); next.delete(component.id); return next; });
+            setAvailableFrames(prev => prev.filter(f => f.id !== component.id));
+            return;
+        }
+        const selectionCount = state.selectionInfo?.count ?? 0;
+        if (selectionCount > 1) {
+            showStatus('⚠️ Select only one layer before attaching a component', 'warning');
+            return;
+        }
+        setAvailableFrames(prev => {
+            if (prev.some(f => f.id === component.id)) return prev;
+            return [...prev, { id: component.id, name: component.name, width: 0, height: 0, interactiveElements: [], designJson: component.designJson }];
+        });
+        setSelectedFrameIds(prev => new Set([...prev, component.id]));
+    }, [state.selectionInfo, selectedFrameIds, showStatus]);
 
     const selectedFrames = availableFrames.filter(f => selectedFrameIds.has(f.id));
 
@@ -166,9 +185,14 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
                     return newFrames.length > 0 ? [...prev, ...newFrames] : prev;
                 });
 
-                setSelectedFrameIds(new Set(nodes.map(n => n.id)));
+                // Preserve library-attached component IDs (have designJson), replace Figma selection IDs
+                const libraryIds = new Set(availableFrames.filter(f => f.designJson != null).map(f => f.id));
+                const preserved = [...selectedFrameIds].filter(id => libraryIds.has(id));
+                setSelectedFrameIds(new Set([...preserved, ...nodes.map(n => n.id)]));
             } else {
-                setSelectedFrameIds(new Set());
+                // Clear Figma selections but keep library-attached components
+                const libraryIds = new Set(availableFrames.filter(f => f.designJson != null).map(f => f.id));
+                setSelectedFrameIds(new Set([...selectedFrameIds].filter(id => libraryIds.has(id))));
             }
         },
 
@@ -249,7 +273,7 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
     return (
         <div id="ai-tab" className="tab-content active" style={{ position: 'relative' }}>
             {/* Projects (UI Library) — collapsible panel */}
-            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} />
+            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} onAttachComponent={handleAttachComponent} attachedComponentIds={selectedFrameIds} />
 
             {/* Mode Bar */}
             <div className="mode-bar">

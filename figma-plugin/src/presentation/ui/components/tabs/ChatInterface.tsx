@@ -218,6 +218,7 @@ function ChatInterface({
                 message,
                 history: newHistory,
                 referenceId: referenceFrame.id,
+                ...(referenceFrame.designJson ? { referenceJson: referenceFrame.designJson as Record<string, unknown> } : {}),
                 model: currentModelId
             });
         } else if (currentMode === 'edit') {
@@ -227,6 +228,7 @@ function ChatInterface({
                 message,
                 history: newHistory,
                 layerId: attachedFrame.id,
+                ...(attachedFrame.designJson ? { layerJson: attachedFrame.designJson as Record<string, unknown> } : {}),
                 model: currentModelId,
                 designSystemId: currentDesignSystemId
             });

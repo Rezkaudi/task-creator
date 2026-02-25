@@ -52,7 +52,7 @@
 /* ── Collapsible body ── */
 .ps-body {
     border-top: 1px solid var(--border-light);
-    max-height: 320px;
+    max-height: 300px;
     overflow-y: auto;
     background: #fafbff;
 }
@@ -124,6 +124,7 @@
     flex-direction: column;
     gap: 1px;
     padding: 6px 8px 8px;
+    max-height: 100px;
 }
 
 .ps-project-row {
