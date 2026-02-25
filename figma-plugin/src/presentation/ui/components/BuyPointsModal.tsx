@@ -20,7 +20,7 @@ export default function BuyPointsModal(): React.JSX.Element | null {
     const [buyingPackageId, setBuyingPackageId] = useState<string | null>(null);
     const [subscribingPlanId, setSubscribingPlanId] = useState<string | null>(null);
     const [cancelingSubscription, setCancelingSubscription] = useState(false);
-    const [activeTab, setActiveTab] = useState<'subscription' | 'onetime'>('subscription');
+    const [activeTab, setActiveTab] = useState<'subscription' | 'onetime'>('onetime');
     const [error, setError] = useState('');
 
     const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -239,7 +239,7 @@ export default function BuyPointsModal(): React.JSX.Element | null {
 
                 <p className="buy-points-subtitle">Unlock all AI models with a subscription or one-time purchase.</p>
 
-                <div className="buy-points-tabs">
+                {/* <div className="buy-points-tabs">
                     <button
                         className={`buy-points-tab ${activeTab === 'subscription' ? 'active' : ''}`}
                         onClick={() => setActiveTab('subscription')}
@@ -252,7 +252,7 @@ export default function BuyPointsModal(): React.JSX.Element | null {
                     >
                         One-Time Points
                     </button>
-                </div>
+                </div> */}
 
                 {isLoadingPackages ? (
                     <div className="buy-points-loading">

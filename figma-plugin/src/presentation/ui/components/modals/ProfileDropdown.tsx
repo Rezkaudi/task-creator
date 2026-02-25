@@ -83,12 +83,12 @@ export function ProfileDropdown({
                 Buy Points / Plan
             </button>
 
-            <button className="profile-dd-item" onClick={() => { onClose(); onImportExport(); }}>
+            {/* <button className="profile-dd-item" onClick={() => { onClose(); onImportExport(); }}>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M9.5 5.5L7 3 4.5 5.5M7 3v7M2.5 11h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Import / Export
-            </button>
+            </button> */}
 
             <div className="profile-dd-divider" />
 

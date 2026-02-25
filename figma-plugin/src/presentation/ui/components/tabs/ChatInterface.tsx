@@ -132,7 +132,7 @@ function ChatInterface({
         } else if (currentMode === 'prototype') {
             welcomeMessage = `Prototype Mode: Attach 2 or more frames with 📎 to generate connections between them. Then click Send. 🔗`;
         } else {
-            welcomeMessage = `Describe what you'd like to create using <strong>${modelName}</strong> + <strong>${systemName}</strong>. Attach a frame with 📎 to use it as a style reference.`;
+            welcomeMessage = `Describe what you'd like to create using <strong>${modelName}</strong> . Attach a frame to use it as a style reference.`;
         }
 
         setMessages([{ role: 'assistant', content: welcomeMessage, isHtml: true }]);
@@ -592,7 +592,7 @@ function ChatInterface({
                         )}
                     </button>
 
-                    <button
+                    {/* <button
                         className="selector-pill ds"
                         onClick={(e) => {
                             e.stopPropagation();
@@ -620,7 +620,7 @@ function ChatInterface({
                                 ))}
                             </div>
                         )}
-                    </button>
+                    </button> */}
 
                     <span className="selectors-spacer" />
                     <span className="chat-hint-inline">↵ Send</span>
