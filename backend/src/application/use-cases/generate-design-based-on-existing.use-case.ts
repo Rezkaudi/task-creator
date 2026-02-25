@@ -23,16 +23,16 @@ export class GenerateDesignBasedOnExistingUseCase {
             throw new Error('Reference design is required to extract design system.');
         }
 
-        const toonFormat = this.jsonToToonService.convertToToon(referenceDesign);
-        
-        console.log(`📊 Reduced size: ${JSON.stringify(referenceDesign).length} → ${toonFormat.length} chars`);
+        const toonFormat = this.jsonToToonService.convertToSample(referenceDesign);
+        console.log("toonFormat", toonFormat);
+        console.log(`📊 Design system size: ${JSON.stringify(referenceDesign).length} → ${toonFormat.length} chars`);
 
         const validHistory = Array.isArray(history) ? history : [];
 
         return this.aiDesignService.generateDesignBasedOnExisting(
             message,
             validHistory,
-            toonFormat, 
+            toonFormat,
             modelId
         );
     }

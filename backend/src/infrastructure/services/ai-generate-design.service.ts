@@ -275,14 +275,11 @@ export class AiGenerateDesignService implements IAiDesignService {
         aiModel: AIModelConfig,
         messages: AiMessage[]
     ): Promise<CompletionResult> {
-        const completionParams = {
+        let completion = await this.createCompletionWithRetry(openai, {
             model: aiModel.id,
             messages: messages,
             tools: iconTools,
-            response_format: { type: 'json_object' as const },
-        };
-
-        let completion = await this.createCompletionWithRetry(openai, completionParams);
+        });
 
         // Handle tool calls loop
         while (completion.choices[0]?.message?.tool_calls) {
@@ -303,13 +300,13 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             // Get next completion
             completion = await this.createCompletionWithRetry(openai, {
-                ...completionParams,
+                model: aiModel.id,
                 messages: messages,
+                tools: iconTools,
             });
         }
 
         const responseText = completion.choices[0]?.message?.content;
-        console.log('--- responseText ---', responseText);
 
         if (!responseText) {
             throw new Error('LLM API returned empty response.');
