@@ -19,7 +19,7 @@ interface ModeLabel {
 
 const MODE_LABELS: Record<Mode, ModeLabel> = {
     create: { icon: '✨', label: 'Create', tip: 'Generate a new design from scratch', badge: '✨ Create Mode' },
-    edit: { icon: '✏️', label: 'Edit', tip: 'Modify an existing frame with AI', badge: '✏️ Edit Mode' },
+    edit: { icon: '✏️', label: 'Modify', tip: 'Modify an existing frame with AI', badge: '✏️ Edit Mode' },
     'based-on-existing': { icon: '🎨', label: 'By Reference', tip: 'Create new design using existing style', badge: '🎨 By Reference Mode' },
     prototype: { icon: '🔗', label: 'Prototype', tip: 'Auto-generate prototype connections', badge: '🔗 Prototype Mode' },
 };
