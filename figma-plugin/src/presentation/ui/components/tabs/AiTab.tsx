@@ -18,10 +18,10 @@ interface ModeLabel {
 }
 
 const MODE_LABELS: Record<Mode, ModeLabel> = {
-    create: { icon: '✨', label: 'Create', tip: 'Generate a new design from scratch', badge: '✨ Create Mode' },
-    edit: { icon: '✏️', label: 'Modify', tip: 'Modify an existing frame with AI', badge: '✏️ Edit Mode' },
-    'based-on-existing': { icon: '🎨', label: 'By Reference', tip: 'Create new design using existing style', badge: '🎨 By Reference Mode' },
-    prototype: { icon: '🔗', label: 'Prototype', tip: 'Auto-generate prototype connections', badge: '🔗 Prototype Mode' },
+    create: { icon: '', label: 'Create', tip: 'Generate a new design from scratch', badge: 'Create Mode' },
+    edit: { icon: '', label: 'Modify', tip: 'Modify an existing frame with AI', badge: 'Edit Mode' },
+    'based-on-existing': { icon: '', label: 'By Reference', tip: 'Create new design using existing style', badge: 'By Reference Mode' },
+    prototype: { icon: '', label: 'Prototype', tip: 'Auto-generate prototype connections', badge: 'Prototype Mode' },
 };
 
 interface AiTabProps {
@@ -299,7 +299,7 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
                 <div className="fp-panel">
                     <div className="fp-header">
                         <div className="fp-title">
-                            <span className="fp-title-icon">📐</span> Select Frames {availableFrames?.length ? `- ${availableFrames.length} available` : ""}
+                            <span className="fp-title-icon"></span> Select Frames {availableFrames?.length ? `- ${availableFrames.length} available` : ""}
                         </div>
                         <div className="fp-actions">
                             <button className="fp-action-btn" onClick={selectAllFrames}>All</button>

@@ -119,13 +119,13 @@ function ChatInterface({
 
         let welcomeMessage: string;
         if (isBasedOnExistingMode) {
-            welcomeMessage = `By Reference: Attach a reference frame with 📎, then describe what new design you want to create based on its style. 🎨`;
+            welcomeMessage = `By Reference: Attach a reference frame with 📎, then describe what new design you want to create based on its style.`;
         } else if (currentMode === 'edit') {
             welcomeMessage = `Edit Mode: Attach a frame with 📎 to start editing using ${modelName}. What would you like to change?`;
         } else if (currentMode === 'prototype') {
             welcomeMessage = `Prototype Mode: Attach 2 or more frames with 📎 to generate connections between them. Then click Send. 🔗`;
         } else {
-            welcomeMessage = `Attach a frame with 📎, then describe what you'd like to create. I'll generate your design using <strong>${modelName}</strong> + <strong>${systemName}</strong>. ✨`;
+            welcomeMessage = `Attach a frame with 📎, then describe what you'd like to create. I'll generate your design using <strong>${modelName}</strong> + <strong>${systemName}</strong>.`;
         }
 
         setMessages([{ role: 'assistant', content: welcomeMessage, isHtml: true }]);
@@ -432,7 +432,7 @@ function ChatInterface({
                     return (
                         <div key={i} className={`message ${msg.role}`}>
                             {msg.role === 'assistant' && (
-                                <div className="msg-avatar ai-avatar">R</div>
+                                <div className="msg-avatar ai-avatar">Rio</div>
                             )}
                             <div className="message-content">
                                 {msg.isLoading ? (
@@ -496,7 +496,7 @@ function ChatInterface({
                     <div className="frame-chips">
                         {selectedFrames.map(frame => (
                             <span key={frame.id} className="f-chip">
-                                <span className="chip-icon">📐</span>
+                                <span className="chip-icon"></span>
                                 {frame.name.length > 20 ? frame.name.slice(0, 20) + '…' : frame.name}
                                 <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
                             </span>
@@ -523,7 +523,7 @@ function ChatInterface({
                             }}
                             disabled={isGenerating || selectedFrames.length < 2}
                         >
-                            {isGenerating ? <div className="spinner" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }} /> : '⚡'}
+                            {isGenerating ? <div className="spinner" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }} /> : ''}
                             {isGenerating ? 'Generating...' : 'Generate Connections'}
                         </button>
                     </div>
@@ -556,10 +556,7 @@ function ChatInterface({
                             onClick={sendChatMessage}
                             disabled={isGenerating || !inputValue.trim()}
                         >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M22 2 11 13" />
-                                <path d="M22 2 15 22 11 13 2 9z" />
-                            </svg>
+                            Generate
                         </button>
                     </div>
                 )}
@@ -574,7 +571,7 @@ function ChatInterface({
                             setModelDropdownOpen(!modelDropdownOpen);
                         }}
                     >
-                        <span>🤖</span> {selectedModel?.name || defaultModel.name} <span className="sel-arrow">▾</span>
+                        <span></span> {selectedModel?.name || defaultModel.name} <span className="sel-arrow">▾</span>
 
                         {modelDropdownOpen && (
                             <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
@@ -587,7 +584,7 @@ function ChatInterface({
                                             setModelDropdownOpen(false);
                                         }}
                                     >
-                                        <span className="sd-icon">🤖</span>
+                                        <span className="sd-icon"></span>
                                         <div style={{ flex: 1 }}>{model.name}</div>
                                         <span className="sd-check">✓</span>
                                     </div>
@@ -604,7 +601,7 @@ function ChatInterface({
                             setDsDropdownOpen(!dsDropdownOpen);
                         }}
                     >
-                        <span>🎨</span> {selectedSystem?.name || defaultDesignSystem.name} <span className="sel-arrow">▾</span>
+                        <span></span> {selectedSystem?.name || defaultDesignSystem.name} <span className="sel-arrow">▾</span>
 
                         {dsDropdownOpen && (
                             <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
@@ -617,7 +614,7 @@ function ChatInterface({
                                             setDsDropdownOpen(false);
                                         }}
                                     >
-                                        <span className="sd-icon">🎨</span>
+                                        <span className="sd-icon"></span>
                                         <div style={{ flex: 1 }}>{ds.name}</div>
                                         <span className="sd-check">✓</span>
                                     </div>

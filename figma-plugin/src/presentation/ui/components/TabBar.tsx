@@ -12,9 +12,9 @@ interface TabBarProps {
 }
 
 const TABS: Tab[] = [
-    { id: 'ai', label: '🤖 AI Generate' },
-    // { id: 'import-export', label: '📋 Import / Export' },
-    // { id: 'ui-library', label: '🧩 UI Library' },
+    { id: 'ai', label: 'AI Generate' },
+    // { id: 'import-export', label: 'Import / Export' },
+    // { id: 'ui-library', label: 'UI Library' },
 ];
 
 export default function TabBar({ activeTab, onTabChange }: TabBarProps): React.JSX.Element {

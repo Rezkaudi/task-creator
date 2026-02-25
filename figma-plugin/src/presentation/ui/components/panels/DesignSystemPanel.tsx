@@ -71,7 +71,7 @@ export default function DesignSystemPanel(): React.JSX.Element | null {
             />
             <div id="design-system-panel" className="model-panel" style={{ display: 'block' }}>
                 <div className="model-panel-header">
-                    <h3>🎨 Select Design System</h3>
+                    <h3>Select Design System</h3>
                     <button className="close-model-panel" onClick={handleClose}>×</button>
                 </div>
 

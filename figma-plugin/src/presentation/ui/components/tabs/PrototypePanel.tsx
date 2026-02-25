@@ -227,7 +227,7 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
                     className="model-floating-btn"
                     onClick={() => dispatch({ type: 'OPEN_MODEL_PANEL' })}
                 >
-                    <div className="model-btn-icon">🤖</div>
+                    <div className="model-btn-icon"></div>
                     <span className="model-btn-text">{selectedModel?.name || defaultModel.name}</span>
                 </div>
                 <button
@@ -238,7 +238,7 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
                 >
                     {isGeneratingConnections
                         ? <><span className="loading"></span> Generating...</>
-                        : '🤖 Generate Connections with AI'
+                        : 'Generate Connections with AI'
                     }
                 </button>
             </div>
