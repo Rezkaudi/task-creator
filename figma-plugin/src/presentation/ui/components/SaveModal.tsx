@@ -250,7 +250,7 @@ export default function SaveModal(): React.JSX.Element | null {
                 }}
             >
                 <h3 style={{ marginBottom: '16px', fontSize: '18px', color: '#374151' }}>
-                    🧩 Save Component to UI Library
+                    Save Component to UI Library
                 </h3>
 
                 <div style={{ marginBottom: '12px', fontSize: '13px', color: '#4b5563' }}>

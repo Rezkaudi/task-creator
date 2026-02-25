@@ -14,9 +14,11 @@ import '../../styles/ProjectsSection.css';
 interface ProjectsSectionProps {
     sendMessage: SendMessageFn;
     onSaveSelected: () => void;
+    onAttachComponent?: (component: UIComponent) => void;
+    attachedComponentIds?: Set<string>;
 }
 
-export default function ProjectsSection({ sendMessage, onSaveSelected }: ProjectsSectionProps) {
+export default function ProjectsSection({ sendMessage, onSaveSelected, onAttachComponent, attachedComponentIds }: ProjectsSectionProps) {
     const [isOpen, setIsOpen] = useState(true);
     const { state } = useAppContext();
     const hasSelection = (state.selectionInfo?.count ?? 0) > 0;
@@ -107,13 +109,23 @@ export default function ProjectsSection({ sendMessage, onSaveSelected }: Project
             ) : (
                 <div className="uil-components-grid" style={{ padding: '8px 4px' }}>
                     {lib.components.map((component: UIComponent) => (
-                        <div key={component.id} className="uil-component-card">
+                        <div
+                            key={component.id}
+                            className={`uil-component-card${attachedComponentIds?.has(component.id) ? ' is-attached' : ''}`}
+                            onClick={() => onAttachComponent?.(component)}
+                        >
                             <div className="uil-component-preview-wrap">
                                 <img
                                     className="uil-component-preview"
                                     src={getPreviewSrc(component)}
                                     alt={`${component.name} preview`}
                                 />
+                                {onAttachComponent && (
+                                    <div className="uil-attach-overlay">
+                                        <span className="uil-attach-overlay-icon">{attachedComponentIds?.has(component.id) ? '✕' : '📎'}</span>
+                                        <span className="uil-attach-overlay-label">{attachedComponentIds?.has(component.id) ? 'Detach' : 'Attach to chat'}</span>
+                                    </div>
+                                )}
                             </div>
                             <div className="uil-component-info">
                                 <div className="uil-component-name">{component.name}</div>
@@ -125,12 +137,16 @@ export default function ProjectsSection({ sendMessage, onSaveSelected }: Project
                                 )}
                             </div>
                             <div className="uil-component-actions">
-                                <button className="uil-btn-import" onClick={() => lib.handleImportComponent(component, sendMessage)}>
+                                <button
+                                    className="uil-btn-import"
+                                    onClick={(e) => { e.stopPropagation(); lib.handleImportComponent(component, sendMessage); }}
+                                    title="Import to Figma"
+                                >
                                     <FigmaIcon />
                                 </button>
                                 <button
                                     className="uil-btn-delete-icon"
-                                    onClick={() => lib.setDeleteConfirm({ type: 'component', id: component.id, name: component.name })}
+                                    onClick={(e) => { e.stopPropagation(); lib.setDeleteConfirm({ type: 'component', id: component.id, name: component.name }); }}
                                     title="Delete"
                                 >
                                     <Trash2 size={16} />
@@ -146,7 +162,7 @@ export default function ProjectsSection({ sendMessage, onSaveSelected }: Project
     return (
         <div className={`ps-wrapper ${isOpen ? 'ps-open' : ''}`}>
             <button className="ps-toggle" onClick={() => setIsOpen(v => !v)}>
-                <span className="ps-toggle-icon">🗂️</span>
+                <span className="ps-toggle-icon"></span>
                 <span className="ps-toggle-label">Projects (UI Library)</span>
                 <ChevronDown size={14} className={`ps-chevron ${isOpen ? 'ps-chevron-open' : ''}`} />
             </button>

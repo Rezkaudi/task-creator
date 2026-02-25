@@ -191,12 +191,56 @@
     display: flex;
     flex-direction: column;
     transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+    cursor: pointer;
 }
 
 .uil-component-card:hover {
     border-color: rgba(99, 102, 241, 0.35);
     box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
     transform: translateY(-2px);
+}
+
+.uil-component-card.is-attached {
+    border-color: rgba(99, 102, 241, 0.85);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.uil-component-card.is-attached:hover {
+    border-color: rgba(99, 102, 241, 1);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.35), 0 4px 16px rgba(99, 102, 241, 0.1);
+}
+
+/* ── Attach overlay (shown on hover over preview) ── */
+
+.uil-attach-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(79, 70, 229, 0.88);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.18s;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.uil-component-card:hover .uil-attach-overlay {
+    opacity: 1;
+}
+
+.uil-attach-overlay-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.uil-attach-overlay-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.3px;
 }
 
 .uil-component-preview-wrap {

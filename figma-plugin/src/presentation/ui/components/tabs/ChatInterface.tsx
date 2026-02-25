@@ -5,6 +5,7 @@ import { escapeHtml } from '../../utils/formatters';
 import DesignPreview from './DesignPreview.tsx';
 import CostBreakdown from './CostBreakdown.tsx';
 import '../../styles/ChatInterface.css';
+import RioProfile from '../../assets/rio-profile.png';
 import { defaultModel, defaultDesignSystem } from '../../../../shared/constants/plugin-config.js';
 import { playNotificationSound } from '../../utils/audio.ts';
 import {
@@ -47,8 +48,6 @@ interface ChatInterfaceProps {
     isBasedOnExistingMode: boolean;
     selectedLayerForEdit: string | null;
     selectedLayerJson: Record<string, unknown> | null;
-    referenceLayerName: string;
-    referenceDesignJson: unknown;
     onBack: (() => void) | null;
     sendMessage: SendMessageFn;
     selectedFrames?: Frame[];
@@ -63,9 +62,6 @@ function ChatInterface({
     isBasedOnExistingMode,
     selectedLayerForEdit,
     selectedLayerJson,
-    referenceLayerName,
-    referenceDesignJson,
-    onBack,
     sendMessage,
     selectedFrames = [],
     onRemoveFrame,
@@ -92,6 +88,19 @@ function ChatInterface({
 
     const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
     const [dsDropdownOpen, setDsDropdownOpen] = useState(false);
+    const [attachNotif, setAttachNotif] = useState<string | null>(null);
+    const prevFrameCountRef = useRef(0);
+    const attachNotifTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (selectedFrames.length > prevFrameCountRef.current) {
+            const added = selectedFrames[selectedFrames.length - 1];
+            if (attachNotifTimerRef.current) clearTimeout(attachNotifTimerRef.current);
+            setAttachNotif(added.name.length > 24 ? added.name.slice(0, 24) + '…' : added.name);
+            attachNotifTimerRef.current = setTimeout(() => setAttachNotif(null), 5000);
+        }
+        prevFrameCountRef.current = selectedFrames.length;
+    }, [selectedFrames]);
 
     useEffect(() => {
         const handleClickOutside = () => {
@@ -118,21 +127,19 @@ function ChatInterface({
         const systemName = system?.name || defaultDesignSystem.name;
 
         let welcomeMessage: string;
-        if (isBasedOnExistingMode) {
-            welcomeMessage = `By Reference: Attach a reference frame with 📎, then describe what new design you want to create based on its style. 🎨`;
-        } else if (currentMode === 'edit') {
+        if (currentMode === 'edit') {
             welcomeMessage = `Edit Mode: Attach a frame with 📎 to start editing using ${modelName}. What would you like to change?`;
         } else if (currentMode === 'prototype') {
             welcomeMessage = `Prototype Mode: Attach 2 or more frames with 📎 to generate connections between them. Then click Send. 🔗`;
         } else {
-            welcomeMessage = `Attach a frame with 📎, then describe what you'd like to create. I'll generate your design using <strong>${modelName}</strong> + <strong>${systemName}</strong>. ✨`;
+            welcomeMessage = `Describe what you'd like to create using <strong>${modelName}</strong> + <strong>${systemName}</strong>. Attach a frame with 📎 to use it as a style reference.`;
         }
 
         setMessages([{ role: 'assistant', content: welcomeMessage, isHtml: true }]);
         setConversationHistory([]);
 
         setTimeout(() => inputRef.current?.focus(), 100);
-    }, [currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, availableModels, availableDesignSystems]);
+    }, [currentMode, currentModelId, currentDesignSystemId, availableModels, availableDesignSystems]);
 
     const scrollToBottom = useCallback(() => {
         if (chatMessagesRef.current) {
@@ -191,17 +198,6 @@ function ChatInterface({
             }
         }
 
-        if (isBasedOnExistingMode) {
-            if (selectedFrames.length === 0) {
-                addMessage('assistant', '⚠️ Please attach a reference frame using the 📎 button or select an existing reference frame in the canvas.');
-                return;
-            }
-            if (selectedFrames.length > 1) {
-                addMessage('assistant', '⚠️ Please attach only one reference frame.');
-                return;
-            }
-        }
-
         addMessage('user', message);
         setInputValue('');
         setIsGenerating(true);
@@ -217,6 +213,7 @@ function ChatInterface({
                 message,
                 history: newHistory,
                 referenceId: referenceFrame.id,
+                ...(referenceFrame.designJson ? { referenceJson: referenceFrame.designJson as Record<string, unknown> } : {}),
                 model: currentModelId
             });
         } else if (currentMode === 'edit') {
@@ -226,6 +223,7 @@ function ChatInterface({
                 message,
                 history: newHistory,
                 layerId: attachedFrame.id,
+                ...(attachedFrame.designJson ? { layerJson: attachedFrame.designJson as Record<string, unknown> } : {}),
                 model: currentModelId,
                 designSystemId: currentDesignSystemId
             });
@@ -252,7 +250,7 @@ function ChatInterface({
                 designSystemId: currentDesignSystemId
             });
         }
-    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, referenceDesignJson, referenceLayerName, sendMessage, addMessage, selectedFrames]);
+    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, sendMessage, addMessage, selectedFrames]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.shiftKey) return;
@@ -302,7 +300,7 @@ function ChatInterface({
                 type: (selectedLayerJson?.type as string) || 'LAYER',
                 id: (selectedLayerJson?.id as string) || ''
             } : isBased ? {
-                name: referenceLayerName,
+                name: selectedFrames[0]?.name ?? null,
                 type: 'REFERENCE'
             } : null,
         });
@@ -312,7 +310,7 @@ function ChatInterface({
         if (msg.designData) {
             handleImportDesignRef.current(msg.designData, isEdit);
         }
-    }, [selectedLayerForEdit, selectedLayerJson, referenceLayerName, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
+    }, [selectedLayerForEdit, selectedLayerJson, selectedFrames, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
 
     const handleError = useCallback((msg: PluginMessage) => {
         setIsGenerating(false);
@@ -377,21 +375,13 @@ function ChatInterface({
     }, [dispatch]);
 
     const handleImportDesign = useCallback((designData: unknown, isEditMode: boolean) => {
-        let messageType: string;
-        if (isBasedOnExistingMode) {
-            messageType = 'import-based-on-existing-design';
-        } else if (isEditMode) {
-            messageType = 'import-edited-design';
-        } else {
-            messageType = 'import-design-from-chat';
-        }
-
+        const messageType = isEditMode ? 'import-edited-design' : 'import-design-from-chat';
         sendMessage(messageType, {
             designData,
             isEditMode,
             ...(isEditMode && { layerId: selectedLayerForEdit })
         });
-    }, [isBasedOnExistingMode, selectedLayerForEdit, sendMessage]);
+    }, [selectedLayerForEdit, sendMessage]);
 
     const handleImportDesignRef = useRef(handleImportDesign);
     useEffect(() => {
@@ -399,9 +389,9 @@ function ChatInterface({
     }, [handleImportDesign]);
 
     const placeholder = isBasedOnExistingMode
-        ? `e.g., Create a login page based on "${referenceLayerName}" style...`
+        ? `Create a design based on "${selectedFrames[0]?.name ?? 'reference'}"`
         : currentMode === 'edit'
-            ? 'e.g. Change the background color to blue...'
+            ? 'Change the background color to blue...'
             : currentMode === 'prototype'
                 ? 'Click Send to generate connections...'
                 : 'Describe what to create...';
@@ -432,7 +422,9 @@ function ChatInterface({
                     return (
                         <div key={i} className={`message ${msg.role}`}>
                             {msg.role === 'assistant' && (
-                                <div className="msg-avatar ai-avatar">R</div>
+                                <div className="msg-avatar ai-avatar">
+                                    <img src={RioProfile} alt="Rio" />
+                                </div>
                             )}
                             <div className="message-content">
                                 {msg.isLoading ? (
@@ -489,6 +481,13 @@ function ChatInterface({
                 })}
             </div>
 
+            {/* Attach Notification */}
+            {attachNotif && (
+                <div className="attach-notif">
+                    <span>"{attachNotif}" attached</span>
+                </div>
+            )}
+
             {/* Input Area */}
             <div className="chat-input-area">
                 {/* Frame Chips */}
@@ -496,7 +495,7 @@ function ChatInterface({
                     <div className="frame-chips">
                         {selectedFrames.map(frame => (
                             <span key={frame.id} className="f-chip">
-                                <span className="chip-icon">📐</span>
+                                <span className="chip-icon"></span>
                                 {frame.name.length > 20 ? frame.name.slice(0, 20) + '…' : frame.name}
                                 <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
                             </span>
@@ -523,7 +522,7 @@ function ChatInterface({
                             }}
                             disabled={isGenerating || selectedFrames.length < 2}
                         >
-                            {isGenerating ? <div className="spinner" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }} /> : '⚡'}
+                            {isGenerating ? <div className="spinner" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }} /> : ''}
                             {isGenerating ? 'Generating...' : 'Generate Connections'}
                         </button>
                     </div>
@@ -556,10 +555,7 @@ function ChatInterface({
                             onClick={sendChatMessage}
                             disabled={isGenerating || !inputValue.trim()}
                         >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M22 2 11 13" />
-                                <path d="M22 2 15 22 11 13 2 9z" />
-                            </svg>
+                            Generate
                         </button>
                     </div>
                 )}
@@ -574,7 +570,7 @@ function ChatInterface({
                             setModelDropdownOpen(!modelDropdownOpen);
                         }}
                     >
-                        <span>🤖</span> {selectedModel?.name || defaultModel.name} <span className="sel-arrow">▾</span>
+                        <span></span> {selectedModel?.name || defaultModel.name} <span className="sel-arrow">▾</span>
 
                         {modelDropdownOpen && (
                             <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
@@ -587,7 +583,7 @@ function ChatInterface({
                                             setModelDropdownOpen(false);
                                         }}
                                     >
-                                        <span className="sd-icon">🤖</span>
+                                        <span className="sd-icon"></span>
                                         <div style={{ flex: 1 }}>{model.name}</div>
                                         <span className="sd-check">✓</span>
                                     </div>
@@ -604,7 +600,7 @@ function ChatInterface({
                             setDsDropdownOpen(!dsDropdownOpen);
                         }}
                     >
-                        <span>🎨</span> {selectedSystem?.name || defaultDesignSystem.name} <span className="sel-arrow">▾</span>
+                        <span></span> {selectedSystem?.name || defaultDesignSystem.name} <span className="sel-arrow">▾</span>
 
                         {dsDropdownOpen && (
                             <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
@@ -617,7 +613,7 @@ function ChatInterface({
                                             setDsDropdownOpen(false);
                                         }}
                                     >
-                                        <span className="sd-icon">🎨</span>
+                                        <span className="sd-icon"></span>
                                         <div style={{ flex: 1 }}>{ds.name}</div>
                                         <span className="sd-check">✓</span>
                                     </div>

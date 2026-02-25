@@ -1,14 +1,14 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { reportErrorAsync } from '../../errorReporter.ts';
 import ChatInterface from './ChatInterface.tsx';
 import PrototypePanel from './PrototypePanel.tsx';
 import ProjectsSection from './ProjectsSection.tsx';
-import { Frame, PluginMessage, SendMessageFn } from '../../types/index.ts';
+import { Frame, UIComponent, PluginMessage, SendMessageFn } from '../../types/index.ts';
 import '../../styles/ModeBar.css';
 import '../../styles/UILibraryTab.css';
 
-type Mode = 'create' | 'edit' | 'based-on-existing' | 'prototype';
+type Mode = 'create' | 'edit' | 'prototype';
 
 interface ModeLabel {
     icon: string;
@@ -18,10 +18,9 @@ interface ModeLabel {
 }
 
 const MODE_LABELS: Record<Mode, ModeLabel> = {
-    create: { icon: '✨', label: 'Create', tip: 'Generate a new design from scratch', badge: '✨ Create Mode' },
-    edit: { icon: '✏️', label: 'Edit', tip: 'Modify an existing frame with AI', badge: '✏️ Edit Mode' },
-    'based-on-existing': { icon: '🎨', label: 'By Reference', tip: 'Create new design using existing style', badge: '🎨 By Reference Mode' },
-    prototype: { icon: '🔗', label: 'Prototype', tip: 'Auto-generate prototype connections', badge: '🔗 Prototype Mode' },
+    create: { icon: '', label: 'Create', tip: 'Generate a new design from scratch', badge: 'Create Mode' },
+    edit: { icon: '', label: 'Modify', tip: 'Modify an existing frame with AI', badge: 'Edit Mode' },
+    prototype: { icon: '', label: 'Prototype', tip: 'Auto-generate prototype connections', badge: 'Prototype Mode' },
 };
 
 interface AiTabProps {
@@ -34,17 +33,13 @@ interface SystemMessage {
 }
 
 function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
-    const { dispatch, showStatus, hideStatus } = useAppContext();
+    const { state, dispatch, showStatus, hideStatus } = useAppContext();
 
     const [currentMode, setCurrentMode] = useState<Mode>('create');
     const [view, setView] = useState<'chat' | 'prototype'>('chat');
-    const [isBasedOnExistingMode, setIsBasedOnExistingMode] = useState(false);
 
     const [selectedLayerForEdit, setSelectedLayerForEdit] = useState<string | null>(null);
     const [selectedLayerJson, setSelectedLayerJson] = useState<Record<string, unknown> | null>(null);
-
-    const [referenceLayerName, setReferenceLayerName] = useState('');
-    const [referenceDesignJson, setReferenceDesignJson] = useState<unknown>(null);
 
     const [framePickerOpen, setFramePickerOpen] = useState(false);
     const [availableFrames, setAvailableFrames] = useState<Frame[]>([]);
@@ -53,8 +48,6 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
     const [framesLoaded, setFramesLoaded] = useState(false);
 
     const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
-
-    const chatRef = useRef(null);
 
     const loadFrames = useCallback(() => {
         setFramesLoading(true);
@@ -99,7 +92,29 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
         });
     }, []);
 
+    const handleAttachComponent = useCallback((component: UIComponent) => {
+        // Toggle: detach if already attached
+        if (selectedFrameIds.has(component.id)) {
+            setSelectedFrameIds(prev => { const next = new Set(prev); next.delete(component.id); return next; });
+            setAvailableFrames(prev => prev.filter(f => f.id !== component.id));
+            return;
+        }
+        const selectionCount = state.selectionInfo?.count ?? 0;
+        if (selectionCount > 1) {
+            showStatus('⚠️ Select only one layer before attaching a component', 'warning');
+            return;
+        }
+        setAvailableFrames(prev => {
+            if (prev.some(f => f.id === component.id)) return prev;
+            return [...prev, { id: component.id, name: component.name, width: 0, height: 0, interactiveElements: [], designJson: component.designJson }];
+        });
+        setSelectedFrameIds(prev => new Set([...prev, component.id]));
+    }, [state.selectionInfo, selectedFrameIds, showStatus]);
+
     const selectedFrames = availableFrames.filter(f => selectedFrameIds.has(f.id));
+
+    // Automatically use by-reference API when a frame is attached in create mode
+    const isBasedOnExistingMode = currentMode === 'create' && selectedFrames.length > 0;
 
     const handleModeSwitch = useCallback((mode: Mode) => {
         if (mode === currentMode) return;
@@ -108,43 +123,29 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
             case 'create':
                 setCurrentMode('create');
                 setView('chat');
-                setIsBasedOnExistingMode(false);
                 setSelectedLayerForEdit(null);
                 setSelectedLayerJson(null);
-                setReferenceDesignJson(null);
-                setReferenceLayerName('');
                 setSystemMessages(prev => [...prev, { badge: MODE_LABELS.create.badge }]);
                 break;
             case 'edit':
                 setCurrentMode('edit');
                 setView('chat');
-                setIsBasedOnExistingMode(false);
                 setSelectedLayerForEdit(null);
                 setSelectedLayerJson(null);
                 setSystemMessages(prev => [...prev, { badge: MODE_LABELS.edit.badge }]);
                 break;
-            case 'based-on-existing':
-                setIsBasedOnExistingMode(true);
-                setCurrentMode('based-on-existing');
-                setView('chat');
-                setReferenceDesignJson(null);
-                setReferenceLayerName('');
-                setSystemMessages(prev => [...prev, { badge: MODE_LABELS['based-on-existing'].badge }]);
-                break;
             case 'prototype':
                 setCurrentMode('prototype');
-                setIsBasedOnExistingMode(false);
                 setView('chat');
                 setSystemMessages(prev => [...prev, { badge: MODE_LABELS.prototype.badge }]);
                 break;
             default:
                 break;
         }
-    }, [currentMode, sendMessage, showStatus]);
+    }, [currentMode]);
 
     const handleBackFromPrototype = useCallback(() => {
         setCurrentMode('create');
-        setIsBasedOnExistingMode(false);
         setView('chat');
     }, []);
 
@@ -166,9 +167,14 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
                     return newFrames.length > 0 ? [...prev, ...newFrames] : prev;
                 });
 
-                setSelectedFrameIds(new Set(nodes.map(n => n.id)));
+                // Preserve library-attached component IDs (have designJson), replace Figma selection IDs
+                const libraryIds = new Set(availableFrames.filter(f => f.designJson != null).map(f => f.id));
+                const preserved = [...selectedFrameIds].filter(id => libraryIds.has(id));
+                setSelectedFrameIds(new Set([...preserved, ...nodes.map(n => n.id)]));
             } else {
-                setSelectedFrameIds(new Set());
+                // Clear Figma selections but keep library-attached components
+                const libraryIds = new Set(availableFrames.filter(f => f.designJson != null).map(f => f.id));
+                setSelectedFrameIds(new Set([...selectedFrameIds].filter(id => libraryIds.has(id))));
             }
         },
 
@@ -176,7 +182,6 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
             setCurrentMode('edit');
             setSelectedLayerForEdit(msg.layerName as string);
             setSelectedLayerJson(msg.layerJson as Record<string, unknown>);
-            setIsBasedOnExistingMode(false);
             setView('chat');
             setSystemMessages(prev => [...prev, { badge: MODE_LABELS.edit.badge }]);
             hideStatus();
@@ -188,12 +193,19 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
         },
 
         'layer-selected-for-reference': (msg: PluginMessage) => {
-            setReferenceDesignJson(msg.layerJson);
-            setReferenceLayerName(msg.layerName as string);
-            setIsBasedOnExistingMode(true);
-            setCurrentMode('based-on-existing');
+            const layerId = msg.layerId as string;
+            const layerName = msg.layerName as string;
+            const layerJson = msg.layerJson;
+            setAvailableFrames(prev => {
+                if (prev.some(f => f.id === layerId)) {
+                    return prev.map(f => f.id === layerId ? { ...f, designJson: layerJson } : f);
+                }
+                return [...prev, { id: layerId, name: layerName, width: 0, height: 0, interactiveElements: [], designJson: layerJson }];
+            });
+            setSelectedFrameIds(prev => new Set([...prev, layerId]));
+            setCurrentMode('create');
             setView('chat');
-            setSystemMessages(prev => [...prev, { badge: MODE_LABELS['based-on-existing'].badge }]);
+            setSystemMessages(prev => [...prev, { badge: 'Reference Added' }]);
             setTimeout(hideStatus, 2000);
         },
 
@@ -249,7 +261,7 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
     return (
         <div id="ai-tab" className="tab-content active" style={{ position: 'relative' }}>
             {/* Projects (UI Library) — collapsible panel */}
-            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} />
+            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} onAttachComponent={handleAttachComponent} attachedComponentIds={selectedFrameIds} />
 
             {/* Mode Bar */}
             <div className="mode-bar">
@@ -273,8 +285,6 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
                     isBasedOnExistingMode={isBasedOnExistingMode}
                     selectedLayerForEdit={selectedLayerForEdit}
                     selectedLayerJson={selectedLayerJson}
-                    referenceLayerName={referenceLayerName}
-                    referenceDesignJson={referenceDesignJson}
                     onBack={null}
                     sendMessage={sendMessage}
                     selectedFrames={selectedFrames}
@@ -299,7 +309,7 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
                 <div className="fp-panel">
                     <div className="fp-header">
                         <div className="fp-title">
-                            <span className="fp-title-icon">📐</span> Select Frames {availableFrames?.length ? `- ${availableFrames.length} available` : ""}
+                            <span className="fp-title-icon"></span> Select Frames {availableFrames?.length ? `- ${availableFrames.length} available` : ""}
                         </div>
                         <div className="fp-actions">
                             <button className="fp-action-btn" onClick={selectAllFrames}>All</button>

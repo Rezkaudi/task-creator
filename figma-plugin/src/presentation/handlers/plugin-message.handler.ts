@@ -93,7 +93,7 @@ export class PluginMessageHandler {
               refJson = await this.exportNodeById(message.referenceId);
             }
             if (refJson) {
-              console.log('🎨 Handling generate-based-on-existing request');
+              console.log('Handling generate-based-on-existing request');
               await this.handleGenerateBasedOnExisting(
                 message.message,
                 message.history,
@@ -426,6 +426,7 @@ export class PluginMessageHandler {
 
       this.uiPort.postMessage({
         type: 'layer-selected-for-reference',
+        layerId: selectedNode.id,
         layerName: selectedNode.name,
         layerJson: exportResult.nodes[0]
       });
@@ -616,12 +617,12 @@ export class PluginMessageHandler {
       const selectedModel = model || defaultModel.id;
 
       // Strip images from reference
-      console.log('🔧 Plugin: Stripping images from reference design...');
+      console.log('Plugin: Stripping images from reference design...');
       const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(referenceJson);
-      console.log(`📸 Plugin: Extracted ${imageReferences.length} images from reference`);
+      console.log(`Plugin: Extracted ${imageReferences.length} images from reference`);
 
-      console.log("🎨 Generating design based on existing reference");
-      console.log("📍 Endpoint: /api/designs/generate-based-on-existing");
+      console.log("Generating design based on existing reference");
+      console.log("Endpoint: /api/designs/generate-based-on-existing");
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-based-on-existing`, {
         method: 'POST',

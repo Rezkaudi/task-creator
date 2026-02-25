@@ -65,9 +65,17 @@
 }
 
 .msg-avatar.ai-avatar {
-    background: linear-gradient(135deg, #6366F1, #8B5CF6);
-    color: white;
-    box-shadow: 0 1px 4px rgba(99, 102, 241, 0.3);
+    background: transparent;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+.msg-avatar.ai-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
 }
 
 .message-content {
