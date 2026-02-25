@@ -5,6 +5,7 @@ import { escapeHtml } from '../../utils/formatters';
 import DesignPreview from './DesignPreview.tsx';
 import CostBreakdown from './CostBreakdown.tsx';
 import '../../styles/ChatInterface.css';
+import RioProfile from '../../assets/rio-profile.png';
 import { defaultModel, defaultDesignSystem } from '../../../../shared/constants/plugin-config.js';
 import { playNotificationSound } from '../../utils/audio.ts';
 import {
@@ -432,7 +433,9 @@ function ChatInterface({
                     return (
                         <div key={i} className={`message ${msg.role}`}>
                             {msg.role === 'assistant' && (
-                                <div className="msg-avatar ai-avatar">Rio</div>
+                                <div className="msg-avatar ai-avatar">
+                                    <img src={RioProfile} alt="Rio" />
+                                </div>
                             )}
                             <div className="message-content">
                                 {msg.isLoading ? (
