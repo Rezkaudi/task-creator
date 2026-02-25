@@ -88,6 +88,19 @@ function ChatInterface({
 
     const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
     const [dsDropdownOpen, setDsDropdownOpen] = useState(false);
+    const [attachNotif, setAttachNotif] = useState<string | null>(null);
+    const prevFrameCountRef = useRef(0);
+    const attachNotifTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (selectedFrames.length > prevFrameCountRef.current) {
+            const added = selectedFrames[selectedFrames.length - 1];
+            if (attachNotifTimerRef.current) clearTimeout(attachNotifTimerRef.current);
+            setAttachNotif(added.name.length > 24 ? added.name.slice(0, 24) + '…' : added.name);
+            attachNotifTimerRef.current = setTimeout(() => setAttachNotif(null), 5000);
+        }
+        prevFrameCountRef.current = selectedFrames.length;
+    }, [selectedFrames]);
 
     useEffect(() => {
         const handleClickOutside = () => {
@@ -467,6 +480,13 @@ function ChatInterface({
                     );
                 })}
             </div>
+
+            {/* Attach Notification */}
+            {attachNotif && (
+                <div className="attach-notif">
+                    <span>"{attachNotif}" attached</span>
+                </div>
+            )}
 
             {/* Input Area */}
             <div className="chat-input-area">

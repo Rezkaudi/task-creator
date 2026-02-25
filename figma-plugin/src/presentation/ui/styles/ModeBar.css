@@ -476,6 +476,32 @@
     background: rgba(99, 102, 241, 0.15);
 }
 
+/* === Attach Notification === */
+.attach-notif {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 10px 4px;
+    padding: 5px 10px;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--accent);
+    animation: notif-in 0.15s ease;
+    pointer-events: none;
+}
+
+.attach-notif-icon {
+    font-size: 12px;
+    line-height: 1;
+}
+
+@keyframes notif-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
 /* === Redesigned Input Area === */
 .chat-input-area {
     padding: 6px 10px 8px;
