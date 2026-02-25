@@ -307,7 +307,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
 
         const responseText = completion.choices[0]?.message?.content;
-        console.log('--- responseText ---', responseText);
 
         if (!responseText) {
             throw new Error('LLM API returned empty response.');
