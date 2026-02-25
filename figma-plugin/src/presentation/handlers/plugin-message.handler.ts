@@ -426,6 +426,7 @@ export class PluginMessageHandler {
 
       this.uiPort.postMessage({
         type: 'layer-selected-for-reference',
+        layerId: selectedNode.id,
         layerName: selectedNode.name,
         layerJson: exportResult.nodes[0]
       });

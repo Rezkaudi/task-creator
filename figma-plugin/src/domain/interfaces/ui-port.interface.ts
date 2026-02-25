@@ -35,7 +35,7 @@ export type UIMessage =
   | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo; points?: PointsInfo }
   | { type: 'ai-chat-error'; error: string; statusCode?: number }
   | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any; _imageReferenceKey?: string }
-  | { type: 'layer-selected-for-reference'; layerName: string; layerJson: any; _imageReferenceKey?: string }
+  | { type: 'layer-selected-for-reference'; layerId: string; layerName: string; layerJson: any; _imageReferenceKey?: string }
   | { type: 'no-layer-selected' }
   | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo; points?: PointsInfo }
   | { type: 'ai-edit-error'; error: string; statusCode?: number }

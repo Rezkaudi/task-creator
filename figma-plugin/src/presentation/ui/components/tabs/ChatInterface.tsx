@@ -48,8 +48,6 @@ interface ChatInterfaceProps {
     isBasedOnExistingMode: boolean;
     selectedLayerForEdit: string | null;
     selectedLayerJson: Record<string, unknown> | null;
-    referenceLayerName: string;
-    referenceDesignJson: unknown;
     onBack: (() => void) | null;
     sendMessage: SendMessageFn;
     selectedFrames?: Frame[];
@@ -64,9 +62,6 @@ function ChatInterface({
     isBasedOnExistingMode,
     selectedLayerForEdit,
     selectedLayerJson,
-    referenceLayerName,
-    referenceDesignJson,
-    onBack,
     sendMessage,
     selectedFrames = [],
     onRemoveFrame,
@@ -119,21 +114,19 @@ function ChatInterface({
         const systemName = system?.name || defaultDesignSystem.name;
 
         let welcomeMessage: string;
-        if (isBasedOnExistingMode) {
-            welcomeMessage = `By Reference: Attach a reference frame with 📎, then describe what new design you want to create based on its style.`;
-        } else if (currentMode === 'edit') {
+        if (currentMode === 'edit') {
             welcomeMessage = `Edit Mode: Attach a frame with 📎 to start editing using ${modelName}. What would you like to change?`;
         } else if (currentMode === 'prototype') {
             welcomeMessage = `Prototype Mode: Attach 2 or more frames with 📎 to generate connections between them. Then click Send. 🔗`;
         } else {
-            welcomeMessage = `Attach a frame with 📎, then describe what you'd like to create. I'll generate your design using <strong>${modelName}</strong> + <strong>${systemName}</strong>.`;
+            welcomeMessage = `Describe what you'd like to create using <strong>${modelName}</strong> + <strong>${systemName}</strong>. Attach a frame with 📎 to use it as a style reference.`;
         }
 
         setMessages([{ role: 'assistant', content: welcomeMessage, isHtml: true }]);
         setConversationHistory([]);
 
         setTimeout(() => inputRef.current?.focus(), 100);
-    }, [currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, availableModels, availableDesignSystems]);
+    }, [currentMode, currentModelId, currentDesignSystemId, availableModels, availableDesignSystems]);
 
     const scrollToBottom = useCallback(() => {
         if (chatMessagesRef.current) {
@@ -192,17 +185,6 @@ function ChatInterface({
             }
         }
 
-        if (isBasedOnExistingMode) {
-            if (selectedFrames.length === 0) {
-                addMessage('assistant', '⚠️ Please attach a reference frame using the 📎 button or select an existing reference frame in the canvas.');
-                return;
-            }
-            if (selectedFrames.length > 1) {
-                addMessage('assistant', '⚠️ Please attach only one reference frame.');
-                return;
-            }
-        }
-
         addMessage('user', message);
         setInputValue('');
         setIsGenerating(true);
@@ -255,7 +237,7 @@ function ChatInterface({
                 designSystemId: currentDesignSystemId
             });
         }
-    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, referenceDesignJson, referenceLayerName, sendMessage, addMessage, selectedFrames]);
+    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, sendMessage, addMessage, selectedFrames]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.shiftKey) return;
@@ -305,7 +287,7 @@ function ChatInterface({
                 type: (selectedLayerJson?.type as string) || 'LAYER',
                 id: (selectedLayerJson?.id as string) || ''
             } : isBased ? {
-                name: referenceLayerName,
+                name: selectedFrames[0]?.name ?? null,
                 type: 'REFERENCE'
             } : null,
         });
@@ -315,7 +297,7 @@ function ChatInterface({
         if (msg.designData) {
             handleImportDesignRef.current(msg.designData, isEdit);
         }
-    }, [selectedLayerForEdit, selectedLayerJson, referenceLayerName, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
+    }, [selectedLayerForEdit, selectedLayerJson, selectedFrames, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
 
     const handleError = useCallback((msg: PluginMessage) => {
         setIsGenerating(false);
@@ -380,21 +362,13 @@ function ChatInterface({
     }, [dispatch]);
 
     const handleImportDesign = useCallback((designData: unknown, isEditMode: boolean) => {
-        let messageType: string;
-        if (isBasedOnExistingMode) {
-            messageType = 'import-based-on-existing-design';
-        } else if (isEditMode) {
-            messageType = 'import-edited-design';
-        } else {
-            messageType = 'import-design-from-chat';
-        }
-
+        const messageType = isEditMode ? 'import-edited-design' : 'import-design-from-chat';
         sendMessage(messageType, {
             designData,
             isEditMode,
             ...(isEditMode && { layerId: selectedLayerForEdit })
         });
-    }, [isBasedOnExistingMode, selectedLayerForEdit, sendMessage]);
+    }, [selectedLayerForEdit, sendMessage]);
 
     const handleImportDesignRef = useRef(handleImportDesign);
     useEffect(() => {
@@ -402,9 +376,9 @@ function ChatInterface({
     }, [handleImportDesign]);
 
     const placeholder = isBasedOnExistingMode
-        ? `e.g., Create a login page based on "${referenceLayerName}" style...`
+        ? `Create a design based on "${selectedFrames[0]?.name ?? 'reference'}"`
         : currentMode === 'edit'
-            ? 'e.g. Change the background color to blue...'
+            ? 'Change the background color to blue...'
             : currentMode === 'prototype'
                 ? 'Click Send to generate connections...'
                 : 'Describe what to create...';
