@@ -11,8 +11,6 @@ import AiTab from './tabs/AiTab.tsx';
 import PasteJsonTab from './tabs/PasteJsonTab.tsx';
 import ExportTab from './tabs/ExportTab.tsx';
 import UILibraryTab from './tabs/UILibraryTab.tsx';
-import ModelPanel from './panels/ModelPanel.tsx';
-import DesignSystemPanel from './panels/DesignSystemPanel.tsx';
 import SaveModal from './SaveModal.tsx';
 import ResizeHandle from './ResizeHandle.tsx';
 import LoginScreen from './LoginScreen.tsx';
@@ -250,9 +248,6 @@ function AppContent(): React.JSX.Element {
                 {activeTab === 'ui-library' && (
                     <UILibraryTab sendMessage={sendMessage} />
                 )}
-
-                <ModelPanel />
-                <DesignSystemPanel />
                 <SaveModal />
                 <BuyPointsModal />
                 <ResizeHandle />

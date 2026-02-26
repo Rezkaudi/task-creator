@@ -321,6 +321,67 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 0.80,
     outputPricePerMillion: 4.00,
     isFree: false
+  },
+  // Poe
+  {
+    id: 'claude-opus-4.6',
+    name: 'Poe Claude Opus 4.6',
+    description: 'Most intelligent - Best for agents & coding',
+    icon: 'Cl',
+    maxTokens: 131072,
+    apiKey: ENV_CONFIG.POE_API_KEY,
+    baseURL: "https://api.poe.com/v1",
+    inputPricePerMillion: 5,
+    outputPricePerMillion: 25,
+    isFree: false
+  },
+  {
+    id: 'claude-opus-4.6',
+    name: 'Poe Claude Opus 4.6',
+    description: 'Most intelligent - Best for agents & coding',
+    icon: 'Cl',
+    maxTokens: 131072,
+    apiKey: ENV_CONFIG.POE_API_KEY,
+    baseURL: "https://api.poe.com/v1",
+    inputPricePerMillion: 5,
+    outputPricePerMillion: 25,
+    isFree: false
+  },
+  {
+    id: 'gpt-5.2',
+    name: 'Poe GPT-5.2',
+    description: 'Best overall quality',
+    icon: 'GPT',
+    maxTokens: 128000,
+    apiKey: ENV_CONFIG.POE_API_KEY,
+    baseURL: "https://api.poe.com/v1",
+    inputPricePerMillion: 1.75,
+    outputPricePerMillion: 14.00,
+    isFree: false
+  },
+  {
+    id: 'gemini-3.1-pro',
+    name: 'Poe Gemini 3.1 Pro Preview',
+    description: 'Latest flagship - Advanced reasoning & multimodal',
+    icon: 'Gem',
+    maxTokens: 2000000,
+    apiKey: ENV_CONFIG.POE_API_KEY,
+    baseURL: "https://api.poe.com/v1",
+    inputPricePerMillion: 2.00,
+    outputPricePerMillion: 12.00,
+    isFree: false
+  },
+  {
+    id: 'grok-4.1-fast-reasoning',
+    name: 'Poe Grok 4.1 Fast Reasoning',
+    description: 'Fast reasoning - Best for fast responses',
+    icon: 'Gk',
+    maxTokens: 128000,
+    apiKey: ENV_CONFIG.POE_API_KEY,
+    baseURL: "https://api.poe.com/v1",
+    inputPricePerMillion: 0.20,
+    outputPricePerMillion: 0.50,
+    isFree: false
   }
 ];
 export function getModels() {

@@ -742,6 +742,27 @@
     opacity: 1;
 }
 
+.sd-item-locked {
+    opacity: 0.55;
+    cursor: pointer;
+}
+
+.sd-item-locked:hover {
+    background: var(--bg-secondary);
+    opacity: 0.75;
+}
+
+.sd-locked-label {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--accent-violet);
+    background: var(--accent-violet-light);
+    border-radius: 4px;
+    padding: 1px 4px;
+    margin-left: auto;
+    letter-spacing: 0.3px;
+}
+
 .selectors-spacer {
     flex: 1;
 }

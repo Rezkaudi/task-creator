@@ -398,7 +398,7 @@ function ChatInterface({
 
     const selectedModel = availableModels.find(m => m.id === currentModelId);
     const selectedSystem = availableDesignSystems.find(s => s.id === currentDesignSystemId);
-    const visibleModels = hasPurchased ? availableModels : availableModels.filter((model) => model.isFree);
+    const canUseModel = (model: { isFree?: boolean }) => model.isFree || hasPurchased;
 
     const autoResize = useCallback((el: HTMLTextAreaElement | null) => {
         if (!el) return;
@@ -574,20 +574,28 @@ function ChatInterface({
 
                         {modelDropdownOpen && (
                             <div className="sel-dropdown show" onClick={(e) => e.stopPropagation()}>
-                                {visibleModels.map(model => (
-                                    <div
-                                        key={model.id}
-                                        className={`sd-item ${currentModelId === model.id ? 'sel' : ''}`}
-                                        onClick={() => {
-                                            dispatch({ type: 'SET_MODEL', modelId: model.id });
-                                            setModelDropdownOpen(false);
-                                        }}
-                                    >
-                                        <span className="sd-icon"></span>
-                                        <div style={{ flex: 1 }}>{model.name}</div>
-                                        <span className="sd-check">✓</span>
-                                    </div>
-                                ))}
+                                {availableModels.map(model => {
+                                    const unlocked = canUseModel(model);
+                                    return (
+                                        <div
+                                            key={model.id}
+                                            className={`sd-item ${currentModelId === model.id ? 'sel' : ''} ${!unlocked ? 'sd-item-locked' : ''}`}
+                                            onClick={() => {
+                                                if (!unlocked) {
+                                                    dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
+                                                    setModelDropdownOpen(false);
+                                                    return;
+                                                }
+                                                dispatch({ type: 'SET_MODEL', modelId: model.id });
+                                                setModelDropdownOpen(false);
+                                            }}
+                                        >
+                                            <span className="sd-icon">{unlocked ? '' : '🔒'}</span>
+                                            <div style={{ flex: 1 }}>{model.name}</div>
+                                            <span className="sd-check">✓</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </button>
