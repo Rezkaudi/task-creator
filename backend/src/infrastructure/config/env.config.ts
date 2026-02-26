@@ -9,6 +9,7 @@ export const ENV_CONFIG = {
     HAMGINGFACE_API_KEY: process.env.HAMGINGFACE_API_KEY!,
     OPEN_ROUTER_API_KEY: process.env.OPEN_ROUTER_API_KEY!,
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY!,
+    POE_API_KEY: process.env.POE_API_KEY!,
 
     // Trello API Configuration
     TRELLO_API_BASE_URL: 'https://api.trello.com/1',
