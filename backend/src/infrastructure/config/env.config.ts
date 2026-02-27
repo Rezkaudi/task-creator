@@ -24,6 +24,7 @@ export const ENV_CONFIG = {
     PORT: process.env.PORT || "5000",
     NODE_ENV: process.env.NODE_ENV || 'development',
     SERVER_URL: process.env.SERVER_URL || 'http://localhost:5000',
+    REDIRECT_URL: process.env.REDIRECT_URL || 'https://rio-app.design',
 
     // Google OAuth Configuration
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID!,
@@ -41,8 +42,6 @@ export const ENV_CONFIG = {
     STRIPE_PRICE_PRO: process.env.STRIPE_PRICE_PRO || '',
     STRIPE_PRICE_SUB_BASIC: process.env.STRIPE_PRICE_SUB_BASIC || '',
     STRIPE_PRICE_SUB_PREMIUM: process.env.STRIPE_PRICE_SUB_PREMIUM || '',
-    STRIPE_SUCCESS_URL: process.env.STRIPE_SUCCESS_URL || 'http://localhost:5000/payments/success',
-    STRIPE_CANCEL_URL: process.env.STRIPE_CANCEL_URL || 'http://localhost:5000/payments/cancel',
 
     // Points configuration
     POINTS_PER_DOLLAR: Number(process.env.POINTS_PER_DOLLAR || 500),

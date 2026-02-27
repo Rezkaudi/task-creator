@@ -85,8 +85,8 @@ export class StripeService {
                 packageName: input.packageName,
                 pointsPurchased: String(input.pointsPurchased),
             },
-            success_url: ENV_CONFIG.STRIPE_SUCCESS_URL,
-            cancel_url: ENV_CONFIG.STRIPE_CANCEL_URL,
+            success_url: ENV_CONFIG.REDIRECT_URL,
+            cancel_url: ENV_CONFIG.REDIRECT_URL,
         });
 
         if (!session.url) {
@@ -146,8 +146,8 @@ export class StripeService {
                     planId: input.planId,
                 },
             },
-            success_url: ENV_CONFIG.STRIPE_SUCCESS_URL,
-            cancel_url: ENV_CONFIG.STRIPE_CANCEL_URL,
+            success_url: ENV_CONFIG.REDIRECT_URL,
+            cancel_url: ENV_CONFIG.REDIRECT_URL,
         });
 
         if (!session.url) {

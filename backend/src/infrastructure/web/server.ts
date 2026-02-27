@@ -69,15 +69,6 @@ export class Server {
       res.sendFile(join(pagesDir, 'home.html'));
     });
 
-    // Payment redirect pages
-    this.app.get('/payments/success', (_req, res) => {
-      res.sendFile(join(pagesDir, 'payment-successful.html'));
-    });
-
-    this.app.get('/payments/cancel', (_req, res) => {
-      res.sendFile(join(pagesDir, 'payment-cancelled.html'));
-    });
-
     // Routes
     this.app.use('/api', (req, res, next) => {
       this.container.authMiddleware.requireAuthForApi(req, res, next);
