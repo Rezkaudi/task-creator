@@ -1,12 +1,9 @@
 // File: /backend/src/infrastructure/web/controllers/auth.controller.ts
 
 import { Request, Response } from 'express';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { GoogleSignInUseCase } from '../../../application/use-cases/google-sign-in.use-case';
 import { TokenStoreService } from '../../services/token-store.service';
-
-const PAGES_DIR = join(__dirname, '../../../../public/pages');
+import { ENV_CONFIG } from '../../config/env.config';
 
 export class AuthController {
     constructor(
@@ -43,11 +40,11 @@ export class AuthController {
 
             const [pollingId, figmaUserId] = state ? state.split(':') : [undefined, undefined];
 
-            const { user, token } = await this.googleSignInUseCase.execute(code, figmaUserId);
+            const { token } = await this.googleSignInUseCase.execute(code, figmaUserId);
 
             if (pollingId) {
                 this.tokenStoreService.storeToken(pollingId, token);
-                res.send(this.renderPage('polling-success.html', { userName: user.userName || user.email || 'User' }));
+                res.redirect(ENV_CONFIG.REDIRECT_URL);
                 return;
             }
 
@@ -58,7 +55,7 @@ export class AuthController {
             });
         } catch (error) {
             console.error('Error in Google callback:', error);
-            res.send(this.renderPage('error.html', { errorMessage: (error as Error).message }));
+            res.redirect(ENV_CONFIG.REDIRECT_URL);
         }
     };
 
@@ -124,12 +121,4 @@ export class AuthController {
             });
         }
     };
-
-    private renderPage(fileName: string, replacements: Record<string, string>): string {
-        let html = readFileSync(join(PAGES_DIR, fileName), 'utf-8');
-        for (const [key, value] of Object.entries(replacements)) {
-            html = html.split(`{{${key}}}`).join(value);
-        }
-        return html;
-    }
 }

@@ -336,18 +336,6 @@ export const AI_MODELS: AIModelConfig[] = [
     isFree: false
   },
   {
-    id: 'claude-opus-4.6',
-    name: 'Poe Claude Opus 4.6',
-    description: 'Most intelligent - Best for agents & coding',
-    icon: 'Cl',
-    maxTokens: 131072,
-    apiKey: ENV_CONFIG.POE_API_KEY,
-    baseURL: "https://api.poe.com/v1",
-    inputPricePerMillion: 5,
-    outputPricePerMillion: 25,
-    isFree: false
-  },
-  {
     id: 'gpt-5.2',
     name: 'Poe GPT-5.2',
     description: 'Best overall quality',

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import { useApiClient } from '../hooks/useApiClient.ts';
 import { reportErrorAsync } from '../errorReporter.ts';
+import { API_PATHS } from '../utils/constants';
 import { Project } from '../types/index.ts';
 import '../styles/SaveModal.css';
 
@@ -135,7 +136,7 @@ export default function SaveModal(): React.JSX.Element | null {
         const loadProjects = async () => {
             try {
                 setIsLoadingProjects(true);
-                const data = await apiGet('/api/ui-library/projects');
+                const data = await apiGet(API_PATHS.PROJECTS);
 
                 if (!data.success) {
                     throw new Error(data.message || 'Failed to load projects');
@@ -174,12 +175,17 @@ export default function SaveModal(): React.JSX.Element | null {
         try {
             setIsSaving(true);
 
-            let previewImage: string | null = null;
+            let previewImageUrl: string | null = null;
             try {
-                if (saveModalFromChat) {
-                    previewImage = await requestPreviewFromDesignData({ designData: currentExportData, maxWidth: 320 });
-                } else {
-                    previewImage = await requestPreviewImage({ maxWidth: 320 });
+                const base64Image = saveModalFromChat
+                    ? await requestPreviewFromDesignData({ designData: currentExportData, maxWidth: 320 })
+                    : await requestPreviewImage({ maxWidth: 320 });
+
+                if (base64Image) {
+                    const uploadData = await apiPost(API_PATHS.UPLOAD_IMAGE, { image: base64Image });
+                    if (uploadData.success) {
+                        previewImageUrl = uploadData.url;
+                    }
                 }
             } catch (previewError) {
                 showStatus('⚠️ Could not generate preview image. Saving without preview.', 'warning');
@@ -189,12 +195,12 @@ export default function SaveModal(): React.JSX.Element | null {
                 });
             }
 
-            const data = await apiPost('/api/ui-library/components', {
+            const data = await apiPost(API_PATHS.COMPONENTS, {
                 projectId: selectedProjectId,
                 name: description.trim(),
                 description: description.trim(),
                 designJson: currentExportData,
-                previewImage,
+                previewImage: previewImageUrl,
             });
 
             if (!data.success) {

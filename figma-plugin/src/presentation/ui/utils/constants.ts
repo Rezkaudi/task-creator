@@ -15,6 +15,7 @@ export const PREVIEW_FROM_DATA_TIMEOUT_MS = 15000;
 export const API_PATHS = {
     PROJECTS: '/api/ui-library/projects',
     COMPONENTS: '/api/ui-library/components',
+    UPLOAD_IMAGE: '/api/ui-library/components/upload-image',
     AI_MODELS: '/api/ai-models',
     DESIGN_SYSTEMS: '/api/design-systems',
     SUBSCRIPTIONS_STATUS: '/api/subscriptions/status',

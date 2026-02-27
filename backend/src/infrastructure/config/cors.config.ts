@@ -9,6 +9,7 @@ export const allowedOrigins = [
     'https://task-creator-app.vercel.app',
     'https://task-creator-api.onrender.com',
     "https://api.trello.com",
+    "https://rio-back-end-517983668741.europe-west1.run.app",
     // Allow Figma plugin (null origin for plugins)
     'null'
 ];

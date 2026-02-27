@@ -131,6 +131,13 @@ export const uiLibraryIdParamValidation = [
         .isString().withMessage('ID must be a string'),
 ];
 
+export const uploadComponentImageValidation = [
+    body('image')
+        .notEmpty().withMessage('Image is required')
+        .isString().withMessage('Image must be a string')
+        .matches(/^data:image\/(png|jpeg|jpg|webp);base64,/).withMessage('Image must be a valid base64 data URL'),
+];
+
 export const reportClientErrorValidation = [
     body('errorMessage')
         .notEmpty()

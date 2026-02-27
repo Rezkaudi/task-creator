@@ -14,6 +14,7 @@ import { TokenStoreService } from "../../services/token-store.service";
 import { PointsService } from "../../services/points.service";
 import { StripeService } from "../../services/stripe.service";
 import { JwtService } from "../../services/jwt.service";
+import { S3Service } from "../../services/s3.service";
 
 
 // Repositories
@@ -36,6 +37,7 @@ import { DeleteUILibraryProjectUseCase } from "../../../application/use-cases/de
 import { CreateUILibraryComponentUseCase } from "../../../application/use-cases/create-ui-library-component.use-case";
 import { GetUILibraryComponentsByProjectUseCase } from "../../../application/use-cases/get-ui-library-components-by-project.use-case";
 import { DeleteUILibraryComponentUseCase } from "../../../application/use-cases/delete-ui-library-component.use-case";
+import { UploadComponentImageUseCase } from "../../../application/use-cases/upload-component-image.use-case";
 
 // Use Cases - Auth
 import { GoogleSignInUseCase } from "../../../application/use-cases/google-sign-in.use-case";
@@ -90,6 +92,7 @@ export const setupDependencies = () => {
     const stripeService = new StripeService();
     const pointsService = new PointsService(userRepository);
     const jwtService = new JwtService();
+    const s3Service = new S3Service();
 
     const defaultAiDesignService = new AiGenerateDesignService(
         aiCostCalculatorService,
@@ -115,7 +118,8 @@ export const setupDependencies = () => {
     const deleteUILibraryProjectUseCase = new DeleteUILibraryProjectUseCase(uiLibraryRepository);
     const createUILibraryComponentUseCase = new CreateUILibraryComponentUseCase(uiLibraryRepository);
     const getUILibraryComponentsByProjectUseCase = new GetUILibraryComponentsByProjectUseCase(uiLibraryRepository);
-    const deleteUILibraryComponentUseCase = new DeleteUILibraryComponentUseCase(uiLibraryRepository);
+    const deleteUILibraryComponentUseCase = new DeleteUILibraryComponentUseCase(uiLibraryRepository, s3Service);
+    const uploadComponentImageUseCase = new UploadComponentImageUseCase(s3Service);
 
     // Use Cases - Client Errors
     const reportClientErrorUseCase = new ReportClientErrorUseCase(clientErrorRepository);
@@ -174,7 +178,8 @@ export const setupDependencies = () => {
         deleteUILibraryProjectUseCase,
         createUILibraryComponentUseCase,
         getUILibraryComponentsByProjectUseCase,
-        deleteUILibraryComponentUseCase
+        deleteUILibraryComponentUseCase,
+        uploadComponentImageUseCase,
     );
 
     // AI Models Controller
