@@ -5,6 +5,7 @@ import {
     createUILibraryProjectValidation,
     createUILibraryComponentValidation,
     uiLibraryIdParamValidation,
+    uploadComponentImageValidation,
 } from '../validation';
 
 
@@ -31,6 +32,13 @@ const uiLibraryRoutes = (uiLibraryController: UILibraryController): Router => {
         uiLibraryIdParamValidation,
         validateRequest,
         (req: Request, res: Response, next: NextFunction) => uiLibraryController.getComponentsByProject(req, res, next)
+    );
+
+    // Must be defined before /components/:id to avoid route conflict
+    router.post('/components/upload-image',
+        uploadComponentImageValidation,
+        validateRequest,
+        (req: Request, res: Response, next: NextFunction) => uiLibraryController.uploadImage(req, res, next)
     );
 
     router.post('/components',

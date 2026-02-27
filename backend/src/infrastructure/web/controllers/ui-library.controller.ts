@@ -5,6 +5,7 @@ import { DeleteUILibraryProjectUseCase } from '../../../application/use-cases/de
 import { CreateUILibraryComponentUseCase } from '../../../application/use-cases/create-ui-library-component.use-case';
 import { GetUILibraryComponentsByProjectUseCase } from '../../../application/use-cases/get-ui-library-components-by-project.use-case';
 import { DeleteUILibraryComponentUseCase } from '../../../application/use-cases/delete-ui-library-component.use-case';
+import { UploadComponentImageUseCase } from '../../../application/use-cases/upload-component-image.use-case';
 
 export class UILibraryController {
     constructor(
@@ -14,6 +15,7 @@ export class UILibraryController {
         private readonly createComponentUseCase: CreateUILibraryComponentUseCase,
         private readonly getComponentsByProjectUseCase: GetUILibraryComponentsByProjectUseCase,
         private readonly deleteComponentUseCase: DeleteUILibraryComponentUseCase,
+        private readonly uploadComponentImageUseCase: UploadComponentImageUseCase,
     ) { }
 
     async createProject(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -115,6 +117,21 @@ export class UILibraryController {
             res.json({
                 success: true,
                 message: 'Component deleted successfully',
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async uploadImage(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { image } = req.body;
+
+            const url = await this.uploadComponentImageUseCase.execute(image);
+
+            res.status(201).json({
+                success: true,
+                url,
             });
         } catch (error) {
             next(error);
