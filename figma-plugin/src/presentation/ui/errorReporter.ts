@@ -142,4 +142,18 @@ export function setupGlobalHandlers(): void {
             actionType: 'unhandled-rejection',
         });
     });
+
+    // Forward error reports from the plugin main thread.
+    // The main thread cannot use fetch directly in Figma web due to cross-origin
+    // frame restrictions, so it routes through the UI iframe instead.
+    window.addEventListener('message', function (event: MessageEvent) {
+        const msg = event.data?.pluginMessage;
+        if (msg?.type === 'FORWARD_ERROR_REPORT' && msg.payload) {
+            fetch(`${API_BASE_URL}/api/errors`, {
+                method: 'POST',
+                headers: msg.headers || { 'Content-Type': 'application/json' },
+                body: JSON.stringify(msg.payload),
+            }).catch(() => { });
+        }
+    });
 }
