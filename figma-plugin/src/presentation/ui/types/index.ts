@@ -221,6 +221,7 @@ export interface UseUILibraryReturn {
     isCreatingProject: boolean;
     deleteConfirm: DeleteTarget;
     isDeleting: boolean;
+    importingComponentId: string | null;
     setSelectedProjectId: (id: string | null) => void;
     setShowCreateProjectModal: (show: boolean) => void;
     setNewProjectName: (name: string) => void;

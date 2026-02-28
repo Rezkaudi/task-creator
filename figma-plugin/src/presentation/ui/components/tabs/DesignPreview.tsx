@@ -9,23 +9,25 @@ interface DesignPreviewProps {
     isBasedOnExistingMode?: boolean;
     layerInfo?: unknown;
     selectedLayerForEdit?: string | null;
+    isImporting?: boolean;
     onImport: () => void;
     onSave: () => void;
 }
 
-export default function DesignPreview({ designData, previewHtml, onImport, onSave }: DesignPreviewProps): React.JSX.Element | null {
+export default function DesignPreview({ designData, previewHtml, isImporting, onImport, onSave }: DesignPreviewProps): React.JSX.Element | null {
     if (!designData && !previewHtml) return null;
 
     return (
         <div className="design-preview">
             <div className="design-preview-actions">
                 <button
-                    className="import-to-figma-btn"
-                    disabled={!designData}
+                    className={`import-to-figma-btn${isImporting ? ' is-importing' : ''}`}
+                    disabled={!designData || isImporting}
                     onClick={onImport}
                 >
-                    <FigmaIcon />
-                    Add to Figma
+                    {isImporting
+                        ? <><span className="btn-spinner" />Importing...</>
+                        : <><FigmaIcon />Add to Figma</>}
                 </button>
                 <button
                     className="save-design-btn"

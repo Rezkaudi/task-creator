@@ -78,6 +78,7 @@ function ChatInterface({
     const [inputValue, setInputValue] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
+    const [importingMsgIndex, setImportingMsgIndex] = useState<number | null>(null);
 
     const chatMessagesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -388,6 +389,18 @@ function ChatInterface({
         handleImportDesignRef.current = handleImportDesign;
     }, [handleImportDesign]);
 
+    useEffect(() => {
+        function onMessage(event: MessageEvent) {
+            const msg = event.data?.pluginMessage;
+            if (!msg) return;
+            if (msg.type === 'import-success' || msg.type === 'import-error') {
+                setImportingMsgIndex(null);
+            }
+        }
+        window.addEventListener('message', onMessage);
+        return () => window.removeEventListener('message', onMessage);
+    }, []);
+
     const placeholder = isBasedOnExistingMode
         ? `Create a design based on "${selectedFrames[0]?.name ?? 'reference'}"`
         : currentMode === 'edit'
@@ -450,7 +463,8 @@ function ChatInterface({
                                         isBasedOnExistingMode={isBasedOnExistingMode}
                                         layerInfo={msg.layerInfo}
                                         selectedLayerForEdit={selectedLayerForEdit}
-                                        onImport={() => handleImportDesign(msg.designData, msg.isEditMode ?? false)}
+                                        isImporting={importingMsgIndex === i}
+                                        onImport={() => { setImportingMsgIndex(i); handleImportDesign(msg.designData, msg.isEditMode ?? false); }}
                                         onSave={() => handleSaveDesign(msg.designData)}
                                     />
                                 )}

@@ -43,6 +43,11 @@
     cursor: not-allowed;
 }
 
+.import-to-figma-btn.is-importing {
+    opacity: 1;
+    cursor: wait;
+}
+
 .figma-icon {
     width: 20px;
     height: 20px;

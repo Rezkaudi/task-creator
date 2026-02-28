@@ -34,12 +34,17 @@ function AppContent(): React.JSX.Element {
     } = useAuth();
 
     const [activeTab, setActiveTab] = useState('ai');
+    const [isManualImporting, setIsManualImporting] = useState(false);
     const profileDropdown = useDropdown();
     const jsonInputRef = useRef<string | null>(null);
     const pendingSaveRef = useRef(false);
 
     const sendMessage = usePluginMessage({
+        'import-success': (_msg: PluginMessage) => {
+            setIsManualImporting(false);
+        },
         'import-error': (msg: PluginMessage) => {
+            setIsManualImporting(false);
             showStatus(`❌ Import failed: ${msg.error as string}`, 'error');
             reportErrorAsync(new Error(msg.error as string), { componentName: 'ImportHandler', actionType: 'import-error' });
         },
@@ -154,6 +159,7 @@ function AppContent(): React.JSX.Element {
         }
         try {
             const designData = JSON.parse(val);
+            setIsManualImporting(true);
             sendMessage('import-design', { designData });
         } catch (e) {
             showStatus(`❌ Invalid JSON: ${(e as Error).message}`, 'error');
@@ -237,9 +243,14 @@ function AppContent(): React.JSX.Element {
                         </div>
                         <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
                         <div className="button-group import-btn-group">
-                            <button className="btn-primary import-to-figma-btn" onClick={handleManualImport}>
-                                <FigmaIcon />
-                                Add to Figma
+                            <button
+                                className={`btn-primary import-to-figma-btn${isManualImporting ? ' is-importing' : ''}`}
+                                onClick={handleManualImport}
+                                disabled={isManualImporting}
+                            >
+                                {isManualImporting
+                                    ? <><span className="btn-spinner" />Importing...</>
+                                    : <><FigmaIcon />Add to Figma</>}
                             </button>
                         </div>
                     </div>

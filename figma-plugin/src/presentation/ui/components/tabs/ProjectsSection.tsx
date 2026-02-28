@@ -141,8 +141,11 @@ export default function ProjectsSection({ sendMessage, onSaveSelected, onAttachC
                                     className="uil-btn-import"
                                     onClick={(e) => { e.stopPropagation(); lib.handleImportComponent(component, sendMessage); }}
                                     title="Import to Figma"
+                                    disabled={lib.importingComponentId === component.id}
                                 >
-                                    <FigmaIcon />
+                                    {lib.importingComponentId === component.id
+                                        ? <span className="btn-spinner" />
+                                        : <FigmaIcon />}
                                 </button>
                                 <button
                                     className="uil-btn-delete-icon"
