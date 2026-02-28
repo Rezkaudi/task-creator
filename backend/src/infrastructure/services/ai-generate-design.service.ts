@@ -275,7 +275,8 @@ export class AiGenerateDesignService implements IAiDesignService {
         aiModel: AIModelConfig,
         messages: AiMessage[]
     ): Promise<CompletionResult> {
-        let completion = await this.createCompletionWithRetry(openai, {
+        // let completion = await this.createCompletionWithRetry(openai, {
+        let completion = await openai.chat.completions.create({
             model: aiModel.id,
             messages: messages,
             tools: iconTools,
@@ -299,7 +300,8 @@ export class AiGenerateDesignService implements IAiDesignService {
             messages.push(...toolResults as any);
 
             // Get next completion
-            completion = await this.createCompletionWithRetry(openai, {
+            // completion = await this.createCompletionWithRetry(openai, {
+            completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages,
                 tools: iconTools,
@@ -324,6 +326,14 @@ export class AiGenerateDesignService implements IAiDesignService {
         inputContent: string,
         outputContent: string
     ): CostBreakdown {
+        console.log("usage:", usage);
+        const cacheRate = aiModel.casheDiscountRate ?? 1;
+        const points =
+            ((usage?.prompt_tokens ?? 0) * aiModel.inputPricePerMillion / 1000000) +
+            ((usage?.completion_tokens ?? 0) * aiModel.outputPricePerMillion / 1000000) +
+            ((usage?.prompt_tokens_details?.cached_tokens ?? 0) * aiModel.inputPricePerMillion * cacheRate / 1000000);
+
+        console.log("points:", points)
         const inputTokens = usage?.prompt_tokens ?? this.costCalculator.estimateTokens(inputContent);
         const outputTokens = usage?.completion_tokens ?? this.costCalculator.estimateTokens(outputContent);
 
