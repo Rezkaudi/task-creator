@@ -332,8 +332,8 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 131072,
     apiKey: ENV_CONFIG.POE_API_KEY,
     baseURL: "https://api.poe.com/v1",
-    inputPricePerMillion: 142000,
-    outputPricePerMillion: 709000,
+    inputPricePerMillion: 4.25,
+    outputPricePerMillion: 21.25,
     isFree: false,
     casheDiscountRate: 0.10 // 90% discount for cached tokens
   },
@@ -345,8 +345,8 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 128000,
     apiKey: ENV_CONFIG.POE_API_KEY,
     baseURL: "https://api.poe.com/v1",
-    inputPricePerMillion: 53000,
-    outputPricePerMillion: 420000,
+    inputPricePerMillion: 1.58,
+    outputPricePerMillion: 12.60,
     isFree: false,
     casheDiscountRate: 0.10 // 90% discount for cached tokens
   },
@@ -358,8 +358,8 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 2000000,
     apiKey: ENV_CONFIG.POE_API_KEY,
     baseURL: "https://api.poe.com/v1",
-    inputPricePerMillion: 67000,
-    outputPricePerMillion: 400000,
+    inputPricePerMillion: 2.00,
+    outputPricePerMillion: 12.00,
     isFree: false,
     casheDiscountRate: 0.10 // 90% discount for cached tokens
   },
@@ -371,8 +371,8 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 128000,
     apiKey: ENV_CONFIG.POE_API_KEY,
     baseURL: "https://api.poe.com/v1",
-    inputPricePerMillion: 7000,   // 7 points per 1k tokens
-    outputPricePerMillion: 17000, // 17 points per 1k tokens
+    inputPricePerMillion: 0.20,
+    outputPricePerMillion: 0.50,
     isFree: false,
     casheDiscountRate: 0.25 // 75% discount for cached tokens
   }

@@ -36,7 +36,7 @@ export default function CostBreakdown({ cost }: CostBreakdownProps): React.JSX.E
             </div>
             {<div className="cost-row cost-meta">
                 <span className="cost-label">Points used:</span>
-                <span className="cost-value">{Math.ceil(Number(cost.totalCost.replace('$', '')) * 500)} pts</span>
+                <span className="cost-value">{Math.ceil(Number(cost.totalCost.replace('$', '')) * 33333)} pts</span>
             </div>}
             {durationLabel && (
                 <div className="cost-row cost-meta">
