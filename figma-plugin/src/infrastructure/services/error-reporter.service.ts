@@ -128,28 +128,24 @@ export class ErrorReporterService {
     }
 
     /**
-     * Send error to backend API
+     * Send error to backend API.
+     * Routes through the UI iframe via postMessage to avoid cross-origin fetch
+     * restrictions in Figma web (browser), where fetch from the plugin sandbox
+     * tries to use cross-frame DOM access which the browser's SOP blocks.
      */
     private async sendError(payload: ErrorReportPayload): Promise<ErrorReportResponse> {
         try {
-            const response = await fetch(`${ApiConfig.BASE_URL}/api/errors`, {
-                method: 'POST',
+            figma.ui.postMessage({
+                type: 'FORWARD_ERROR_REPORT',
+                payload,
                 headers: this.headers,
-                body: JSON.stringify(payload),
             });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                console.warn('Error report submission failed:', data.message);
-            }
-
-            return data;
+            return { success: true };
         } catch (error) {
-            console.error('Network error while reporting error:', error);
+            console.error('Failed to forward error report to UI:', error);
             return {
                 success: false,
-                message: 'Network error while reporting',
+                message: 'Failed to forward error report',
             };
         }
     }
