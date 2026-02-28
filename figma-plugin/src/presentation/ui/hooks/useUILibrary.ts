@@ -24,6 +24,7 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
     const [isCreatingProject, setIsCreatingProject] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<DeleteTarget>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [importingComponentId, setImportingComponentId] = useState<string | null>(null);
 
     const selectedProject = useMemo(
         () => projects.find(p => p.id === selectedProjectId) ?? null,
@@ -130,11 +131,24 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
         }
     }, [deleteConfirm, apiDelete, loadProjects, loadComponents, selectedProjectId, showStatus, callerName]);
 
+    useEffect(() => {
+        function onMessage(event: MessageEvent) {
+            const msg = event.data?.pluginMessage;
+            if (!msg) return;
+            if (msg.type === 'import-success' || msg.type === 'import-error') {
+                setImportingComponentId(null);
+            }
+        }
+        window.addEventListener('message', onMessage);
+        return () => window.removeEventListener('message', onMessage);
+    }, []);
+
     const handleImportComponent = useCallback((component: UIComponent, sendMessage: SendMessageFn) => {
         if (!component?.designJson) {
             showStatus('⚠️ Missing design JSON for this component', 'warning');
             return;
         }
+        setImportingComponentId(component.id);
         sendMessage('import-ui-library-component', { designJson: component.designJson as Record<string, unknown> });
     }, [showStatus]);
 
@@ -155,6 +169,7 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
         isCreatingProject,
         deleteConfirm,
         isDeleting,
+        importingComponentId,
         setSelectedProjectId,
         setShowCreateProjectModal,
         setNewProjectName,

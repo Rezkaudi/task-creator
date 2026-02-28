@@ -118,8 +118,12 @@ export default function UILibraryTab({ sendMessage }: UILibraryTabProps) {
                                 <button
                                     className="uil-btn-import"
                                     onClick={() => lib.handleImportComponent(component, sendMessage)}
+                                    disabled={lib.importingComponentId === component.id}
+                                    title="Import to Figma"
                                 >
-                                    <FigmaIcon />
+                                    {lib.importingComponentId === component.id
+                                        ? <span className="btn-spinner" />
+                                        : <FigmaIcon />}
                                 </button>
                                 <button
                                     className="uil-btn-delete-icon"

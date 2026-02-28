@@ -312,8 +312,16 @@
     transition: background 0.15s;
 }
 
-.uil-btn-import:hover {
+.uil-btn-import:hover:not(:disabled) {
     background: var(--accent-dark);
+}
+
+.uil-btn-import:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .uil-btn-delete-icon {
