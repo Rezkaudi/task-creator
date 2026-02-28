@@ -327,13 +327,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         outputContent: string
     ): CostBreakdown {
         console.log("usage:", usage);
-        const cacheRate = aiModel.casheDiscountRate ?? 1;
-        const points =
-            ((usage?.prompt_tokens ?? 0) * aiModel.inputPricePerMillion / 1000000) +
-            ((usage?.completion_tokens ?? 0) * aiModel.outputPricePerMillion / 1000000) +
-            ((usage?.prompt_tokens_details?.cached_tokens ?? 0) * aiModel.inputPricePerMillion * cacheRate / 1000000);
-
-        console.log("points:", points)
         const inputTokens = usage?.prompt_tokens ?? this.costCalculator.estimateTokens(inputContent);
         const outputTokens = usage?.completion_tokens ?? this.costCalculator.estimateTokens(outputContent);
 
