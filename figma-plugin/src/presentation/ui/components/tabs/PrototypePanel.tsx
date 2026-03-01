@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { escapeHtml } from '../../utils/formatters';
-import { reportErrorAsync } from '../../errorReporter.ts';
+import { reportErrorAsync } from '../../utils';
 import { Frame, PrototypeConnection, PluginMessage, SendMessageFn, Subscription } from '../../types/index.ts';
 import '../../styles/PrototypePanel.css';
 import { defaultModel } from '../../../../shared/constants/plugin-config.js';

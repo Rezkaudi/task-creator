@@ -4,13 +4,12 @@ import { AuthProvider, useAuth } from '../context/AuthContext.tsx';
 import { usePluginMessage } from '../hooks/usePluginMessage.ts';
 import { useApiClient } from '../hooks/useApiClient.ts';
 import { useDropdown } from '../hooks/useDropdown.ts';
-import { reportErrorAsync, setHeaders as setErrorHeaders } from '../errorReporter.ts';
+import { reportErrorAsync, setHeaders as setErrorHeaders } from '../utils';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AiTab from './tabs/AiTab.tsx';
 import PasteJsonTab from './tabs/PasteJsonTab.tsx';
 import ExportTab from './tabs/ExportTab.tsx';
-import UILibraryTab from './tabs/UILibraryTab.tsx';
 import SaveModal from './SaveModal.tsx';
 import ResizeHandle from './ResizeHandle.tsx';
 import LoginScreen from './LoginScreen.tsx';
@@ -20,7 +19,7 @@ import { ProfileDropdown } from './modals/ProfileDropdown.tsx';
 import { PluginMessage } from '../types/index.ts';
 
 function AppContent(): React.JSX.Element {
-    const { state, dispatch, showStatus, hideStatus } = useAppContext();
+    const { state, dispatch, showStatus } = useAppContext();
     const { apiGet } = useApiClient();
     const {
         isAuthenticated,
@@ -146,11 +145,6 @@ function AppContent(): React.JSX.Element {
         sendMessage('export-selected');
     }, [state.selectionInfo, sendMessage, showStatus]);
 
-    const handleTabChange = useCallback((tabId: string) => {
-        setActiveTab(tabId);
-        hideStatus();
-    }, [hideStatus]);
-
     const handleManualImport = useCallback(() => {
         const val = jsonInputRef.current?.trim();
         if (!val) {
@@ -254,10 +248,6 @@ function AppContent(): React.JSX.Element {
                             </button>
                         </div>
                     </div>
-                )}
-
-                {activeTab === 'ui-library' && (
-                    <UILibraryTab sendMessage={sendMessage} />
                 )}
                 <SaveModal />
                 <BuyPointsModal />

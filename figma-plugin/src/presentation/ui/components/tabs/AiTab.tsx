@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { reportErrorAsync } from '../../errorReporter.ts';
+import { reportErrorAsync } from '../../utils';
 import ChatInterface from './ChatInterface.tsx';
 import PrototypePanel from './PrototypePanel.tsx';
 import ProjectsSection from './ProjectsSection.tsx';

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { analyzeJsonStructure } from '../../utils/formatters';
-import { reportErrorAsync } from '../../errorReporter.ts';
+import { reportErrorAsync } from '../../utils';
 import { SendMessageFn } from '../../types/index.ts';
 import '../../styles/ExportTab.css';
 
