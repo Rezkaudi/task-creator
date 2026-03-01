@@ -83,6 +83,8 @@ function ChatInterface({
     const chatMessagesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const requestStartTime = useRef<number | null>(null);
+    const messagesRef = useRef<ChatMessage[]>(messages);
+    useEffect(() => { messagesRef.current = messages; }, [messages]);
 
     const updateSubscriptionRef = useRef(updateSubscription);
     const updatePointsBalanceRef = useRef(updatePointsBalance);
@@ -309,6 +311,8 @@ function ChatInterface({
         setConversationHistory(prev => [...prev, { role: 'assistant', content: msg.message as string }]);
 
         if (msg.designData) {
+            const newMsgIndex = messagesRef.current.filter(m => !m.isLoading).length;
+            setImportingMsgIndex(newMsgIndex);
             handleImportDesignRef.current(msg.designData, isEdit);
         }
     }, [selectedLayerForEdit, selectedLayerJson, selectedFrames, removeLoadingMessages, addMessage, dispatch, hasPurchased]);
