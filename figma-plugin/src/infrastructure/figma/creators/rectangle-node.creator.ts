@@ -15,17 +15,7 @@ export class RectangleNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     rectNode.resize(width, height);
 
-    await this.applyFillsAsync(rectNode, nodeData.fills);
-    await this.applyStrokesAsync(
-      rectNode,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    await this.applyFillsAndStrokesAsync(rectNode, nodeData);
     this.applyCornerRadius(rectNode, nodeData);
 
     return rectNode;
@@ -44,25 +34,10 @@ export class RectangleNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     rectFrame.resize(width, height);
 
-    await this.applyFillsAsync(rectFrame, nodeData.fills);
-    await this.applyStrokesAsync(
-      rectFrame,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    await this.applyFillsAndStrokesAsync(rectFrame, nodeData);
     this.applyCornerRadius(rectFrame, nodeData);
 
-    // Sort children by layer index
-    const sortedChildren = [...(nodeData.children || [])].sort((a, b) => {
-      const indexA = a._layerIndex ?? 0;
-      const indexB = b._layerIndex ?? 0;
-      return indexA - indexB;
-    });
+    const sortedChildren = this.sortChildrenByLayerIndex(nodeData.children || []);
 
     for (const child of sortedChildren) {
       if (child && typeof child === 'object') {

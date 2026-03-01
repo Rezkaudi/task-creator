@@ -49,6 +49,28 @@ export abstract class BaseNodeCreator {
   }
 
   /**
+   * Apply fills and strokes in parallel (they write to different properties)
+   */
+  protected async applyFillsAndStrokesAsync(
+    node: SceneNode,
+    nodeData: DesignNode
+  ): Promise<void> {
+    await Promise.all([
+      this.applyFillsAsync(node, nodeData.fills),
+      this.applyStrokesAsync(
+        node,
+        nodeData.strokes,
+        nodeData.strokeWeight,
+        nodeData.strokeAlign,
+        nodeData.strokeCap,
+        nodeData.strokeJoin,
+        nodeData.dashPattern,
+        nodeData.strokeMiterLimit
+      ),
+    ]);
+  }
+
+  /**
    * Apply strokes to a node (async for image support)
    */
   protected async applyStrokesAsync(
@@ -418,6 +440,20 @@ export abstract class BaseNodeCreator {
         console.warn('Error applying guides:', error);
       }
     }
+  }
+
+  /**
+   * Sort children by _layerIndex to preserve z-order.
+   * Fast-paths when no child has _layerIndex (common for most JSON imports).
+   */
+  protected sortChildrenByLayerIndex(children: DesignNode[]): DesignNode[] {
+    if (children.length <= 1) return children;
+    let hasIndex = false;
+    for (let i = 0; i < children.length; i++) {
+      if (children[i]._layerIndex !== undefined) { hasIndex = true; break; }
+    }
+    if (!hasIndex) return children;
+    return [...children].sort((a, b) => (a._layerIndex ?? 0) - (b._layerIndex ?? 0));
   }
 
   /**

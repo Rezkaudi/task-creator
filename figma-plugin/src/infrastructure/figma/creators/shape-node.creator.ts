@@ -15,17 +15,7 @@ export class ShapeNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     ellipseNode.resize(width, height);
 
-    await this.applyFillsAsync(ellipseNode, nodeData.fills);
-    await this.applyStrokesAsync(
-      ellipseNode,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    await this.applyFillsAndStrokesAsync(ellipseNode, nodeData);
 
     // Arc data for partial ellipses
     if (nodeData.arcData) {
@@ -53,17 +43,7 @@ export class ShapeNodeCreator extends BaseNodeCreator {
       polygonNode.pointCount = nodeData.pointCount;
     }
 
-    await this.applyFillsAsync(polygonNode, nodeData.fills);
-    await this.applyStrokesAsync(
-      polygonNode,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    await this.applyFillsAndStrokesAsync(polygonNode, nodeData);
 
     return polygonNode;
   }
@@ -85,17 +65,7 @@ export class ShapeNodeCreator extends BaseNodeCreator {
       starNode.innerRadius = nodeData.innerRadius;
     }
 
-    await this.applyFillsAsync(starNode, nodeData.fills);
-    await this.applyStrokesAsync(
-      starNode,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    await this.applyFillsAndStrokesAsync(starNode, nodeData);
 
     return starNode;
   }
@@ -172,17 +142,7 @@ export class ShapeNodeCreator extends BaseNodeCreator {
       vectorNode.resize(width, height);
     }
 
-    await this.applyFillsAsync(vectorNode, nodeData.fills);
-    await this.applyStrokesAsync(
-      vectorNode,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    await this.applyFillsAndStrokesAsync(vectorNode, nodeData);
 
     return vectorNode;
   }
@@ -197,17 +157,7 @@ export class ShapeNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height, 24);
     vectorPlaceholder.resize(width, height);
 
-    await this.applyFillsAsync(vectorPlaceholder, nodeData.fills);
-    await this.applyStrokesAsync(
-      vectorPlaceholder,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    await this.applyFillsAndStrokesAsync(vectorPlaceholder, nodeData);
 
     return vectorPlaceholder;
   }

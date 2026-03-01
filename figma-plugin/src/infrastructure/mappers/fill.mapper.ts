@@ -55,18 +55,9 @@ export class FillMapper {
    * Map Fill entities to Figma Paint objects asynchronously (for images)
    */
   static async toPaintAsync(fills: Fill[]): Promise<Paint[]> {
-    const validFills: Paint[] = [];
-
-    for (const fill of fills) {
-      if (!fill || typeof fill !== 'object') continue;
-
-      const paint = await FillMapper.mapFillToPaintAsync(fill);
-      if (paint) {
-        validFills.push(paint);
-      }
-    }
-
-    return validFills;
+    const validFills = fills.filter(fill => fill && typeof fill === 'object');
+    const paints = await Promise.all(validFills.map(fill => FillMapper.mapFillToPaintAsync(fill)));
+    return paints.filter((p): p is Paint => p !== null);
   }
 
   private static mapPaintToFill(paint: Paint): Fill | null {
@@ -133,8 +124,6 @@ export class FillMapper {
       const r = typeof color.r === 'number' ? color.r : 0;
       const g = typeof color.g === 'number' ? color.g : 0;
       const b = typeof color.b === 'number' ? color.b : 0;
-
-      console.log('Creating solid fill with color:', { r, g, b });
 
       return {
         type: 'SOLID',

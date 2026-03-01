@@ -108,17 +108,7 @@ export class ComponentNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     componentNode.resize(width, height);
 
-    await this.applyFillsAsync(componentNode, nodeData.fills);
-    await this.applyStrokesAsync(
-      componentNode,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    await this.applyFillsAndStrokesAsync(componentNode, nodeData);
     this.applyCornerRadius(componentNode, nodeData);
 
     // Apply clipsContent
@@ -244,13 +234,7 @@ export class ComponentNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     frameNode.resize(width, height);
 
-    await this.applyFillsAsync(frameNode, nodeData.fills);
-    await this.applyStrokesAsync(
-      frameNode,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign
-    );
+    await this.applyFillsAndStrokesAsync(frameNode, nodeData);
     this.applyCornerRadius(frameNode, nodeData);
 
     if (typeof nodeData.clipsContent === 'boolean') {
@@ -286,13 +270,7 @@ export class ComponentNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     setFrame.resize(width, height);
 
-    await this.applyFillsAsync(setFrame, nodeData.fills);
-    await this.applyStrokesAsync(
-      setFrame,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign
-    );
+    await this.applyFillsAndStrokesAsync(setFrame, nodeData);
     this.applyCornerRadius(setFrame, nodeData);
 
     if (typeof nodeData.clipsContent === 'boolean') {
@@ -314,14 +292,4 @@ export class ComponentNodeCreator extends BaseNodeCreator {
     return setFrame;
   }
 
-  /**
-   * Sort children by layer index to preserve z-order
-   */
-  private sortChildrenByLayerIndex(children: DesignNode[]): DesignNode[] {
-    return [...children].sort((a, b) => {
-      const indexA = a._layerIndex ?? 0;
-      const indexB = b._layerIndex ?? 0;
-      return indexA - indexB;
-    });
-  }
 }

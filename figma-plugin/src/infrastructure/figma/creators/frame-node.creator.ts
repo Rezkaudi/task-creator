@@ -18,18 +18,8 @@ export class FrameNodeCreator extends BaseNodeCreator {
     const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height);
     frameNode.resize(width, height);
 
-    // Apply fills and strokes with async image support
-    await this.applyFillsAsync(frameNode, nodeData.fills);
-    await this.applyStrokesAsync(
-      frameNode,
-      nodeData.strokes,
-      nodeData.strokeWeight,
-      nodeData.strokeAlign,
-      nodeData.strokeCap,
-      nodeData.strokeJoin,
-      nodeData.dashPattern,
-      nodeData.strokeMiterLimit
-    );
+    // Apply fills and strokes in parallel
+    await this.applyFillsAndStrokesAsync(frameNode, nodeData);
 
     this.applyCornerRadius(frameNode, nodeData);
 
@@ -182,14 +172,4 @@ export class FrameNodeCreator extends BaseNodeCreator {
     return sectionNode;
   }
 
-  /**
-   * Sort children by layer index to preserve z-order
-   */
-  private sortChildrenByLayerIndex(children: DesignNode[]): DesignNode[] {
-    return [...children].sort((a, b) => {
-      const indexA = a._layerIndex ?? 0;
-      const indexB = b._layerIndex ?? 0;
-      return indexA - indexB;
-    });
-  }
 }

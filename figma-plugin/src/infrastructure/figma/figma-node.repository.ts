@@ -537,14 +537,8 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
 
       booleanNode.name = nodeData.name || 'Boolean';
 
-      // Apply fills and strokes
-      await this.applyFillsAsync(booleanNode, nodeData.fills);
-      await this.applyStrokesAsync(
-        booleanNode,
-        nodeData.strokes,
-        nodeData.strokeWeight,
-        nodeData.strokeAlign
-      );
+      // Apply fills and strokes in parallel
+      await this.applyFillsAndStrokesAsync(booleanNode, nodeData);
 
       return booleanNode;
     } catch (error) {
@@ -564,11 +558,7 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
 
     // First create all children
     const childNodes: SceneNode[] = [];
-    const sortedChildren = [...(nodeData.children || [])].sort((a, b) => {
-      const indexA = a._layerIndex ?? 0;
-      const indexB = b._layerIndex ?? 0;
-      return indexA - indexB;
-    });
+    const sortedChildren = this.sortChildrenByLayerIndex(nodeData.children || []);
 
     // Determine target parent for grouping
     const targetParent = (parentNode && 'appendChild' in parentNode)
