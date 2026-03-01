@@ -1,29 +1,26 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { AppProvider, useAppContext } from '../context/AppContext.tsx';
-import { AuthProvider, useAuth } from '../context/AuthContext.tsx';
+import { useAppContext } from '../context/AppContext.tsx';
+import { useAuth } from '../context/AuthContext.tsx';
 import { usePluginMessage } from '../hooks/usePluginMessage.ts';
 import { useApiClient } from '../hooks/useApiClient.ts';
 import { useDropdown } from '../hooks/useDropdown.ts';
 import { reportErrorAsync, setHeaders as setErrorHeaders } from '../utils';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AiTab from './tabs/AiTab.tsx';
-import PasteJsonTab from './tabs/PasteJsonTab.tsx';
-import ExportTab from './tabs/ExportTab.tsx';
-import SaveModal from './SaveModal.tsx';
-import ResizeHandle from './ResizeHandle.tsx';
-import LoginScreen from './LoginScreen.tsx';
-import BuyPointsModal from './BuyPointsModal.tsx';
-import FigmaIcon from './FigmaIcon.tsx';
-import { ProfileDropdown } from './modals/ProfileDropdown.tsx';
+import AiSection from '../sections/AiSection.tsx';
+import PasteJsonSection from '../sections/PasteJsonSection.tsx';
+import ExportSection from '../sections/ExportSection.tsx';
+import SaveModal from '../components/modals/SaveModal.tsx';
+import ResizeHandle from '../components/shared/ResizeHandle.tsx';
+import BuyPointsModal from '../components/modals/BuyPointsModal.tsx';
+import FigmaIcon from '../components/shared/FigmaIcon.tsx';
+import { ProfileDropdown } from '../components/modals/ProfileDropdown.tsx';
 import { PluginMessage } from '../types/index.ts';
 
-function AppContent(): React.JSX.Element {
+export default function HomeScreen(): React.JSX.Element {
     const { state, dispatch, showStatus } = useAppContext();
     const { apiGet } = useApiClient();
     const {
-        isAuthenticated,
-        isLoading: authLoading,
         user,
         token: authToken,
         pointsBalance: authPointsBalance,
@@ -49,7 +46,7 @@ function AppContent(): React.JSX.Element {
         },
         'selection-changed': (msg: PluginMessage) => {
             dispatch({ type: 'SET_SELECTION_INFO', selection: msg.selection as never });
-            AiTab.messageHandlers?.['selection-changed']?.(msg);
+            AiSection.messageHandlers?.['selection-changed']?.(msg);
         },
         'export-success': (msg: PluginMessage) => {
             dispatch({ type: 'SET_EXPORT_DATA', data: msg.data });
@@ -63,23 +60,23 @@ function AppContent(): React.JSX.Element {
             reportErrorAsync(new Error(msg.error as string), { componentName: 'ExportHandler', actionType: 'export-error' });
         },
 
-        'layer-selected-for-edit': (msg: PluginMessage) => AiTab.messageHandlers?.['layer-selected-for-edit']?.(msg),
-        'no-layer-selected': (msg: PluginMessage) => AiTab.messageHandlers?.['no-layer-selected']?.(msg),
-        'layer-selected-for-reference': (msg: PluginMessage) => AiTab.messageHandlers?.['layer-selected-for-reference']?.(msg),
-        'ai-chat-response': (msg: PluginMessage) => AiTab.messageHandlers?.['ai-chat-response']?.(msg),
-        'ai-edit-response': (msg: PluginMessage) => AiTab.messageHandlers?.['ai-edit-response']?.(msg),
-        'ai-based-on-existing-response': (msg: PluginMessage) => AiTab.messageHandlers?.['ai-based-on-existing-response']?.(msg),
-        'ai-chat-error': (msg: PluginMessage) => AiTab.messageHandlers?.['ai-chat-error']?.(msg),
-        'ai-edit-error': (msg: PluginMessage) => AiTab.messageHandlers?.['ai-edit-error']?.(msg),
-        'ai-based-on-existing-error': (msg: PluginMessage) => AiTab.messageHandlers?.['ai-based-on-existing-error']?.(msg),
-        'design-updated': (msg: PluginMessage) => AiTab.messageHandlers?.['design-updated']?.(msg),
+        'layer-selected-for-edit': (msg: PluginMessage) => AiSection.messageHandlers?.['layer-selected-for-edit']?.(msg),
+        'no-layer-selected': (msg: PluginMessage) => AiSection.messageHandlers?.['no-layer-selected']?.(msg),
+        'layer-selected-for-reference': (msg: PluginMessage) => AiSection.messageHandlers?.['layer-selected-for-reference']?.(msg),
+        'ai-chat-response': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-chat-response']?.(msg),
+        'ai-edit-response': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-edit-response']?.(msg),
+        'ai-based-on-existing-response': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-based-on-existing-response']?.(msg),
+        'ai-chat-error': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-chat-error']?.(msg),
+        'ai-edit-error': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-edit-error']?.(msg),
+        'ai-based-on-existing-error': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-based-on-existing-error']?.(msg),
+        'design-updated': (msg: PluginMessage) => AiSection.messageHandlers?.['design-updated']?.(msg),
 
-        'frames-loaded': (msg: PluginMessage) => AiTab.messageHandlers?.['frames-loaded']?.(msg),
-        'frames-load-error': (msg: PluginMessage) => AiTab.messageHandlers?.['frames-load-error']?.(msg),
-        'prototype-connections-generated': (msg: PluginMessage) => AiTab.messageHandlers?.['prototype-connections-generated']?.(msg),
-        'prototype-connections-error': (msg: PluginMessage) => AiTab.messageHandlers?.['prototype-connections-error']?.(msg),
-        'prototype-applied': (msg: PluginMessage) => AiTab.messageHandlers?.['prototype-applied']?.(msg),
-        'prototype-apply-error': (msg: PluginMessage) => AiTab.messageHandlers?.['prototype-apply-error']?.(msg),
+        'frames-loaded': (msg: PluginMessage) => AiSection.messageHandlers?.['frames-loaded']?.(msg),
+        'frames-load-error': (msg: PluginMessage) => AiSection.messageHandlers?.['frames-load-error']?.(msg),
+        'prototype-connections-generated': (msg: PluginMessage) => AiSection.messageHandlers?.['prototype-connections-generated']?.(msg),
+        'prototype-connections-error': (msg: PluginMessage) => AiSection.messageHandlers?.['prototype-connections-error']?.(msg),
+        'prototype-applied': (msg: PluginMessage) => AiSection.messageHandlers?.['prototype-applied']?.(msg),
+        'prototype-apply-error': (msg: PluginMessage) => AiSection.messageHandlers?.['prototype-apply-error']?.(msg),
         'points-updated': (msg: PluginMessage) => {
             dispatch({ type: 'SET_POINTS_BALANCE', balance: (msg.balance as number) || 0 });
             dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(msg.hasPurchased) });
@@ -88,8 +85,6 @@ function AppContent(): React.JSX.Element {
     });
 
     useEffect(() => {
-        if (!isAuthenticated) return;
-
         const initHeaders = async () => {
             try {
                 const headers = await new Promise<Record<string, string>>((resolve, reject) => {
@@ -127,14 +122,13 @@ function AppContent(): React.JSX.Element {
         preload();
 
         setTimeout(() => { sendMessage('get-selection-info'); }, 100);
-    }, [isAuthenticated, authToken]);
+    }, [authToken]);
 
     useEffect(() => {
-        if (!isAuthenticated) return;
         dispatch({ type: 'SET_POINTS_BALANCE', balance: authPointsBalance || 0 });
         dispatch({ type: 'SET_HAS_PURCHASED', hasPurchased: Boolean(authHasPurchased) });
         dispatch({ type: 'SET_SUBSCRIPTION', subscription: authSubscription });
-    }, [isAuthenticated, authPointsBalance, authHasPurchased, authSubscription, dispatch]);
+    }, [authPointsBalance, authHasPurchased, authSubscription, dispatch]);
 
     const handleSaveSelected = useCallback(() => {
         if (!state.selectionInfo || state.selectionInfo.count === 0) {
@@ -159,26 +153,6 @@ function AppContent(): React.JSX.Element {
             showStatus(`❌ Invalid JSON: ${(e as Error).message}`, 'error');
         }
     }, [sendMessage, showStatus]);
-
-    if (authLoading) {
-        return (
-            <div className="container">
-                <div className="loading-state">
-                    <div className="loading-spinner" />
-                    <span>Loading...</span>
-                </div>
-            </div>
-        );
-    }
-
-    if (!isAuthenticated) {
-        return (
-            <>
-                <LoginScreen />
-                <ResizeHandle />
-            </>
-        );
-    }
 
     return (
         <div className="container">
@@ -226,16 +200,16 @@ function AppContent(): React.JSX.Element {
                 <ToastContainer position="top-right" autoClose={5000} />
 
                 {activeTab === 'ai' && (
-                    <AiTab sendMessage={sendMessage} onSaveSelected={handleSaveSelected} />
+                    <AiSection sendMessage={sendMessage} onSaveSelected={handleSaveSelected} />
                 )}
 
                 {activeTab === 'import-export' && (
                     <div className="import-export-wrapper">
-                        <ExportTab sendMessage={sendMessage} />
+                        <ExportSection sendMessage={sendMessage} />
                         <div className="section-divider">
                             <span>Paste JSON</span>
                         </div>
-                        <PasteJsonTab onImport={handleManualImport} valueRef={jsonInputRef} />
+                        <PasteJsonSection onImport={handleManualImport} valueRef={jsonInputRef} />
                         <div className="button-group import-btn-group">
                             <button
                                 className={`btn-primary import-to-figma-btn${isManualImporting ? ' is-importing' : ''}`}
@@ -251,18 +225,7 @@ function AppContent(): React.JSX.Element {
                 )}
                 <SaveModal />
                 <BuyPointsModal />
-                <ResizeHandle />
             </div>
         </div>
-    );
-}
-
-export default function App(): React.JSX.Element {
-    return (
-        <AuthProvider>
-            <AppProvider>
-                <AppContent />
-            </AppProvider>
-        </AuthProvider>
     );
 }

@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
-import { useApiClient } from '../hooks/useApiClient.ts';
-import { reportErrorAsync, getComponentNameFromExportData, requestPreviewImage, API_PATHS } from '../utils';
-import { Project } from '../types/index.ts';
-import '../styles/SaveModal.css';
+import { useAppContext } from '../../context/AppContext.tsx';
+import { useApiClient } from '../../hooks/useApiClient.ts';
+import { reportErrorAsync, getComponentNameFromExportData, requestPreviewImage, API_PATHS } from '../../utils';
+import { Project } from '../../types/index.ts';
+import '../../styles/SaveModal.css';
 
 export default function SaveModal(): React.JSX.Element | null {
     const { state, dispatch, showStatus } = useAppContext();

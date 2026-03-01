@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { useApiClient } from '../hooks/useApiClient.ts';
 import { API_BASE_URL, GOOGLE_ICON_SVG } from '../utils';
 import '../styles/login.css';
-import RioLogo from '../assets/rio--logo.png';
+import RioLogo from '../assets/rio-logo.png';
 
 
 export default function LoginScreen(): React.JSX.Element {

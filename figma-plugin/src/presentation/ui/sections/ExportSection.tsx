@@ -1,9 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { analyzeJsonStructure } from '../../utils/formatters';
-import { reportErrorAsync } from '../../utils';
-import { SendMessageFn } from '../../types/index.ts';
-import '../../styles/ExportTab.css';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext.tsx';
+import { analyzeJsonStructure } from '../utils/formatters';
+import { SendMessageFn } from '../types/index.ts';
+import '../styles/ExportTab.css';
 
 interface ExportTabProps {
     sendMessage: SendMessageFn;
@@ -47,24 +46,6 @@ export default function ExportTab({ sendMessage }: ExportTabProps): React.JSX.El
         setExportStats('');
     }, [showStatus]);
 
-    const handleDownload = useCallback(() => {
-        if (!currentExportData) return;
-        const jsonString = JSON.stringify(currentExportData);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        let filename = 'figma-design';
-        if (Array.isArray(currentExportData) && (currentExportData[0] as Record<string, unknown>)?.name) {
-            filename = String((currentExportData[0] as Record<string, unknown>).name).replace(/[^a-z0-9]/gi, '-').toLowerCase();
-        }
-        a.download = `${filename}-${Date.now()}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }, [currentExportData, showStatus]);
-
     const handleSaveToDb = useCallback(() => {
         if (!currentExportData) {
             showStatus('⚠️ No design data to save. Export first.', 'warning');
@@ -73,7 +54,7 @@ export default function ExportTab({ sendMessage }: ExportTabProps): React.JSX.El
         dispatch({ type: 'OPEN_SAVE_MODAL' });
     }, [currentExportData, showStatus, dispatch]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (currentExportData) {
             setExportOutput(JSON.stringify(currentExportData, null, 2));
             setExportStats(analyzeJsonStructure(currentExportData));

@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
-import { useAuth } from '../context/AuthContext.tsx';
-import { useApiClient } from '../hooks/useApiClient.ts';
-import { reportErrorAsync } from '../utils';
-import { Subscription, PointsPackage, SubscriptionPlan } from '../types/index.ts';
+import { useAppContext } from '../../context/AppContext.tsx';
+import { useAuth } from '../../context/AuthContext.tsx';
+import { useApiClient } from '../../hooks/useApiClient.ts';
+import { reportErrorAsync } from '../../utils';
+import { Subscription, PointsPackage, SubscriptionPlan } from '../../types/index.ts';
 import { XCircleIcon } from 'lucide-react';
-import '../styles/BuyPointsModal.css';
+import '../../styles/BuyPointsModal.css';
 
 export default function BuyPointsModal(): React.JSX.Element | null {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();

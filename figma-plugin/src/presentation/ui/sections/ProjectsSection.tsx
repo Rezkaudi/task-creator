@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Plus, Trash2, FolderOpen } from 'lucide-react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { useUILibrary, getPreviewSrc } from '../../hooks/useUILibrary.ts';
-import { CreateProjectModal } from '../shared/CreateProjectModal.tsx';
-import { DeleteConfirmModal } from '../shared/DeleteConfirmModal.tsx';
-import { LoadingState } from '../shared/LoadingState.tsx';
-import FigmaIcon from '../FigmaIcon.jsx';
-import { formatDate } from '../../utils/formatters';
-import type { SendMessageFn, UIComponent, Project } from '../../types';
-import '../../styles/UILibraryTab.css';
-import '../../styles/ProjectsSection.css';
+import { useAppContext } from '../context/AppContext.tsx';
+import { useUILibrary, getPreviewSrc } from '../hooks/useUILibrary.ts';
+import { CreateProjectModal } from '../components/modals/CreateProjectModal.tsx';
+import { DeleteConfirmModal } from '../components/modals/DeleteConfirmModal.tsx';
+import { LoadingState } from '../components/shared/LoadingState.tsx';
+import FigmaIcon from '../components/shared/FigmaIcon.tsx';
+import { formatDate } from '../utils/formatters';
+import type { SendMessageFn, UIComponent, Project } from '../types';
+import '../styles/UILibraryTab.css';
+import '../styles/ProjectsSection.css';
 
 interface ProjectsSectionProps {
     sendMessage: SendMessageFn;

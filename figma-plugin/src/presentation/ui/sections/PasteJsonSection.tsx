@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { analyzeJsonStructure } from '../../utils/formatters';
-import { debounce } from '../../utils/formatters';
-import '../../styles/PasteJsonTab.css';
+import { analyzeJsonStructure } from '../utils/formatters';
+import { debounce } from '../utils/formatters';
+import '../styles/PasteJsonTab.css';
 
 interface PasteJsonTabProps {
     onImport: () => void;

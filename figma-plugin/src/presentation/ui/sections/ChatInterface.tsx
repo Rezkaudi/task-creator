@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { useAuth } from '../../context/AuthContext.tsx';
-import { escapeHtml } from '../../utils/formatters';
-import DesignPreview from './DesignPreview.tsx';
-import CostBreakdown from './CostBreakdown.tsx';
-import '../../styles/ChatInterface.css';
-import RioProfile from '../../assets/rio-profile.png';
-import { defaultModel, defaultDesignSystem } from '../../../../shared/constants/plugin-config.js';
-import { playNotificationSound } from '../../utils/audio.ts';
+import { useAppContext } from '../context/AppContext.tsx';
+import { useAuth } from '../context/AuthContext.tsx';
+import { escapeHtml } from '../utils/formatters';
+import DesignPreview from '../components/shared/DesignPreview.tsx';
+import CostBreakdown from '../components/shared/CostBreakdown.tsx';
+import '../styles/ChatInterface.css';
+import RioProfile from '../assets/rio-profile.png';
+import { defaultModel, defaultDesignSystem } from '../../../shared/constants/plugin-config.js';
+import { playNotificationSound } from '../utils/audio.ts';
 import {
     Frame,
     CostInfo,
@@ -15,7 +15,7 @@ import {
     PluginMessage,
     SendMessageFn,
     Subscription,
-} from '../../types/index.ts';
+} from '../types/index.ts';
 
 interface LayerInfo {
     name: string | null;
