@@ -1,6 +1,6 @@
 import React from 'react';
 import '../../styles/DesignPreview.css';
-import FigmaIcon from '../FigmaIcon.tsx';
+import FigmaIcon from './FigmaIcon.tsx';
 
 interface DesignPreviewProps {
     designData: unknown;

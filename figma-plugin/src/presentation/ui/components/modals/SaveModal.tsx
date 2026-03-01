@@ -1,120 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
-import { useApiClient } from '../hooks/useApiClient.ts';
-import { reportErrorAsync } from '../errorReporter.ts';
-import { API_PATHS } from '../utils/constants';
-import { Project } from '../types/index.ts';
-import '../styles/SaveModal.css';
-
-function getComponentNameFromExportData(exportData: unknown): string {
-    if (Array.isArray(exportData) && exportData.length > 0) {
-        return (exportData[0] as Record<string, unknown>)?.name as string || 'Untitled Component';
-    }
-
-    if (exportData && typeof exportData === 'object' && (exportData as Record<string, unknown>).name) {
-        return (exportData as Record<string, unknown>).name as string;
-    }
-
-    return 'Untitled Component';
-}
-
-interface PreviewImageOptions {
-    maxWidth?: number;
-    timeoutMs?: number;
-}
-
-function requestPreviewImage({ maxWidth = 320, timeoutMs = 8000 }: PreviewImageOptions = {}): Promise<string | null> {
-    return new Promise((resolve, reject) => {
-        const requestId = `preview_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-        function cleanup() {
-            window.removeEventListener('message', onMessage);
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-        }
-
-        function onMessage(event: MessageEvent) {
-            const message = event.data?.pluginMessage;
-            if (!message || message.requestId !== requestId) return;
-
-            if (message.type === 'preview-image-generated') {
-                cleanup();
-                resolve(message.previewImage || null);
-                return;
-            }
-
-            if (message.type === 'preview-image-error') {
-                cleanup();
-                reject(new Error(message.error || 'Failed to generate preview image'));
-            }
-        }
-
-        timeoutId = setTimeout(() => {
-            cleanup();
-            reject(new Error('Preview image generation timed out'));
-        }, timeoutMs);
-
-        window.addEventListener('message', onMessage);
-        parent.postMessage({
-            pluginMessage: {
-                type: 'generate-preview-image',
-                requestId,
-                maxWidth,
-            },
-        }, '*');
-    });
-}
-
-interface PreviewFromDataOptions {
-    designData: unknown;
-    maxWidth?: number;
-    timeoutMs?: number;
-}
-
-function requestPreviewFromDesignData({ designData, maxWidth = 320, timeoutMs = 15000 }: PreviewFromDataOptions): Promise<string | null> {
-    return new Promise((resolve, reject) => {
-        const requestId = `preview_data_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-        function cleanup() {
-            window.removeEventListener('message', onMessage);
-            if (timeoutId) clearTimeout(timeoutId);
-        }
-
-        function onMessage(event: MessageEvent) {
-            const message = event.data?.pluginMessage;
-            if (!message || message.requestId !== requestId) return;
-
-            if (message.type === 'preview-image-generated') {
-                cleanup();
-                resolve(message.previewImage || null);
-                return;
-            }
-
-            if (message.type === 'preview-image-error') {
-                cleanup();
-                reject(new Error(message.error || 'Failed to generate preview image'));
-            }
-        }
-
-        timeoutId = setTimeout(() => {
-            cleanup();
-            reject(new Error('Preview image generation timed out'));
-        }, timeoutMs);
-
-        window.addEventListener('message', onMessage);
-        parent.postMessage({
-            pluginMessage: {
-                type: 'generate-preview-from-design-data',
-                requestId,
-                designData,
-                maxWidth,
-            },
-        }, '*');
-    });
-}
+import { useAppContext } from '../../context/AppContext.tsx';
+import { useApiClient } from '../../hooks/useApiClient.ts';
+import { reportErrorAsync, getComponentNameFromExportData, requestPreviewImage, API_PATHS } from '../../utils';
+import { Project } from '../../types/index.ts';
+import '../../styles/SaveModal.css';
 
 export default function SaveModal(): React.JSX.Element | null {
     const { state, dispatch, showStatus } = useAppContext();
@@ -177,9 +66,10 @@ export default function SaveModal(): React.JSX.Element | null {
 
             let previewImageUrl: string | null = null;
             try {
-                const base64Image = saveModalFromChat
-                    ? await requestPreviewFromDesignData({ designData: currentExportData, maxWidth: 320 })
-                    : await requestPreviewImage({ maxWidth: 320 });
+                const base64Image = await requestPreviewImage({
+                    maxWidth: 320,
+                    designData: saveModalFromChat ? currentExportData : undefined,
+                });
 
                 if (base64Image) {
                     const uploadData = await apiPost(API_PATHS.UPLOAD_IMAGE, { image: base64Image });

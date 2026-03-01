@@ -1,4 +1,3 @@
-import React from 'react';
 import type { User, Subscription, SelectionInfo } from '../../types';
 
 interface ProfileDropdownProps {

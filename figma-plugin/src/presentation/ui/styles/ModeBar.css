@@ -498,8 +498,15 @@
 }
 
 @keyframes notif-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* === Redesigned Input Area === */
@@ -657,9 +664,9 @@
     background: var(--accent-cyan-light);
 }
 
-.selector-pill:hover {
+/* .selector-pill:hover {
     opacity: 0.85;
-}
+} */
 
 /* === Selectors Dropdown === */
 .sel-dropdown {

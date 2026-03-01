@@ -13,8 +13,6 @@ export class TextNodeCreator extends BaseNodeCreator {
    * Create a text node from design data
    */
   async create(nodeData: DesignNode): Promise<TextNode> {
-    const font = await figma.listAvailableFontsAsync();
-
     const textNode = figma.createText();
     textNode.name = nodeData.name || 'Text';
 
@@ -210,6 +208,18 @@ export class TextNodeCreator extends BaseNodeCreator {
     const length = textNode.characters.length;
     if (length === 0) return;
 
+    // Pre-load all unique fonts needed by segments in parallel
+    const uniqueFontKeys = new Map<string, { family: string; style: string }>();
+    for (const segment of segments) {
+      if (segment.fontName) {
+        const key = `${segment.fontName.family}-${segment.fontName.style}`;
+        if (!uniqueFontKeys.has(key)) {
+          uniqueFontKeys.set(key, segment.fontName);
+        }
+      }
+    }
+    await Promise.all([...uniqueFontKeys.values()].map(font => this.loadFont(font)));
+
     for (const segment of segments) {
       const start = Math.max(0, segment.start);
       const end = Math.min(length, segment.end);
@@ -217,7 +227,7 @@ export class TextNodeCreator extends BaseNodeCreator {
       if (start >= end) continue;
 
       try {
-        // Load and apply font for this segment
+        // Load and apply font for this segment (already cached from pre-fetch above)
         if (segment.fontName) {
           const font = await this.loadFont(segment.fontName);
           textNode.setRangeFontName(start, end, font);

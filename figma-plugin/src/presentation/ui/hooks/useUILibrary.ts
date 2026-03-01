@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import { useApiClient } from './useApiClient.ts';
-import { reportErrorAsync } from '../errorReporter.js';
+import { reportErrorAsync } from '../utils/errorReporter.js';
 import { API_PATHS, FALLBACK_PREVIEW_SVG } from '../utils/constants';
 import type { Project, UIComponent, DeleteTarget, UseUILibraryReturn, SendMessageFn } from '../types';
 

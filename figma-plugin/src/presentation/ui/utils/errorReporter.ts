@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './utils/formatters';
+import { API_BASE_URL } from './formatters';
 
 interface ErrorContext {
     errorCode?: string;

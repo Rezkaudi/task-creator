@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/ResizeHandle.css';
+import '../../styles/ResizeHandle.css';
 
 export default function ResizeHandle(): React.JSX.Element {
     const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {

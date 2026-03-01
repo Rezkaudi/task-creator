@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
-import { Modal } from './Modal';
+import { Modal } from '../shared/Modal';
 import type { DeleteTarget } from '../../types';
 
 interface DeleteConfirmModalProps {

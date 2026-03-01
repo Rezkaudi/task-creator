@@ -1,12 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { reportErrorAsync } from '../../errorReporter.ts';
+import { useAppContext } from '../context/AppContext.tsx';
+import { reportErrorAsync } from '../utils';
 import ChatInterface from './ChatInterface.tsx';
 import PrototypePanel from './PrototypePanel.tsx';
 import ProjectsSection from './ProjectsSection.tsx';
-import { Frame, UIComponent, PluginMessage, SendMessageFn } from '../../types/index.ts';
-import '../../styles/ModeBar.css';
-import '../../styles/UILibraryTab.css';
+import { Frame, UIComponent, PluginMessage, SendMessageFn } from '../types/index.ts';
+import '../styles/ModeBar.css';
+import '../styles/UILibraryTab.css';
 
 type Mode = 'create' | 'edit' | 'prototype';
 
@@ -32,7 +32,7 @@ interface SystemMessage {
     badge: string;
 }
 
-function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
+function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
 
     const [currentMode, setCurrentMode] = useState<Mode>('create');
@@ -149,7 +149,7 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
         setView('chat');
     }, []);
 
-    AiTab.messageHandlers = {
+    AiSection.messageHandlers = {
         'selection-changed': (msg: PluginMessage) => {
             const nodes = (msg.selection as { nodes?: Array<{ id: string; name: string; width?: number; height?: number }> })?.nodes || [];
             if (nodes.length > 0) {
@@ -359,8 +359,8 @@ function AiTab({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
     );
 }
 
-namespace AiTab {
+namespace AiSection {
     export let messageHandlers: Record<string, (msg: PluginMessage) => void> | undefined;
 }
 
-export default AiTab;
+export default AiSection;
