@@ -166,6 +166,9 @@ export class PluginMessageHandler {
           await figma.clientStorage.deleteAsync('rio_auth_token');
           break;
 
+        case 'SHOW_NOTIFICATION':
+          figma.notify(message.message as string, { timeout: 5000, error: Boolean(message.isError) });
+          break;
         case 'OPEN_EXTERNAL_URL':
           // Handled by UI window.open
           break;

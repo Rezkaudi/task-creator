@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
+import { useNotify } from '../hooks/useNotify.ts';
 import { reportErrorAsync } from '../utils';
 import ChatInterface from './ChatInterface.tsx';
 import PrototypePanel from './PrototypePanel.tsx';
@@ -34,7 +35,8 @@ interface SystemMessage {
 }
 
 function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps): React.JSX.Element {
-    const { state, dispatch, showStatus, hideStatus } = useAppContext();
+    const { state, dispatch } = useAppContext();
+    const notify = useNotify();
 
     const [currentMode, setCurrentMode] = useState<Mode>('create');
     const [view, setView] = useState<'chat' | 'prototype'>('chat');
@@ -102,7 +104,7 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
         }
         const selectionCount = state.selectionInfo?.count ?? 0;
         if (selectionCount > 1) {
-            showStatus('⚠️ Select only one layer before attaching a component', 'warning');
+            notify('⚠️ Select only one layer before attaching a component', 'warning');
             return;
         }
         setAvailableFrames(prev => {
@@ -110,7 +112,7 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
             return [...prev, { id: component.id, name: component.name, width: 0, height: 0, interactiveElements: [], designJson: component.designJson }];
         });
         setSelectedFrameIds(prev => new Set([...prev, component.id]));
-    }, [state.selectionInfo, selectedFrameIds, showStatus]);
+    }, [state.selectionInfo, selectedFrameIds, notify]);
 
     const selectedFrames = availableFrames.filter(f => selectedFrameIds.has(f.id));
 
@@ -185,12 +187,10 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
             setSelectedLayerJson(msg.layerJson as Record<string, unknown>);
             setView('chat');
             setSystemMessages(prev => [...prev, { badge: MODE_LABELS.edit.badge }]);
-            hideStatus();
         },
 
         'no-layer-selected': () => {
-            showStatus('⚠️ Please select a layer to edit', 'warning');
-            setTimeout(hideStatus, 3000);
+            notify('⚠️ Please select a layer to edit', 'warning');
         },
 
         'layer-selected-for-reference': (msg: PluginMessage) => {
@@ -207,7 +207,6 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
             setCurrentMode('create');
             setView('chat');
             setSystemMessages(prev => [...prev, { badge: 'Reference Added' }]);
-            setTimeout(hideStatus, 2000);
         },
 
         'ai-chat-response': (msg: PluginMessage) => ChatInterface.handleResponse?.(msg),
@@ -228,7 +227,6 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
 
         'design-updated': (msg: PluginMessage) => {
             setSelectedLayerJson(msg.layerJson as Record<string, unknown>);
-            setTimeout(hideStatus, 2000);
         },
 
         'frames-loaded': (msg: PluginMessage) => {
@@ -250,11 +248,9 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
                 dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
             }
         },
-        'prototype-applied': () => {
-            setTimeout(hideStatus, 3000);
-        },
+        'prototype-applied': () => { },
         'prototype-apply-error': (msg: PluginMessage) => {
-            showStatus(`❌ ${msg.error as string}`, 'error');
+            notify(`❌ ${msg.error as string}`, 'error');
             reportErrorAsync(new Error(msg.error as string), { actionType: 'apply-error' });
         },
     };

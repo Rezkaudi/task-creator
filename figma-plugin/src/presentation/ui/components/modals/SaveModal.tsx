@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
+import { useNotify } from '../../hooks/useNotify.ts';
 import { useApiClient } from '../../hooks/useApiClient.ts';
 import { reportErrorAsync, getComponentNameFromExportData, getComponentNamesFromExportData, requestPreviewImage, API_PATHS } from '../../utils';
 import { Project } from '../../types/index.ts';
 import '../../styles/SaveModal.css';
 
 export default function SaveModal(): React.JSX.Element | null {
-    const { state, dispatch, showStatus } = useAppContext();
+    const { state, dispatch } = useAppContext();
+    const notify = useNotify();
     const { saveModalOpen, saveModalFromChat, currentExportData } = state;
     const { apiGet, apiPost } = useApiClient();
 
@@ -36,7 +38,7 @@ export default function SaveModal(): React.JSX.Element | null {
                 setProjects(fetchedProjects);
                 setSelectedProjectId(fetchedProjects[0]?.id || '');
             } catch (error) {
-                showStatus(`❌ ${(error as Error).message}`, 'error');
+                notify(`❌ ${(error as Error).message}`, 'error');
                 reportErrorAsync(error, {
                     actionType: 'loadProjects',
                 });
@@ -52,12 +54,12 @@ export default function SaveModal(): React.JSX.Element | null {
 
     const handleSave = async () => {
         if (!selectedProjectId) {
-            showStatus('⚠️ Please select a project', 'warning');
+            notify('⚠️ Please select a project', 'warning');
             return;
         }
 
         if (!description.trim()) {
-            showStatus('⚠️ Please enter a component description', 'warning');
+            notify('⚠️ Please enter a component description', 'warning');
             return;
         }
 
@@ -78,7 +80,7 @@ export default function SaveModal(): React.JSX.Element | null {
                     }
                 }
             } catch (previewError) {
-                showStatus('⚠️ Could not generate preview image. Saving without preview.', 'warning');
+                notify('⚠️ Could not generate preview image. Saving without preview.', 'warning');
                 reportErrorAsync(previewError, {
                     actionType: 'generatePreviewImage',
                 });
@@ -101,7 +103,7 @@ export default function SaveModal(): React.JSX.Element | null {
             setDescription('');
             setSelectedProjectId('');
         } catch (error) {
-            showStatus(`❌ ${(error as Error).message}`, 'error');
+            notify(`❌ ${(error as Error).message}`, 'error');
             reportErrorAsync(error, {
                 actionType: 'saveComponent',
             });
