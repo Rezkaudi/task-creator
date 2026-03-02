@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import { CreateUILibraryProjectUseCase } from '../../../application/use-cases/create-ui-library-project.use-case';
-import { GetUILibraryProjectsUseCase } from '../../../application/use-cases/get-ui-library-projects.use-case';
-import { DeleteUILibraryProjectUseCase } from '../../../application/use-cases/delete-ui-library-project.use-case';
-import { CreateUILibraryComponentUseCase } from '../../../application/use-cases/create-ui-library-component.use-case';
-import { GetUILibraryComponentsByProjectUseCase } from '../../../application/use-cases/get-ui-library-components-by-project.use-case';
-import { DeleteUILibraryComponentUseCase } from '../../../application/use-cases/delete-ui-library-component.use-case';
-import { UploadComponentImageUseCase } from '../../../application/use-cases/upload-component-image.use-case';
+import { CreateUILibraryProjectUseCase } from '../../../application/use-cases/ui-library/create-ui-library-project.use-case';
+import { GetUILibraryProjectsUseCase } from '../../../application/use-cases/ui-library/get-ui-library-projects.use-case';
+import { DeleteUILibraryProjectUseCase } from '../../../application/use-cases/ui-library/delete-ui-library-project.use-case';
+import { CreateUILibraryComponentUseCase } from '../../../application/use-cases/ui-library/create-ui-library-component.use-case';
+import { GetUILibraryComponentsByProjectUseCase } from '../../../application/use-cases/ui-library/get-ui-library-components-by-project.use-case';
+import { DeleteUILibraryComponentUseCase } from '../../../application/use-cases/ui-library/delete-ui-library-component.use-case';
+import { UploadComponentImageUseCase } from '../../../application/use-cases/ui-library/upload-component-image.use-case';
 
 export class UILibraryController {
     constructor(

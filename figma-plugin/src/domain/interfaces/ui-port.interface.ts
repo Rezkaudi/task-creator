@@ -128,6 +128,7 @@ export type PluginMessage =
   | { type: 'apply-prototype-connections'; connections: PrototypeConnection[] }
   | { type: 'generate-preview-image'; requestId?: string; maxWidth?: number }
   | { type: 'generate-preview-from-design-data'; requestId?: string; designData: unknown; maxWidth?: number }
+  | { type: 'SHOW_NOTIFICATION'; message: string; isError: boolean }
 
 /**
  * UI Port interface

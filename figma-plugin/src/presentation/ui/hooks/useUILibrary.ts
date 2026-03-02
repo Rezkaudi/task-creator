@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
+import { useNotify } from './useNotify.ts';
 import { useApiClient } from './useApiClient.ts';
 import { reportErrorAsync } from '../utils/errorReporter.js';
 import { API_PATHS, FALLBACK_PREVIEW_SVG } from '../utils/constants';
@@ -11,7 +12,8 @@ export function getPreviewSrc(component: UIComponent): string {
 }
 
 export function useUILibrary(callerName: string): UseUILibraryReturn {
-    const { state, dispatch, showStatus } = useAppContext();
+    const { state, dispatch } = useAppContext();
+    const notify = useNotify();
     const { apiGet, apiPost, apiDelete } = useApiClient();
 
     const [projects, setProjects] = useState<Project[]>([]);
@@ -43,12 +45,12 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
                 setComponents([]);
             }
         } catch (error) {
-            showStatus(`❌ ${(error as Error).message}`, 'error');
-            reportErrorAsync(error as Error, { componentName: callerName, actionType: 'loadProjects' });
+            notify(`❌ ${(error as Error).message}`, 'error');
+            reportErrorAsync(error as Error, { actionType: 'loadProjects' });
         } finally {
             setLoadingProjects(false);
         }
-    }, [apiGet, showStatus, callerName]);
+    }, [apiGet, notify, callerName]);
 
     const loadComponents = useCallback(async (projectId: string | null) => {
         if (!projectId) { setComponents([]); return; }
@@ -58,13 +60,13 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
             if (!data.success) throw new Error(data.message || 'Failed to load components');
             setComponents(data.components || []);
         } catch (error) {
-            showStatus(`❌ ${(error as Error).message}`, 'error');
-            reportErrorAsync(error as Error, { componentName: callerName, actionType: 'loadComponents' });
+            notify(`❌ ${(error as Error).message}`, 'error');
+            reportErrorAsync(error as Error, { actionType: 'loadComponents' });
             setComponents([]);
         } finally {
             setLoadingComponents(false);
         }
-    }, [apiGet, showStatus, callerName]);
+    }, [apiGet, notify, callerName]);
 
     useEffect(() => {
         loadProjects();
@@ -85,7 +87,7 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
 
     const handleCreateProject = useCallback(async () => {
         if (!newProjectName.trim()) {
-            showStatus('⚠️ Please enter a project name', 'warning');
+            notify('⚠️ Please enter a project name', 'warning');
             return;
         }
         try {
@@ -97,12 +99,12 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
             await loadProjects();
             if (data.project?.id) setSelectedProjectId(data.project.id);
         } catch (error) {
-            showStatus(`❌ ${(error as Error).message}`, 'error');
-            reportErrorAsync(error as Error, { componentName: callerName, actionType: 'createProject' });
+            notify(`❌ ${(error as Error).message}`, 'error');
+            reportErrorAsync(error as Error, { actionType: 'createProject' });
         } finally {
             setIsCreatingProject(false);
         }
-    }, [newProjectName, apiPost, loadProjects, showStatus, callerName]);
+    }, [newProjectName, apiPost, loadProjects, notify, callerName]);
 
     const handleConfirmDelete = useCallback(async () => {
         if (!deleteConfirm) return;
@@ -120,16 +122,15 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
                 await loadComponents(selectedProjectId);
             }
         } catch (error) {
-            showStatus(`❌ ${(error as Error).message}`, 'error');
+            notify(`❌ ${(error as Error).message}`, 'error');
             reportErrorAsync(error as Error, {
-                componentName: callerName,
                 actionType: deleteConfirm.type === 'project' ? 'deleteProject' : 'deleteComponent',
             });
         } finally {
             setIsDeleting(false);
             setDeleteConfirm(null);
         }
-    }, [deleteConfirm, apiDelete, loadProjects, loadComponents, selectedProjectId, showStatus, callerName]);
+    }, [deleteConfirm, apiDelete, loadProjects, loadComponents, selectedProjectId, notify, callerName]);
 
     useEffect(() => {
         function onMessage(event: MessageEvent) {
@@ -145,12 +146,12 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
 
     const handleImportComponent = useCallback((component: UIComponent, sendMessage: SendMessageFn) => {
         if (!component?.designJson) {
-            showStatus('⚠️ Missing design JSON for this component', 'warning');
+            notify('⚠️ Missing design JSON for this component', 'warning');
             return;
         }
         setImportingComponentId(component.id);
         sendMessage('import-ui-library-component', { designJson: component.designJson as Record<string, unknown> });
-    }, [showStatus]);
+    }, [notify]);
 
     const handleBackToProjects = useCallback(() => {
         setSelectedProjectId(null);

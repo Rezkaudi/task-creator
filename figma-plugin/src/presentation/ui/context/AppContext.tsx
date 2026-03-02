@@ -1,13 +1,10 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
-import { toast } from 'react-toastify';
+import React, { createContext, useContext, useReducer } from 'react';
 import { defaultModel, defaultDesignSystem } from '../../../shared/constants/plugin-config.js';
 import type { AppState, AppAction } from '../types';
 
 interface AppContextValue {
     state: AppState;
     dispatch: React.Dispatch<AppAction>;
-    showStatus: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
-    hideStatus: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -95,16 +92,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 export function AppProvider({ children }: { children: React.ReactNode }) {
     const [state, dispatch] = useReducer(appReducer, initialState);
 
-    const showStatus = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info') => {
-        const fn = toast[type] ?? toast;
-        fn(message, { autoClose: 5000 });
-    }, []);
-
-    const hideStatus = useCallback(() => {
-        toast.dismiss();
-    }, []);
-
-    const value: AppContextValue = { state, dispatch, showStatus, hideStatus };
+    const value: AppContextValue = { state, dispatch };
 
     return (
         <AppContext.Provider value={value}>

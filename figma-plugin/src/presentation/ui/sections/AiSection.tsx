@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
+import { useNotify } from '../hooks/useNotify.ts';
 import { reportErrorAsync } from '../utils';
 import ChatInterface from './ChatInterface.tsx';
 import PrototypePanel from './PrototypePanel.tsx';
@@ -26,14 +27,16 @@ const MODE_LABELS: Record<Mode, ModeLabel> = {
 interface AiTabProps {
     sendMessage: SendMessageFn;
     onSaveSelected: () => void;
+    isSavingExport?: boolean;
 }
 
 interface SystemMessage {
     badge: string;
 }
 
-function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
-    const { state, dispatch, showStatus, hideStatus } = useAppContext();
+function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps): React.JSX.Element {
+    const { state, dispatch } = useAppContext();
+    const notify = useNotify();
 
     const [currentMode, setCurrentMode] = useState<Mode>('create');
     const [view, setView] = useState<'chat' | 'prototype'>('chat');
@@ -101,7 +104,7 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
         }
         const selectionCount = state.selectionInfo?.count ?? 0;
         if (selectionCount > 1) {
-            showStatus('⚠️ Select only one layer before attaching a component', 'warning');
+            notify('⚠️ Select only one layer before attaching a component', 'warning');
             return;
         }
         setAvailableFrames(prev => {
@@ -109,7 +112,7 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
             return [...prev, { id: component.id, name: component.name, width: 0, height: 0, interactiveElements: [], designJson: component.designJson }];
         });
         setSelectedFrameIds(prev => new Set([...prev, component.id]));
-    }, [state.selectionInfo, selectedFrameIds, showStatus]);
+    }, [state.selectionInfo, selectedFrameIds, notify]);
 
     const selectedFrames = availableFrames.filter(f => selectedFrameIds.has(f.id));
 
@@ -184,12 +187,10 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
             setSelectedLayerJson(msg.layerJson as Record<string, unknown>);
             setView('chat');
             setSystemMessages(prev => [...prev, { badge: MODE_LABELS.edit.badge }]);
-            hideStatus();
         },
 
         'no-layer-selected': () => {
-            showStatus('⚠️ Please select a layer to edit', 'warning');
-            setTimeout(hideStatus, 3000);
+            notify('⚠️ Please select a layer to edit', 'warning');
         },
 
         'layer-selected-for-reference': (msg: PluginMessage) => {
@@ -206,7 +207,6 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
             setCurrentMode('create');
             setView('chat');
             setSystemMessages(prev => [...prev, { badge: 'Reference Added' }]);
-            setTimeout(hideStatus, 2000);
         },
 
         'ai-chat-response': (msg: PluginMessage) => ChatInterface.handleResponse?.(msg),
@@ -214,20 +214,19 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
         'ai-based-on-existing-response': (msg: PluginMessage) => ChatInterface.handleResponse?.(msg),
         'ai-chat-error': (msg: PluginMessage) => {
             ChatInterface.handleError?.(msg);
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'AIChat', actionType: msg.type });
+            reportErrorAsync(new Error(msg.error as string), { actionType: msg.type });
         },
         'ai-edit-error': (msg: PluginMessage) => {
             ChatInterface.handleError?.(msg);
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'AIChat', actionType: msg.type });
+            reportErrorAsync(new Error(msg.error as string), { actionType: msg.type });
         },
         'ai-based-on-existing-error': (msg: PluginMessage) => {
             ChatInterface.handleError?.(msg);
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'BasedOnExisting', actionType: 'ai-based-on-existing-error' });
+            reportErrorAsync(new Error(msg.error as string), { actionType: 'ai-based-on-existing-error' });
         },
 
         'design-updated': (msg: PluginMessage) => {
             setSelectedLayerJson(msg.layerJson as Record<string, unknown>);
-            setTimeout(hideStatus, 2000);
         },
 
         'frames-loaded': (msg: PluginMessage) => {
@@ -249,19 +248,17 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
                 dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
             }
         },
-        'prototype-applied': () => {
-            setTimeout(hideStatus, 3000);
-        },
+        'prototype-applied': () => { },
         'prototype-apply-error': (msg: PluginMessage) => {
-            showStatus(`❌ ${msg.error as string}`, 'error');
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'Prototype', actionType: 'apply-error' });
+            notify(`❌ ${msg.error as string}`, 'error');
+            reportErrorAsync(new Error(msg.error as string), { actionType: 'apply-error' });
         },
     };
 
     return (
         <div id="ai-tab" className="tab-content active" style={{ position: 'relative' }}>
             {/* Projects (UI Library) — collapsible panel */}
-            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} onAttachComponent={handleAttachComponent} attachedComponentIds={selectedFrameIds} />
+            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} isSavingExport={isSavingExport} onAttachComponent={handleAttachComponent} attachedComponentIds={selectedFrameIds} />
 
             {/* Mode Bar */}
             <div className="mode-bar">

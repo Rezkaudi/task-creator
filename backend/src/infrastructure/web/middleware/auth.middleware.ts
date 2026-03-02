@@ -1,7 +1,7 @@
 // File: /backend/src/infrastructure/web/middleware/auth.middleware.ts
 
 import { Request, Response, NextFunction } from 'express';
-import { JwtService } from '../../services/jwt.service';
+import { JwtService } from '../../services/auth/jwt.service';
 import { TypeORMUserRepository } from '../../repository/typeorm-user.repository';
 
 export class AuthMiddleware {

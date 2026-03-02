@@ -5,8 +5,7 @@ import { usePluginMessage } from '../hooks/usePluginMessage.ts';
 import { useApiClient } from '../hooks/useApiClient.ts';
 import { useDropdown } from '../hooks/useDropdown.ts';
 import { reportErrorAsync, setHeaders as setErrorHeaders } from '../utils';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useNotify } from '../hooks/useNotify.ts';
 import AiSection from '../sections/AiSection.tsx';
 import PasteJsonSection from '../sections/PasteJsonSection.tsx';
 import ExportSection from '../sections/ExportSection.tsx';
@@ -18,7 +17,8 @@ import { ProfileDropdown } from '../components/modals/ProfileDropdown.tsx';
 import { PluginMessage } from '../types/index.ts';
 
 export default function HomeScreen(): React.JSX.Element {
-    const { state, dispatch, showStatus } = useAppContext();
+    const { state, dispatch } = useAppContext();
+    const notify = useNotify();
     const { apiGet } = useApiClient();
     const {
         user,
@@ -31,6 +31,7 @@ export default function HomeScreen(): React.JSX.Element {
 
     const [activeTab, setActiveTab] = useState('ai');
     const [isManualImporting, setIsManualImporting] = useState(false);
+    const [isSavingExport, setIsSavingExport] = useState(false);
     const profileDropdown = useDropdown();
     const jsonInputRef = useRef<string | null>(null);
     const pendingSaveRef = useRef(false);
@@ -41,8 +42,8 @@ export default function HomeScreen(): React.JSX.Element {
         },
         'import-error': (msg: PluginMessage) => {
             setIsManualImporting(false);
-            showStatus(`❌ Import failed: ${msg.error as string}`, 'error');
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'ImportHandler', actionType: 'import-error' });
+            notify(`❌ Import failed: ${msg.error as string}`, 'error');
+            reportErrorAsync(new Error(msg.error as string), { actionType: 'import-error' });
         },
         'selection-changed': (msg: PluginMessage) => {
             dispatch({ type: 'SET_SELECTION_INFO', selection: msg.selection as never });
@@ -52,12 +53,14 @@ export default function HomeScreen(): React.JSX.Element {
             dispatch({ type: 'SET_EXPORT_DATA', data: msg.data });
             if (pendingSaveRef.current) {
                 pendingSaveRef.current = false;
+                setIsSavingExport(false);
                 dispatch({ type: 'OPEN_SAVE_MODAL' });
             }
         },
         'export-error': (msg: PluginMessage) => {
-            showStatus(`❌ Export failed: ${msg.error as string}`, 'error');
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'ExportHandler', actionType: 'export-error' });
+            setIsSavingExport(false);
+            notify(`❌ Export failed: ${msg.error as string}`, 'error');
+            reportErrorAsync(new Error(msg.error as string), { actionType: 'export-error' });
         },
 
         'layer-selected-for-edit': (msg: PluginMessage) => AiSection.messageHandlers?.['layer-selected-for-edit']?.(msg),
@@ -132,17 +135,18 @@ export default function HomeScreen(): React.JSX.Element {
 
     const handleSaveSelected = useCallback(() => {
         if (!state.selectionInfo || state.selectionInfo.count === 0) {
-            showStatus('Select a layer in Figma to save', 'warning');
+            notify('Select a layer in Figma to save', 'warning');
             return;
         }
         pendingSaveRef.current = true;
+        setIsSavingExport(true);
         sendMessage('export-selected');
-    }, [state.selectionInfo, sendMessage, showStatus]);
+    }, [state.selectionInfo, sendMessage, notify]);
 
     const handleManualImport = useCallback(() => {
         const val = jsonInputRef.current?.trim();
         if (!val) {
-            showStatus('⚠️ Please paste your design JSON.', 'warning');
+            notify('⚠️ Please paste your design JSON.', 'warning');
             return;
         }
         try {
@@ -150,9 +154,9 @@ export default function HomeScreen(): React.JSX.Element {
             setIsManualImporting(true);
             sendMessage('import-design', { designData });
         } catch (e) {
-            showStatus(`❌ Invalid JSON: ${(e as Error).message}`, 'error');
+            notify(`❌ Invalid JSON: ${(e as Error).message}`, 'error');
         }
-    }, [sendMessage, showStatus]);
+    }, [sendMessage, notify]);
 
     return (
         <div className="container">
@@ -197,10 +201,8 @@ export default function HomeScreen(): React.JSX.Element {
             )}
 
             <div className="content-container">
-                <ToastContainer position="top-right" autoClose={5000} />
-
                 {activeTab === 'ai' && (
-                    <AiSection sendMessage={sendMessage} onSaveSelected={handleSaveSelected} />
+                    <AiSection sendMessage={sendMessage} onSaveSelected={handleSaveSelected} isSavingExport={isSavingExport} />
                 )}
 
                 {activeTab === 'import-export' && (

@@ -14,11 +14,12 @@ import '../styles/ProjectsSection.css';
 interface ProjectsSectionProps {
     sendMessage: SendMessageFn;
     onSaveSelected: () => void;
+    isSavingExport?: boolean;
     onAttachComponent?: (component: UIComponent) => void;
     attachedComponentIds?: Set<string>;
 }
 
-export default function ProjectsSection({ sendMessage, onSaveSelected, onAttachComponent, attachedComponentIds }: ProjectsSectionProps) {
+export default function ProjectsSection({ sendMessage, onSaveSelected, isSavingExport, onAttachComponent, attachedComponentIds }: ProjectsSectionProps) {
     const [isOpen, setIsOpen] = useState(true);
     const { state } = useAppContext();
     const hasSelection = (state.selectionInfo?.count ?? 0) > 0;
@@ -35,10 +36,10 @@ export default function ProjectsSection({ sendMessage, onSaveSelected, onAttachC
                     <button
                         className="ps-save-btn"
                         onClick={onSaveSelected}
-                        // disabled={!hasSelection}
+                        disabled={!hasSelection || isSavingExport}
                         title={hasSelection ? 'Save selected frame to library' : 'Select a frame in Figma to save'}
                     >
-                        Save Components
+                        {isSavingExport ? <><span className="btn-spinner" style={{ width: 10, height: 10 }} />Saving...</> : 'Save'}
                     </button>
                 </div>
             </div>
@@ -86,10 +87,10 @@ export default function ProjectsSection({ sendMessage, onSaveSelected, onAttachC
                 <button
                     className="ps-save-btn"
                     onClick={onSaveSelected}
-                    // disabled={!hasSelection}
+                    disabled={!hasSelection || isSavingExport}
                     title={hasSelection ? 'Save selected frame to library' : 'Select a frame in Figma to save'}
                 >
-                    Save Component
+                    {isSavingExport ? <><span className="btn-spinner" style={{ width: 10, height: 10 }} />Saving...</> : 'Save'}
                 </button>
                 <button
                     className="uil-delete-project-btn"

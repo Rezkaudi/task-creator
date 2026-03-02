@@ -94,24 +94,35 @@
     align-items: center;
     gap: 4px;
     padding: 3px 8px;
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #6ee7b7;
+    background: var(--accent);
+    color: white;
+    border: none;
     border-radius: 5px;
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, box-shadow 0.15s;
     line-height: 1.4;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
 }
 
 .ps-save-btn:hover:not(:disabled) {
-    background: #a7f3d0;
+    background: var(--accent-dark);
+    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.4);
+}
+
+.ps-save-btn:active:not(:disabled) {
+    transform: scale(0.97);
+    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.2);
 }
 
 .ps-save-btn:disabled {
-    opacity: 0.35;
+    opacity: 0.45;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 /* ── Project rows ── */

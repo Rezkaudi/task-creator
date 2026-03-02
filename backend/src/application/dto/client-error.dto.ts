@@ -3,15 +3,8 @@
 import { ClientError } from "../../domain/entities/client-error.entity";
 
 export interface ReportClientErrorRequest {
-    errorCode?: string;
     errorMessage: string;
-    errorStack?: string;
     errorDetails?: Record<string, any>;
-    pluginVersion?: string;
-    figmaVersion?: string;
-    platform?: string;
-    browserInfo?: string;
-    componentName?: string;
     actionType?: string;
 }
 

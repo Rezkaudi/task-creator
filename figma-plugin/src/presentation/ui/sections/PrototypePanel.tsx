@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
+import { useNotify } from '../hooks/useNotify.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { escapeHtml } from '../utils/formatters';
 import { reportErrorAsync } from '../utils';
@@ -17,7 +18,8 @@ interface PrototypePanelProps {
 }
 
 function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX.Element {
-    const { state, dispatch, showStatus, hideStatus } = useAppContext();
+    const { state, dispatch } = useAppContext();
+    const notify = useNotify();
     const { currentModelId, availableModels } = state;
     const { updateSubscription, updatePointsBalance } = useAuth();
 
@@ -68,7 +70,7 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
 
     const generateConnections = useCallback(() => {
         if (selectedFrameIds.size < 2) {
-            showStatus('⚠️ Please select at least 2 frames', 'warning');
+            notify('⚠️ Please select at least 2 frames', 'warning');
             return;
         }
 
@@ -80,11 +82,11 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
             frames: selectedFrames as unknown as Record<string, unknown>[],
             modelId: currentModelId
         });
-    }, [selectedFrameIds, prototypeFrames, currentModelId, sendMessage, showStatus]);
+    }, [selectedFrameIds, prototypeFrames, currentModelId, sendMessage, notify]);
 
     const applyConnections = useCallback(() => {
         if (generatedConnections.length === 0) {
-            showStatus('⚠️ No connections to apply', 'warning');
+            notify('⚠️ No connections to apply', 'warning');
             return;
         }
 
@@ -92,7 +94,7 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
         sendMessage('apply-prototype-connections', {
             connections: generatedConnections as unknown as Record<string, unknown>[]
         });
-    }, [generatedConnections, sendMessage, showStatus]);
+    }, [generatedConnections, sendMessage, notify]);
 
     const removeConnection = useCallback((index: number) => {
         setGeneratedConnections(prev => {
@@ -109,7 +111,6 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
     PrototypePanel.handleFramesError = (msg: PluginMessage) => {
         setPrototypeFrames([]);
         reportErrorAsync(new Error(msg.error as string), {
-            componentName: 'PrototypeMode',
             actionType: 'frames-load-error'
         });
     };
@@ -132,32 +133,26 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
                 updatePointsBalanceRef.current(points.remaining || 0, points.hasPurchased);
             }
         }
-        setTimeout(hideStatus, 3000);
     };
 
     PrototypePanel.handleConnectionsError = (msg: PluginMessage) => {
         setIsGeneratingConnections(false);
-        showStatus(`❌ ${msg.error as string}`, 'error');
+        notify(`❌ ${msg.error as string}`, 'error');
         reportErrorAsync(new Error(msg.error as string), {
-            componentName: 'PrototypeMode',
             actionType: 'prototype-connections-error'
         });
     };
 
     PrototypePanel.handlePrototypeApplied = (msg: PluginMessage) => {
         setIsApplying(false);
-        showStatus(`✅ Applied ${msg.appliedCount as number} prototype connections!`, 'success');
-        setTimeout(() => {
-            onBack();
-            hideStatus();
-        }, 2000);
+        notify(`✅ Applied ${msg.appliedCount as number} prototype connections!`, 'success');
+        setTimeout(onBack, 2000);
     };
 
     PrototypePanel.handlePrototypeApplyError = (msg: PluginMessage) => {
         setIsApplying(false);
-        showStatus(`❌ ${msg.error as string}`, 'error');
+        notify(`❌ ${msg.error as string}`, 'error');
         reportErrorAsync(new Error(msg.error as string), {
-            componentName: 'PrototypeMode',
             actionType: 'prototype-apply-error'
         });
     };

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
+import { useNotify } from '../hooks/useNotify.ts';
 import { analyzeJsonStructure } from '../utils/formatters';
 import { SendMessageFn } from '../types/index.ts';
 import '../styles/ExportTab.css';
@@ -9,7 +10,8 @@ interface ExportTabProps {
 }
 
 export default function ExportTab({ sendMessage }: ExportTabProps): React.JSX.Element {
-    const { state, dispatch, showStatus } = useAppContext();
+    const { state, dispatch } = useAppContext();
+    const notify = useNotify();
     const { currentExportData, selectionInfo } = state;
 
     const [exportOutput, setExportOutput] = useState('');
@@ -20,12 +22,12 @@ export default function ExportTab({ sendMessage }: ExportTabProps): React.JSX.El
     const handleExportSelected = useCallback(() => {
         setIsExportingSelected(true);
         sendMessage('export-selected');
-    }, [sendMessage, showStatus]);
+    }, [sendMessage]);
 
     const handleExportAll = useCallback(() => {
         setIsExportingAll(true);
         sendMessage('export-all');
-    }, [sendMessage, showStatus]);
+    }, [sendMessage]);
 
     const handleCopy = useCallback(async () => {
         if (!currentExportData) return;
@@ -39,20 +41,21 @@ export default function ExportTab({ sendMessage }: ExportTabProps): React.JSX.El
             document.execCommand('copy');
             document.body.removeChild(textarea);
         }
-    }, [currentExportData, showStatus]);
+    }, [currentExportData]);
 
     const handleClear = useCallback(() => {
         setExportOutput('');
         setExportStats('');
-    }, [showStatus]);
+    }, []);
 
     const handleSaveToDb = useCallback(() => {
         if (!currentExportData) {
-            showStatus('⚠️ No design data to save. Export first.', 'warning');
+            notify('⚠️ No design data to save. Export first.', 'warning');
             return;
         }
         dispatch({ type: 'OPEN_SAVE_MODAL' });
-    }, [currentExportData, showStatus, dispatch]);
+    }, [currentExportData, notify, dispatch]);
+
 
     useEffect(() => {
         if (currentExportData) {

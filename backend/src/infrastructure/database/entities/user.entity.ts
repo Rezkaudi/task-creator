@@ -8,11 +8,11 @@ import {
     UpdateDateColumn,
     OneToMany,
 } from "typeorm";
-import { DesignVersionEntity } from "./design-version.entity";
 import { UILibraryProjectEntity } from "./ui-library-project.entity";
 import { UILibraryComponentEntity } from "./ui-library-component.entity";
 import { PaymentTransactionEntity } from "./payment-transaction.entity";
 import { SubscriptionEntity } from "./subscription.entity";
+import { DesignGenerationEntity } from "./design-generation.entity";
 
 @Entity("users")
 export class UserEntity {
@@ -49,9 +49,6 @@ export class UserEntity {
     @UpdateDateColumn({ name: "updated_at" })
     updatedAt!: Date;
 
-    @OneToMany(() => DesignVersionEntity, (version) => version.user)
-    designVersions!: DesignVersionEntity[];
-
     @OneToMany(() => UILibraryProjectEntity, (project) => project.user)
     uiLibraryProjects!: UILibraryProjectEntity[];
 
@@ -63,4 +60,7 @@ export class UserEntity {
 
     @OneToMany(() => SubscriptionEntity, (sub) => sub.user)
     subscriptions!: SubscriptionEntity[];
+
+    @OneToMany(() => DesignGenerationEntity, (generation) => generation.user)
+    designGenerations!: DesignGenerationEntity[];
 }

@@ -20,6 +20,7 @@ import uiLibraryRoutes from './routes/ui-library.routes';
 import authRoutes from './routes/auth.routes';
 import paymentRoutes from './routes/payment.routes';
 import subscriptionRoutes from './routes/subscription.routes';
+import designGenerationRoutes from './routes/design-generation.routes';
 
 import { setupDependencies } from './dependencies';
 
@@ -82,6 +83,7 @@ export class Server {
     this.app.use('/api/ui-library', uiLibraryRoutes(this.container.uiLibraryController));
     this.app.use('/api/payments', paymentRoutes(this.container.paymentController));
     this.app.use('/api/subscriptions', subscriptionRoutes(this.container.subscriptionController));
+    this.app.use('/api/design-generations', designGenerationRoutes(this.container.designGenerationController));
     this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   }
 

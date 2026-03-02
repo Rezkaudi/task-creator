@@ -1,28 +1,19 @@
 import { API_BASE_URL } from './formatters';
 
 interface ErrorContext {
-    errorCode?: string;
     errorDetails?: Record<string, unknown>;
-    componentName?: string;
     actionType?: string;
 }
 
 interface ErrorPayload {
     errorMessage: string;
-    errorStack?: string;
-    errorCode?: string;
     errorDetails?: Record<string, unknown>;
-    pluginVersion: string;
-    platform: string;
-    browserInfo: string;
-    componentName: string;
     actionType?: string;
 }
 
 let headers: Record<string, string> = { 'Content-Type': 'application/json' };
 let pendingErrors: ErrorPayload[] = [];
 let isReporting = false;
-const PLUGIN_VERSION = '2.0.0';
 
 export function setHeaders(newHeaders: Record<string, string>): void {
     headers = { ...newHeaders };
@@ -44,27 +35,12 @@ function buildPayload(error: unknown, context: ErrorContext): ErrorPayload {
     const isErrorObject = error instanceof Error;
     return {
         errorMessage: isErrorObject ? error.message : String(error),
-        errorStack: isErrorObject ? error.stack : undefined,
-        errorCode: context.errorCode,
         errorDetails: {
             ...context.errorDetails,
-            errorName: isErrorObject ? error.name : 'Unknown',
-            url: window.location?.href,
+            statusCode: isErrorObject ? (error as any).statusCode : undefined,
         },
-        pluginVersion: PLUGIN_VERSION,
-        platform: 'figma-plugin-ui',
-        browserInfo: getBrowserInfo(),
-        componentName: context.componentName || 'UI',
         actionType: context.actionType,
     };
-}
-
-function getBrowserInfo(): string {
-    try {
-        return navigator.userAgent;
-    } catch {
-        return 'unknown';
-    }
 }
 
 async function processQueue(): Promise<void> {
@@ -126,7 +102,6 @@ export function wrapAsync<T extends unknown[], R>(
 export function setupGlobalHandlers(): void {
     window.addEventListener('error', function (event: ErrorEvent) {
         reportErrorAsync(event.error || event.message, {
-            componentName: 'GlobalErrorHandler',
             actionType: 'unhandled-error',
             errorDetails: {
                 filename: event.filename,
@@ -138,7 +113,6 @@ export function setupGlobalHandlers(): void {
 
     window.addEventListener('unhandledrejection', function (event: PromiseRejectionEvent) {
         reportErrorAsync(event.reason || 'Unhandled Promise Rejection', {
-            componentName: 'GlobalErrorHandler',
             actionType: 'unhandled-rejection',
         });
     });

@@ -8,7 +8,7 @@ import { XCircleIcon } from 'lucide-react';
 import '../../styles/BuyPointsModal.css';
 
 export default function BuyPointsModal(): React.JSX.Element | null {
-    const { state, dispatch, showStatus, hideStatus } = useAppContext();
+    const { state, dispatch } = useAppContext();
     const { buyPointsModalOpen } = state;
     const { updateSubscription, updatePointsBalance } = useAuth();
     const { apiGet, apiPost } = useApiClient();
@@ -64,7 +64,6 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             const message = err instanceof Error ? err.message : 'Failed to load packages';
             setError(message);
             reportErrorAsync(err instanceof Error ? err : new Error(message), {
-                componentName: 'BuyPointsModal',
                 actionType: 'load-data',
             });
         } finally {
@@ -91,8 +90,6 @@ export default function BuyPointsModal(): React.JSX.Element | null {
                     dispatch({ type: 'CLOSE_BUY_POINTS_MODAL' });
 
                     updatePointsBalance(result.pointsBalance || 0, Boolean(result.hasPurchased));
-
-                    setTimeout(hideStatus, 2500);
                 }
             } catch (_error) {
                 // Keep polling until timeout
@@ -104,7 +101,7 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             setBuyingPackageId(null);
             setError('Payment confirmation is taking longer than expected. You can retry polling by reopening this modal.');
         }, 5 * 60 * 1000);
-    }, [apiGet, dispatch, hideStatus, showStatus, stopPolling, updatePointsBalance]);
+    }, [apiGet, dispatch, stopPolling, updatePointsBalance]);
 
     const startSubscriptionPolling = useCallback(() => {
         stopPolling();
@@ -123,8 +120,6 @@ export default function BuyPointsModal(): React.JSX.Element | null {
 
                     updateSubscription(result.subscription);
                     updatePointsBalance(0, true);
-
-                    setTimeout(hideStatus, 2500);
                 }
             } catch (_error) {
                 // Keep polling
@@ -136,7 +131,7 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             setSubscribingPlanId(null);
             setError('Subscription confirmation is taking longer than expected. Please reopen this modal to check.');
         }, 5 * 60 * 1000);
-    }, [apiGet, dispatch, hideStatus, showStatus, stopPolling, updateSubscription, updatePointsBalance]);
+    }, [apiGet, dispatch, stopPolling, updateSubscription, updatePointsBalance]);
 
     const handleBuy = useCallback(async (packageId: string) => {
         setError('');
@@ -159,7 +154,6 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             setBuyingPackageId(null);
             setError(message);
             reportErrorAsync(err instanceof Error ? err : new Error(message), {
-                componentName: 'BuyPointsModal',
                 actionType: 'create-checkout',
                 errorDetails: { packageId },
             });
@@ -187,7 +181,6 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             setSubscribingPlanId(null);
             setError(message);
             reportErrorAsync(err instanceof Error ? err : new Error(message), {
-                componentName: 'BuyPointsModal',
                 actionType: 'create-subscription-checkout',
                 errorDetails: { planId },
             });
@@ -205,14 +198,13 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             }
 
             setSubscription((prev) => prev ? { ...prev, cancelAtPeriodEnd: true } : null);
-            setTimeout(hideStatus, 3000);
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to cancel subscription';
             setError(message);
         } finally {
             setCancelingSubscription(false);
         }
-    }, [apiPost, showStatus, hideStatus]);
+    }, [apiPost]);
 
     useEffect(() => {
         if (buyPointsModalOpen) {

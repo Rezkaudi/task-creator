@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
+import { useNotify } from '../../hooks/useNotify.ts';
 import { useApiClient } from '../../hooks/useApiClient.ts';
-import { reportErrorAsync, getComponentNameFromExportData, requestPreviewImage, API_PATHS } from '../../utils';
+import { reportErrorAsync, getComponentNameFromExportData, getComponentNamesFromExportData, requestPreviewImage, API_PATHS } from '../../utils';
 import { Project } from '../../types/index.ts';
 import '../../styles/SaveModal.css';
 
 export default function SaveModal(): React.JSX.Element | null {
-    const { state, dispatch, showStatus } = useAppContext();
+    const { state, dispatch } = useAppContext();
+    const notify = useNotify();
     const { saveModalOpen, saveModalFromChat, currentExportData } = state;
     const { apiGet, apiPost } = useApiClient();
 
@@ -17,10 +19,11 @@ export default function SaveModal(): React.JSX.Element | null {
     const [isSaving, setIsSaving] = useState(false);
 
     const componentName = useMemo(() => getComponentNameFromExportData(currentExportData), [currentExportData]);
+    const componentNames = useMemo(() => getComponentNamesFromExportData(currentExportData), [currentExportData]);
 
     useEffect(() => {
         if (!saveModalOpen) return;
-        setDescription(componentName);
+        setDescription(componentNames.join(' - '));
 
         const loadProjects = async () => {
             try {
@@ -35,9 +38,8 @@ export default function SaveModal(): React.JSX.Element | null {
                 setProjects(fetchedProjects);
                 setSelectedProjectId(fetchedProjects[0]?.id || '');
             } catch (error) {
-                showStatus(`❌ ${(error as Error).message}`, 'error');
+                notify(`❌ ${(error as Error).message}`, 'error');
                 reportErrorAsync(error, {
-                    componentName: 'SaveToUILibraryModal',
                     actionType: 'loadProjects',
                 });
             } finally {
@@ -52,12 +54,12 @@ export default function SaveModal(): React.JSX.Element | null {
 
     const handleSave = async () => {
         if (!selectedProjectId) {
-            showStatus('⚠️ Please select a project', 'warning');
+            notify('⚠️ Please select a project', 'warning');
             return;
         }
 
         if (!description.trim()) {
-            showStatus('⚠️ Please enter a component description', 'warning');
+            notify('⚠️ Please enter a component description', 'warning');
             return;
         }
 
@@ -78,9 +80,8 @@ export default function SaveModal(): React.JSX.Element | null {
                     }
                 }
             } catch (previewError) {
-                showStatus('⚠️ Could not generate preview image. Saving without preview.', 'warning');
+                notify('⚠️ Could not generate preview image. Saving without preview.', 'warning');
                 reportErrorAsync(previewError, {
-                    componentName: 'SaveToUILibraryModal',
                     actionType: 'generatePreviewImage',
                 });
             }
@@ -102,9 +103,8 @@ export default function SaveModal(): React.JSX.Element | null {
             setDescription('');
             setSelectedProjectId('');
         } catch (error) {
-            showStatus(`❌ ${(error as Error).message}`, 'error');
+            notify(`❌ ${(error as Error).message}`, 'error');
             reportErrorAsync(error, {
-                componentName: 'SaveToUILibraryModal',
                 actionType: 'saveComponent',
             });
         } finally {
@@ -150,7 +150,18 @@ export default function SaveModal(): React.JSX.Element | null {
                 </h3>
 
                 <div style={{ marginBottom: '12px', fontSize: '13px', color: '#4b5563' }}>
-                    Component: <strong>{componentName}</strong>
+                    <span style={{ fontWeight: 600 }}>
+                        {componentNames.length > 1 ? `Layers (${componentNames.length})` : 'Layer'}:
+                    </span>
+                    {componentNames.length === 1 ? (
+                        <strong style={{ marginLeft: 4 }}>{componentNames[0]}</strong>
+                    ) : (
+                        <ul style={{ margin: '6px 0 0 0', padding: '0 0 0 16px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {componentNames.map((name, i) => (
+                                <li key={i} style={{ fontWeight: 600, color: '#111827' }}>{name}</li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 <label
