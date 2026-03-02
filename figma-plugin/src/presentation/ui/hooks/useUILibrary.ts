@@ -44,7 +44,7 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
             }
         } catch (error) {
             showStatus(`❌ ${(error as Error).message}`, 'error');
-            reportErrorAsync(error as Error, { componentName: callerName, actionType: 'loadProjects' });
+            reportErrorAsync(error as Error, { actionType: 'loadProjects' });
         } finally {
             setLoadingProjects(false);
         }
@@ -59,7 +59,7 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
             setComponents(data.components || []);
         } catch (error) {
             showStatus(`❌ ${(error as Error).message}`, 'error');
-            reportErrorAsync(error as Error, { componentName: callerName, actionType: 'loadComponents' });
+            reportErrorAsync(error as Error, { actionType: 'loadComponents' });
             setComponents([]);
         } finally {
             setLoadingComponents(false);
@@ -98,7 +98,7 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
             if (data.project?.id) setSelectedProjectId(data.project.id);
         } catch (error) {
             showStatus(`❌ ${(error as Error).message}`, 'error');
-            reportErrorAsync(error as Error, { componentName: callerName, actionType: 'createProject' });
+            reportErrorAsync(error as Error, { actionType: 'createProject' });
         } finally {
             setIsCreatingProject(false);
         }
@@ -122,7 +122,6 @@ export function useUILibrary(callerName: string): UseUILibraryReturn {
         } catch (error) {
             showStatus(`❌ ${(error as Error).message}`, 'error');
             reportErrorAsync(error as Error, {
-                componentName: callerName,
                 actionType: deleteConfirm.type === 'project' ? 'deleteProject' : 'deleteComponent',
             });
         } finally {

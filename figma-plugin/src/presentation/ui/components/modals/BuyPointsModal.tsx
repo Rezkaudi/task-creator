@@ -64,7 +64,6 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             const message = err instanceof Error ? err.message : 'Failed to load packages';
             setError(message);
             reportErrorAsync(err instanceof Error ? err : new Error(message), {
-                componentName: 'BuyPointsModal',
                 actionType: 'load-data',
             });
         } finally {
@@ -159,7 +158,6 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             setBuyingPackageId(null);
             setError(message);
             reportErrorAsync(err instanceof Error ? err : new Error(message), {
-                componentName: 'BuyPointsModal',
                 actionType: 'create-checkout',
                 errorDetails: { packageId },
             });
@@ -187,7 +185,6 @@ export default function BuyPointsModal(): React.JSX.Element | null {
             setSubscribingPlanId(null);
             setError(message);
             reportErrorAsync(err instanceof Error ? err : new Error(message), {
-                componentName: 'BuyPointsModal',
                 actionType: 'create-subscription-checkout',
                 errorDetails: { planId },
             });

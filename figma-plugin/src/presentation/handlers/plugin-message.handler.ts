@@ -204,7 +204,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: `handleMessage:${message.type}`,
       });
       throw error;
@@ -231,7 +230,6 @@ export class PluginMessageHandler {
       });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleGetFramesForPrototype'
       });
     }
@@ -303,7 +301,6 @@ export class PluginMessageHandler {
       });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleGeneratePrototypeConnections'
       });
     }
@@ -333,7 +330,6 @@ export class PluginMessageHandler {
       });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleApplyPrototypeConnections'
       });
     }
@@ -390,9 +386,7 @@ export class PluginMessageHandler {
   private async handleReportError(errorData: any): Promise<void> {
     try {
       await errorReporter.reportError(errorData.error || errorData.message, {
-        errorCode: errorData.errorCode,
         errorDetails: errorData.details,
-        componentName: errorData.componentName,
         actionType: errorData.actionType,
       });
     } catch (error) {
@@ -439,7 +433,6 @@ export class PluginMessageHandler {
       this.uiPort.postMessage({ type: 'no-layer-selected' });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleRequestLayerSelectionForReference',
       });
     }
@@ -483,7 +476,6 @@ export class PluginMessageHandler {
       });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleRequestLayerSelectionForEdit',
       });
     }
@@ -593,9 +585,8 @@ export class PluginMessageHandler {
       });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleAIEditDesign',
-        errorDetails: { model, designSystemId },
+        errorDetails: { model, designSystemId, userMessage, history },
       });
     }
   }
@@ -691,7 +682,6 @@ export class PluginMessageHandler {
       });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleGenerateBasedOnExisting',
         errorDetails: { model },
       });
@@ -780,9 +770,8 @@ export class PluginMessageHandler {
       });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleAIChatMessage',
-        errorDetails: { model, designSystemId },
+        errorDetails: { model, designSystemId, userMessage, history },
       });
     }
   }
@@ -806,7 +795,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleImportDesignFromChat',
       });
       throw error;
@@ -846,7 +834,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleImportEditedDesign',
       });
       throw error;
@@ -873,7 +860,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleImportBasedOnExistingDesign',
       });
       throw error;
@@ -895,7 +881,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleAIDesignImport',
       });
       throw error;
@@ -917,7 +902,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleImportDesign',
       });
       throw error;
@@ -943,7 +927,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleExportSelected',
       });
       throw error;
@@ -969,7 +952,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleExportAll',
       });
       throw error;
@@ -992,7 +974,6 @@ export class PluginMessageHandler {
       }
     } catch (error) {
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleImportUILibraryComponent',
       });
       throw error;
@@ -1037,7 +1018,6 @@ export class PluginMessageHandler {
       });
 
       errorReporter.reportErrorAsync(error as Error, {
-        componentName: 'PluginMessageHandler',
         actionType: 'handleGeneratePreviewImage',
       });
     }

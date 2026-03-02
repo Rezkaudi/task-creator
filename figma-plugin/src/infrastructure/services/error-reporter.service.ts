@@ -3,15 +3,8 @@
 import { ApiConfig } from '../../shared/constants';
 
 export interface ErrorReportPayload {
-    errorCode?: string;
     errorMessage: string;
-    errorStack?: string;
     errorDetails?: Record<string, any>;
-    pluginVersion?: string;
-    figmaVersion?: string;
-    platform?: string;
-    browserInfo?: string;
-    componentName?: string;
     actionType?: string;
 }
 
@@ -75,31 +68,12 @@ export class ErrorReporterService {
         const isErrorObject = error instanceof Error;
         return {
             errorMessage: isErrorObject ? error.message : String(error),
-            errorStack: isErrorObject ? error.stack : undefined,
-            errorCode: context?.errorCode,
             errorDetails: {
                 ...context?.errorDetails,
                 errorName: isErrorObject ? error.name : 'Unknown',
             },
-            pluginVersion: context?.pluginVersion || '2.0.0',
-            figmaVersion: context?.figmaVersion,
-            platform: context?.platform || this.detectPlatform(),
-            browserInfo: context?.browserInfo,
-            componentName: context?.componentName,
             actionType: context?.actionType,
         };
-    }
-
-    /**
-     * Detect platform information
-     */
-    private detectPlatform(): string {
-        try {
-            // In Figma plugin context, we have limited access
-            return 'figma-plugin';
-        } catch {
-            return 'unknown';
-        }
     }
 
     /**

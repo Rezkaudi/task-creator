@@ -109,7 +109,6 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
     PrototypePanel.handleFramesError = (msg: PluginMessage) => {
         setPrototypeFrames([]);
         reportErrorAsync(new Error(msg.error as string), {
-            componentName: 'PrototypeMode',
             actionType: 'frames-load-error'
         });
     };
@@ -139,7 +138,6 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
         setIsGeneratingConnections(false);
         showStatus(`❌ ${msg.error as string}`, 'error');
         reportErrorAsync(new Error(msg.error as string), {
-            componentName: 'PrototypeMode',
             actionType: 'prototype-connections-error'
         });
     };
@@ -157,7 +155,6 @@ function PrototypePanel({ onBack, sendMessage }: PrototypePanelProps): React.JSX
         setIsApplying(false);
         showStatus(`❌ ${msg.error as string}`, 'error');
         reportErrorAsync(new Error(msg.error as string), {
-            componentName: 'PrototypeMode',
             actionType: 'prototype-apply-error'
         });
     };

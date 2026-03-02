@@ -42,7 +42,7 @@ export default function HomeScreen(): React.JSX.Element {
         'import-error': (msg: PluginMessage) => {
             setIsManualImporting(false);
             showStatus(`❌ Import failed: ${msg.error as string}`, 'error');
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'ImportHandler', actionType: 'import-error' });
+            reportErrorAsync(new Error(msg.error as string), { actionType: 'import-error' });
         },
         'selection-changed': (msg: PluginMessage) => {
             dispatch({ type: 'SET_SELECTION_INFO', selection: msg.selection as never });
@@ -57,7 +57,7 @@ export default function HomeScreen(): React.JSX.Element {
         },
         'export-error': (msg: PluginMessage) => {
             showStatus(`❌ Export failed: ${msg.error as string}`, 'error');
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'ExportHandler', actionType: 'export-error' });
+            reportErrorAsync(new Error(msg.error as string), { actionType: 'export-error' });
         },
 
         'layer-selected-for-edit': (msg: PluginMessage) => AiSection.messageHandlers?.['layer-selected-for-edit']?.(msg),

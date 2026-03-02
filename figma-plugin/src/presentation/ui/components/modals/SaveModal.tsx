@@ -37,7 +37,6 @@ export default function SaveModal(): React.JSX.Element | null {
             } catch (error) {
                 showStatus(`❌ ${(error as Error).message}`, 'error');
                 reportErrorAsync(error, {
-                    componentName: 'SaveToUILibraryModal',
                     actionType: 'loadProjects',
                 });
             } finally {
@@ -80,7 +79,6 @@ export default function SaveModal(): React.JSX.Element | null {
             } catch (previewError) {
                 showStatus('⚠️ Could not generate preview image. Saving without preview.', 'warning');
                 reportErrorAsync(previewError, {
-                    componentName: 'SaveToUILibraryModal',
                     actionType: 'generatePreviewImage',
                 });
             }
@@ -104,7 +102,6 @@ export default function SaveModal(): React.JSX.Element | null {
         } catch (error) {
             showStatus(`❌ ${(error as Error).message}`, 'error');
             reportErrorAsync(error, {
-                componentName: 'SaveToUILibraryModal',
                 actionType: 'saveComponent',
             });
         } finally {

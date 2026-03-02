@@ -214,15 +214,15 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
         'ai-based-on-existing-response': (msg: PluginMessage) => ChatInterface.handleResponse?.(msg),
         'ai-chat-error': (msg: PluginMessage) => {
             ChatInterface.handleError?.(msg);
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'AIChat', actionType: msg.type });
+            reportErrorAsync(new Error(msg.error as string), { actionType: msg.type });
         },
         'ai-edit-error': (msg: PluginMessage) => {
             ChatInterface.handleError?.(msg);
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'AIChat', actionType: msg.type });
+            reportErrorAsync(new Error(msg.error as string), { actionType: msg.type });
         },
         'ai-based-on-existing-error': (msg: PluginMessage) => {
             ChatInterface.handleError?.(msg);
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'BasedOnExisting', actionType: 'ai-based-on-existing-error' });
+            reportErrorAsync(new Error(msg.error as string), { actionType: 'ai-based-on-existing-error' });
         },
 
         'design-updated': (msg: PluginMessage) => {
@@ -254,7 +254,7 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
         },
         'prototype-apply-error': (msg: PluginMessage) => {
             showStatus(`❌ ${msg.error as string}`, 'error');
-            reportErrorAsync(new Error(msg.error as string), { componentName: 'Prototype', actionType: 'apply-error' });
+            reportErrorAsync(new Error(msg.error as string), { actionType: 'apply-error' });
         },
     };
 

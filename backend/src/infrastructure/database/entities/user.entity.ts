@@ -8,7 +8,6 @@ import {
     UpdateDateColumn,
     OneToMany,
 } from "typeorm";
-import { DesignVersionEntity } from "./design-version.entity";
 import { UILibraryProjectEntity } from "./ui-library-project.entity";
 import { UILibraryComponentEntity } from "./ui-library-component.entity";
 import { PaymentTransactionEntity } from "./payment-transaction.entity";
@@ -48,9 +47,6 @@ export class UserEntity {
 
     @UpdateDateColumn({ name: "updated_at" })
     updatedAt!: Date;
-
-    @OneToMany(() => DesignVersionEntity, (version) => version.user)
-    designVersions!: DesignVersionEntity[];
 
     @OneToMany(() => UILibraryProjectEntity, (project) => project.user)
     uiLibraryProjects!: UILibraryProjectEntity[];
