@@ -9,6 +9,7 @@ import { IUserRepository } from '../../../domain/repositories/user.repository';
 import { ISubscriptionRepository } from '../../../domain/repositories/subscription.repository';
 import { HttpError, PaymentRequiredError } from '../../../application/errors/http-errors';
 import { ENV_CONFIG } from '../../config/env.config';
+import { SaveDesignGenerationUseCase } from '../../../application/use-cases/design-generation/save-design-generation.use-case';
 
 interface PointsResponse {
     deducted: number;
@@ -31,6 +32,7 @@ export class DesignController {
         private readonly pointsService: IPointsService,
         private readonly userRepository: IUserRepository,
         private readonly subscriptionRepository: ISubscriptionRepository,
+        private readonly saveDesignGenerationUseCase: SaveDesignGenerationUseCase,
     ) { }
 
     // Generate design from conversation with history
@@ -55,6 +57,23 @@ export class DesignController {
                 result.cost?.outputTokens ?? 0,
             );
 
+            this.saveDesignGenerationUseCase.execute({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                userId,
+                prompt: message,
+                operationType: 'create',
+                modelId,
+                designSystemId: designSystemId ?? null,
+                conversationHistory: history || [],
+                resultDesign: result.design ?? null,
+                aiMessage: result.message ?? null,
+                status: 'success',
+                inputTokens: result.cost?.inputTokens ?? null,
+                outputTokens: result.cost?.outputTokens ?? null,
+                totalCost: result.cost?.totalCost ?? null,
+                pointsDeducted: points.deducted,
+            }).catch(console.error);
+
             res.status(200).json({
                 success: true,
                 message: result.message,
@@ -72,6 +91,24 @@ export class DesignController {
             console.error("Error in generateFromConversation:", error);
             const message = error instanceof Error ? error.message : 'An unknown error occurred.';
             const statusCode = this.resolveErrorStatusCode(error);
+
+            try {
+                const userId = (req as any).user?.id;
+                if (userId) {
+                    this.saveDesignGenerationUseCase.execute({
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                        userId,
+                        prompt: req.body.message,
+                        operationType: 'create',
+                        modelId,
+                        designSystemId: designSystemId ?? null,
+                        conversationHistory: req.body.history || [],
+                        status: 'failed',
+                        errorMessage: message,
+                    }).catch(console.error);
+                }
+            } catch { /* ignore */ }
+
             res.status(statusCode).json({
                 success: false,
                 message,
@@ -106,6 +143,24 @@ export class DesignController {
                 result.cost?.outputTokens ?? 0,
             );
 
+            this.saveDesignGenerationUseCase.execute({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                userId,
+                prompt: message,
+                operationType: 'edit',
+                modelId,
+                designSystemId: designSystemId ?? null,
+                conversationHistory: history || [],
+                currentDesign: currentDesign ?? null,
+                resultDesign: result.design ?? null,
+                aiMessage: result.message ?? null,
+                status: 'success',
+                inputTokens: result.cost?.inputTokens ?? null,
+                outputTokens: result.cost?.outputTokens ?? null,
+                totalCost: result.cost?.totalCost ?? null,
+                pointsDeducted: points.deducted,
+            }).catch(console.error);
+
             res.status(200).json({
                 success: true,
                 message: result.message,
@@ -123,6 +178,23 @@ export class DesignController {
             console.error("Error in editWithAI:", error);
             const message = error instanceof Error ? error.message : 'An unknown error occurred.';
             const statusCode = this.resolveErrorStatusCode(error);
+
+            try {
+                const userId = (req as any).user?.id;
+                if (userId) {
+                    this.saveDesignGenerationUseCase.execute({
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                        userId,
+                        prompt: req.body.message,
+                        operationType: 'edit',
+                        modelId,
+                        designSystemId: designSystemId ?? null,
+                        status: 'failed',
+                        errorMessage: message,
+                    }).catch(console.error);
+                }
+            } catch { /* ignore */ }
+
             res.status(statusCode).json({
                 success: false,
                 message,
@@ -157,6 +229,23 @@ export class DesignController {
                 result.cost?.outputTokens ?? 0,
             );
 
+            this.saveDesignGenerationUseCase.execute({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                userId,
+                prompt: message,
+                operationType: 'create_by_reference',
+                modelId,
+                conversationHistory: history || [],
+                referenceDesign: referenceDesign ?? null,
+                resultDesign: result.design ?? null,
+                aiMessage: result.message ?? null,
+                status: 'success',
+                inputTokens: result.cost?.inputTokens ?? null,
+                outputTokens: result.cost?.outputTokens ?? null,
+                totalCost: result.cost?.totalCost ?? null,
+                pointsDeducted: points.deducted,
+            }).catch(console.error);
+
             res.status(200).json({
                 success: true,
                 message: result.message,
@@ -174,6 +263,22 @@ export class DesignController {
             console.error("Error in generateBasedOnExisting:", error);
             const message = error instanceof Error ? error.message : 'An unknown error occurred.';
             const statusCode = this.resolveErrorStatusCode(error);
+
+            try {
+                const userId = (req as any).user?.id;
+                if (userId) {
+                    this.saveDesignGenerationUseCase.execute({
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                        userId,
+                        prompt: req.body.message,
+                        operationType: 'create_by_reference',
+                        modelId,
+                        status: 'failed',
+                        errorMessage: message,
+                    }).catch(console.error);
+                }
+            } catch { /* ignore */ }
+
             res.status(statusCode).json({
                 success: false,
                 message,
@@ -204,6 +309,21 @@ export class DesignController {
                 result?.cost?.outputTokens ?? 0,
             );
 
+            this.saveDesignGenerationUseCase.execute({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                userId,
+                prompt: 'prototype',
+                operationType: 'prototype',
+                modelId,
+                resultConnections: result.connections ?? null,
+                aiMessage: result.message ?? null,
+                status: 'success',
+                inputTokens: result?.cost?.inputTokens ?? null,
+                outputTokens: result?.cost?.outputTokens ?? null,
+                totalCost: result?.cost?.totalCost ?? null,
+                pointsDeducted: points.deducted,
+            }).catch(console.error);
+
             const response = {
                 success: true,
                 connections: result.connections,
@@ -216,6 +336,21 @@ export class DesignController {
 
         } catch (error) {
             console.error('Error in generatePrototype:', error);
+
+            try {
+                const userId = (req as any).user?.id;
+                if (userId) {
+                    this.saveDesignGenerationUseCase.execute({
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+                        userId,
+                        prompt: 'prototype',
+                        operationType: 'prototype',
+                        modelId: req.body.modelId,
+                        status: 'failed',
+                        errorMessage: error instanceof Error ? error.message : 'An unexpected error occurred',
+                    }).catch(console.error);
+                }
+            } catch { /* ignore */ }
 
             const response = {
                 success: false,

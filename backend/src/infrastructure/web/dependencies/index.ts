@@ -23,6 +23,7 @@ import { TypeORMClientErrorRepository } from "../../repository/typeorm-client-er
 import { TypeORMUILibraryRepository } from "../../repository/typeorm-ui-library.repository";
 import { TypeORMPaymentTransactionRepository } from "../../repository/typeorm-payment-transaction.repository";
 import { TypeORMSubscriptionRepository } from "../../repository/typeorm-subscription.repository";
+import { TypeORMDesignGenerationRepository } from "../../repository/typeorm-design-generation.repository";
 
 
 // Use Cases - Design
@@ -57,6 +58,12 @@ import { GetAvailableSubscriptionPlansUseCase } from "../../../application/use-c
 // Use Cases - Client Errors
 import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
 
+// Use Cases - Design Generations
+import { SaveDesignGenerationUseCase } from "../../../application/use-cases/design-generation/save-design-generation.use-case";
+import { GetUserGenerationsUseCase } from "../../../application/use-cases/design-generation/get-user-generations.use-case";
+import { GetGenerationByIdUseCase } from "../../../application/use-cases/design-generation/get-generation-by-id.use-case";
+import { DeleteGenerationUseCase } from "../../../application/use-cases/design-generation/delete-generation.use-case";
+
 // Controllers
 import { DesignController } from "../controllers/design.controller";
 import { AIModelsController } from "../controllers/ai-models.controller";
@@ -66,6 +73,7 @@ import { UILibraryController } from "../controllers/ui-library.controller";
 import { AuthController } from "../controllers/auth.controller";
 import { PaymentController } from "../controllers/payment.controller";
 import { SubscriptionController } from "../controllers/subscription.controller";
+import { DesignGenerationController } from "../controllers/design-generation.controller";
 
 import { AuthMiddleware } from "../middleware/auth.middleware";
 
@@ -80,6 +88,7 @@ export const setupDependencies = () => {
     const clientErrorRepository = new TypeORMClientErrorRepository();
     const paymentTransactionRepository = new TypeORMPaymentTransactionRepository();
     const subscriptionRepository = new TypeORMSubscriptionRepository();
+    const designGenerationRepository = new TypeORMDesignGenerationRepository();
 
 
     // Services
@@ -123,6 +132,12 @@ export const setupDependencies = () => {
 
     // Use Cases - Client Errors
     const reportClientErrorUseCase = new ReportClientErrorUseCase(clientErrorRepository);
+
+    // Use Cases - Design Generations
+    const saveDesignGenerationUseCase = new SaveDesignGenerationUseCase(designGenerationRepository);
+    const getUserGenerationsUseCase = new GetUserGenerationsUseCase(designGenerationRepository);
+    const getGenerationByIdUseCase = new GetGenerationByIdUseCase(designGenerationRepository);
+    const deleteGenerationUseCase = new DeleteGenerationUseCase(designGenerationRepository);
 
     // Auth Services & Use Cases
     const googleAuthService = new GoogleAuthService();
@@ -170,6 +185,7 @@ export const setupDependencies = () => {
         pointsService,
         userRepository,
         subscriptionRepository,
+        saveDesignGenerationUseCase,
     );
 
     const uiLibraryController = new UILibraryController(
@@ -204,6 +220,12 @@ export const setupDependencies = () => {
         getAvailableSubscriptionPlansUseCase,
     );
 
+    const designGenerationController = new DesignGenerationController(
+        getUserGenerationsUseCase,
+        getGenerationByIdUseCase,
+        deleteGenerationUseCase,
+    );
+
     return {
         designController,
         uiLibraryController,
@@ -214,5 +236,6 @@ export const setupDependencies = () => {
         subscriptionController,
         authMiddleware,
         authController,
+        designGenerationController,
     };
 };
