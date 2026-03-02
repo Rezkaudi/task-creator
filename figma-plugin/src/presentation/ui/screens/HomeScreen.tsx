@@ -31,6 +31,7 @@ export default function HomeScreen(): React.JSX.Element {
 
     const [activeTab, setActiveTab] = useState('ai');
     const [isManualImporting, setIsManualImporting] = useState(false);
+    const [isSavingExport, setIsSavingExport] = useState(false);
     const profileDropdown = useDropdown();
     const jsonInputRef = useRef<string | null>(null);
     const pendingSaveRef = useRef(false);
@@ -52,10 +53,12 @@ export default function HomeScreen(): React.JSX.Element {
             dispatch({ type: 'SET_EXPORT_DATA', data: msg.data });
             if (pendingSaveRef.current) {
                 pendingSaveRef.current = false;
+                setIsSavingExport(false);
                 dispatch({ type: 'OPEN_SAVE_MODAL' });
             }
         },
         'export-error': (msg: PluginMessage) => {
+            setIsSavingExport(false);
             showStatus(`❌ Export failed: ${msg.error as string}`, 'error');
             reportErrorAsync(new Error(msg.error as string), { actionType: 'export-error' });
         },
@@ -136,6 +139,7 @@ export default function HomeScreen(): React.JSX.Element {
             return;
         }
         pendingSaveRef.current = true;
+        setIsSavingExport(true);
         sendMessage('export-selected');
     }, [state.selectionInfo, sendMessage, showStatus]);
 
@@ -200,7 +204,7 @@ export default function HomeScreen(): React.JSX.Element {
                 <ToastContainer position="top-right" autoClose={5000} />
 
                 {activeTab === 'ai' && (
-                    <AiSection sendMessage={sendMessage} onSaveSelected={handleSaveSelected} />
+                    <AiSection sendMessage={sendMessage} onSaveSelected={handleSaveSelected} isSavingExport={isSavingExport} />
                 )}
 
                 {activeTab === 'import-export' && (

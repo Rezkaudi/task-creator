@@ -26,13 +26,14 @@ const MODE_LABELS: Record<Mode, ModeLabel> = {
 interface AiTabProps {
     sendMessage: SendMessageFn;
     onSaveSelected: () => void;
+    isSavingExport?: boolean;
 }
 
 interface SystemMessage {
     badge: string;
 }
 
-function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Element {
+function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps): React.JSX.Element {
     const { state, dispatch, showStatus, hideStatus } = useAppContext();
 
     const [currentMode, setCurrentMode] = useState<Mode>('create');
@@ -261,7 +262,7 @@ function AiSection({ sendMessage, onSaveSelected }: AiTabProps): React.JSX.Eleme
     return (
         <div id="ai-tab" className="tab-content active" style={{ position: 'relative' }}>
             {/* Projects (UI Library) — collapsible panel */}
-            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} onAttachComponent={handleAttachComponent} attachedComponentIds={selectedFrameIds} />
+            <ProjectsSection sendMessage={sendMessage} onSaveSelected={onSaveSelected} isSavingExport={isSavingExport} onAttachComponent={handleAttachComponent} attachedComponentIds={selectedFrameIds} />
 
             {/* Mode Bar */}
             <div className="mode-bar">
