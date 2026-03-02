@@ -981,6 +981,7 @@ export class PluginMessageHandler {
   }
 
   private async handleGeneratePreviewImage(requestId?: string, maxWidth?: number): Promise<void> {
+    let tempGroup: GroupNode | null = null;
     try {
       const selection = figma.currentPage.selection;
 
@@ -988,20 +989,29 @@ export class PluginMessageHandler {
         throw new Error('Please select a layer to generate a preview image');
       }
 
-      if (selection.length > 1) {
-        throw new Error('Please select only one layer to generate a preview image');
-      }
-
-      const selectedNode = selection[0] as SceneNode;
-      if (!('exportAsync' in selectedNode)) {
-        throw new Error('Selected layer cannot be exported as an image');
-      }
-
       const width = Math.max(64, Math.min(maxWidth ?? 320, 2000));
-      const bytes = await (selectedNode as ExportMixin).exportAsync({
-        format: 'PNG',
-        constraint: { type: 'WIDTH', value: width },
-      });
+      let bytes: Uint8Array;
+
+      if (selection.length === 1) {
+        const selectedNode = selection[0] as SceneNode;
+        if (!('exportAsync' in selectedNode)) {
+          throw new Error('Selected layer cannot be exported as an image');
+        }
+        bytes = await (selectedNode as ExportMixin).exportAsync({
+          format: 'PNG',
+          constraint: { type: 'WIDTH', value: width },
+        });
+      } else {
+        // Multi-selection: clone all nodes, group the clones, export, then remove
+        const clones = (selection as SceneNode[]).map(node => node.clone());
+        tempGroup = figma.group(clones, figma.currentPage);
+        bytes = await tempGroup.exportAsync({
+          format: 'PNG',
+          constraint: { type: 'WIDTH', value: width },
+        });
+        tempGroup.remove();
+        tempGroup = null;
+      }
 
       const base64 = figma.base64Encode(bytes);
       this.uiPort.postMessage({
@@ -1010,6 +1020,9 @@ export class PluginMessageHandler {
         previewImage: `data:image/png;base64,${base64}`,
       });
     } catch (error) {
+      if (tempGroup) {
+        try { tempGroup.remove(); } catch (_) { /* already removed */ }
+      }
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate preview image';
       this.uiPort.postMessage({
         type: 'preview-image-error',

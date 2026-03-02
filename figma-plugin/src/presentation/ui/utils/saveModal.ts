@@ -10,6 +10,18 @@ export function getComponentNameFromExportData(exportData: unknown): string {
     return 'Untitled Component';
 }
 
+export function getComponentNamesFromExportData(exportData: unknown): string[] {
+    if (Array.isArray(exportData) && exportData.length > 0) {
+        return exportData.map((item) => (item as Record<string, unknown>)?.name as string || 'Untitled');
+    }
+
+    if (exportData && typeof exportData === 'object' && (exportData as Record<string, unknown>).name) {
+        return [(exportData as Record<string, unknown>).name as string];
+    }
+
+    return ['Untitled Component'];
+}
+
 export interface PreviewImageOptions {
     maxWidth?: number;
     timeoutMs?: number;

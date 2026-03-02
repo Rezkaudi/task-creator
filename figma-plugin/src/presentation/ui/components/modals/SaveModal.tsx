@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { useApiClient } from '../../hooks/useApiClient.ts';
-import { reportErrorAsync, getComponentNameFromExportData, requestPreviewImage, API_PATHS } from '../../utils';
+import { reportErrorAsync, getComponentNameFromExportData, getComponentNamesFromExportData, requestPreviewImage, API_PATHS } from '../../utils';
 import { Project } from '../../types/index.ts';
 import '../../styles/SaveModal.css';
 
@@ -17,10 +17,11 @@ export default function SaveModal(): React.JSX.Element | null {
     const [isSaving, setIsSaving] = useState(false);
 
     const componentName = useMemo(() => getComponentNameFromExportData(currentExportData), [currentExportData]);
+    const componentNames = useMemo(() => getComponentNamesFromExportData(currentExportData), [currentExportData]);
 
     useEffect(() => {
         if (!saveModalOpen) return;
-        setDescription(componentName);
+        setDescription(componentNames.join(' - '));
 
         const loadProjects = async () => {
             try {
@@ -147,7 +148,18 @@ export default function SaveModal(): React.JSX.Element | null {
                 </h3>
 
                 <div style={{ marginBottom: '12px', fontSize: '13px', color: '#4b5563' }}>
-                    Component: <strong>{componentName}</strong>
+                    <span style={{ fontWeight: 600 }}>
+                        {componentNames.length > 1 ? `Layers (${componentNames.length})` : 'Layer'}:
+                    </span>
+                    {componentNames.length === 1 ? (
+                        <strong style={{ marginLeft: 4 }}>{componentNames[0]}</strong>
+                    ) : (
+                        <ul style={{ margin: '6px 0 0 0', padding: '0 0 0 16px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {componentNames.map((name, i) => (
+                                <li key={i} style={{ fontWeight: 600, color: '#111827' }}>{name}</li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 <label
