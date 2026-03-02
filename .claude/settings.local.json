@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git mv src/infrastructure/services/google-auth.service.ts src/infrastructure/services/auth/google-auth.service.ts)",
+      "Bash(git mv src/infrastructure/services/jwt.service.ts src/infrastructure/services/auth/jwt.service.ts)",
+      "Bash(git mv src/infrastructure/services/token-store.service.ts src/infrastructure/services/auth/token-store.service.ts)",
+      "Bash(git mv src/infrastructure/services/stripe.service.ts src/infrastructure/services/payment/stripe.service.ts)",
+      "Bash(git mv src/infrastructure/services/points.service.ts src/infrastructure/services/payment/points.service.ts)",
+      "Bash(git mv src/infrastructure/services/s3.service.ts src/infrastructure/services/storage/s3.service.ts)",
+      "Bash(git mv src/application/use-cases/create-ui-library-project.use-case.ts src/application/use-cases/ui-library/create-ui-library-project.use-case.ts)",
+      "Bash(git mv src/application/use-cases/get-ui-library-projects.use-case.ts src/application/use-cases/ui-library/get-ui-library-projects.use-case.ts)",
+      "Bash(git mv src/application/use-cases/delete-ui-library-project.use-case.ts src/application/use-cases/ui-library/delete-ui-library-project.use-case.ts)",
+      "Bash(git mv src/application/use-cases/create-ui-library-component.use-case.ts src/application/use-cases/ui-library/create-ui-library-component.use-case.ts)",
+      "Bash(git mv src/application/use-cases/get-ui-library-components-by-project.use-case.ts src/application/use-cases/ui-library/get-ui-library-components-by-project.use-case.ts)",
+      "Bash(git mv src/application/use-cases/delete-ui-library-component.use-case.ts src/application/use-cases/ui-library/delete-ui-library-component.use-case.ts)",
+      "Bash(git mv src/application/use-cases/upload-component-image.use-case.ts src/application/use-cases/ui-library/upload-component-image.use-case.ts)",
+      "Bash(git mv src/application/use-cases/report-client-error.use-case.ts src/application/use-cases/client-error/report-client-error.use-case.ts)",
+      "Bash(grep -n \"use-cases/\" /home/rezk/task-creator/backend/src/infrastructure/web/controllers/*.ts)"
+    ]
+  }
+}

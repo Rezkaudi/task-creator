@@ -1,8 +1,8 @@
 // File: /backend/src/infrastructure/web/controllers/auth.controller.ts
 
 import { Request, Response } from 'express';
-import { GoogleSignInUseCase } from '../../../application/use-cases/google-sign-in.use-case';
-import { TokenStoreService } from '../../services/token-store.service';
+import { GoogleSignInUseCase } from '../../../application/use-cases/auth/google-sign-in.use-case';
+import { TokenStoreService } from '../../services/auth/token-store.service';
 import { ENV_CONFIG } from '../../config/env.config';
 
 export class AuthController {

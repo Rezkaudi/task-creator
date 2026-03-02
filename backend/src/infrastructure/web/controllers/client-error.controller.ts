@@ -1,7 +1,7 @@
 // File: /backend/src/infrastructure/web/controllers/client-error.controller.ts
 
 import { NextFunction, Request, Response } from "express";
-import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
+import { ReportClientErrorUseCase } from "../../../application/use-cases/client-error/report-client-error.use-case";
 import { ReportClientErrorRequest } from "../../../application/dto/client-error.dto";
 
 export class ClientErrorController {

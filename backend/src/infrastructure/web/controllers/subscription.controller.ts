@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { CreateSubscriptionCheckoutUseCase } from "../../../application/use-cases/create-subscription-checkout.use-case";
-import { CancelSubscriptionUseCase } from "../../../application/use-cases/cancel-subscription.use-case";
-import { GetSubscriptionStatusUseCase } from "../../../application/use-cases/get-subscription-status.use-case";
-import { GetAvailableSubscriptionPlansUseCase } from "../../../application/use-cases/get-available-subscription-plans.use-case";
+import { CreateSubscriptionCheckoutUseCase } from "../../../application/use-cases/subscription/create-subscription-checkout.use-case";
+import { CancelSubscriptionUseCase } from "../../../application/use-cases/subscription/cancel-subscription.use-case";
+import { GetSubscriptionStatusUseCase } from "../../../application/use-cases/subscription/get-subscription-status.use-case";
+import { GetAvailableSubscriptionPlansUseCase } from "../../../application/use-cases/subscription/get-available-subscription-plans.use-case";
 
 export class SubscriptionController {
     constructor(

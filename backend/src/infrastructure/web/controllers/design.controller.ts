@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { GenerateDesignFromConversationUseCase } from '../../../application/use-cases/generate-design-from-conversation.use-case';
-import { EditDesignWithAIUseCase } from '../../../application/use-cases/edit-design-with-ai.use-case';
-import { GenerateDesignBasedOnExistingUseCase } from '../../../application/use-cases/generate-design-based-on-existing.use-case';
+import { GenerateDesignFromConversationUseCase } from '../../../application/use-cases/design/generate-design-from-conversation.use-case';
+import { EditDesignWithAIUseCase } from '../../../application/use-cases/design/edit-design-with-ai.use-case';
+import { GenerateDesignBasedOnExistingUseCase } from '../../../application/use-cases/design/generate-design-based-on-existing.use-case';
 import { DesignGenerationResult } from '../../../domain/services/IAiDesignService';
-import { GeneratePrototypeConnectionsUseCase } from '../../../application/use-cases/generate-prototype-connections.use-case';
+import { GeneratePrototypeConnectionsUseCase } from '../../../application/use-cases/design/generate-prototype-connections.use-case';
 import { IPointsService } from '../../../domain/services/IPointsService';
 import { IUserRepository } from '../../../domain/repositories/user.repository';
 import { ISubscriptionRepository } from '../../../domain/repositories/subscription.repository';

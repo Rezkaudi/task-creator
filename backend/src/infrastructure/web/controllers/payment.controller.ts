@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { CreateCheckoutSessionUseCase } from "../../../application/use-cases/create-checkout-session.use-case";
-import { HandleStripeWebhookUseCase } from "../../../application/use-cases/handle-stripe-webhook.use-case";
-import { GetUserBalanceUseCase } from "../../../application/use-cases/get-user-balance.use-case";
-import { GetPaymentHistoryUseCase } from "../../../application/use-cases/get-payment-history.use-case";
-import { GetAvailablePackagesUseCase } from "../../../application/use-cases/get-available-packages.use-case";
-import { PollPaymentStatusUseCase } from "../../../application/use-cases/poll-payment-status.use-case";
+import { CreateCheckoutSessionUseCase } from "../../../application/use-cases/payment/create-checkout-session.use-case";
+import { HandleStripeWebhookUseCase } from "../../../application/use-cases/payment/handle-stripe-webhook.use-case";
+import { GetUserBalanceUseCase } from "../../../application/use-cases/payment/get-user-balance.use-case";
+import { GetPaymentHistoryUseCase } from "../../../application/use-cases/payment/get-payment-history.use-case";
+import { GetAvailablePackagesUseCase } from "../../../application/use-cases/payment/get-available-packages.use-case";
+import { PollPaymentStatusUseCase } from "../../../application/use-cases/payment/poll-payment-status.use-case";
 
 export class PaymentController {
     constructor(

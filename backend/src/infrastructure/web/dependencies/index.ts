@@ -1,20 +1,20 @@
 // src/infrastructure/web/dependencies/index.ts
 
 // Services
-import { IconService } from "../../services/icon.service";
-import { JsonToToonService } from "../../services/json-to-toon.service";
-import { OpenAIClientFactory } from "../../services/openai-client.factory";
-import { MessageBuilderService } from "../../services/message-builder.service";
-import { ResponseParserService } from "../../services/response-parser.service";
-import { ToolCallHandlerService } from "../../services/tool-call-handler.service";
-import { AiGenerateDesignService } from "../../services/ai-generate-design.service";
-import { AiCostCalculatorService } from "../../services/ai-cost.calculator.service";
-import { GoogleAuthService } from "../../services/google-auth.service";
-import { TokenStoreService } from "../../services/token-store.service";
-import { PointsService } from "../../services/points.service";
-import { StripeService } from "../../services/stripe.service";
-import { JwtService } from "../../services/jwt.service";
-import { S3Service } from "../../services/s3.service";
+import { IconService } from "../../services/ai/icon.service";
+import { JsonToToonService } from "../../services/ai/json-to-toon.service";
+import { OpenAIClientFactory } from "../../services/ai/openai-client.factory";
+import { MessageBuilderService } from "../../services/ai/message-builder.service";
+import { ResponseParserService } from "../../services/ai/response-parser.service";
+import { ToolCallHandlerService } from "../../services/ai/tool-call-handler.service";
+import { AiGenerateDesignService } from "../../services/ai/ai-generate-design.service";
+import { AiCostCalculatorService } from "../../services/ai/ai-cost.calculator.service";
+import { GoogleAuthService } from "../../services/auth/google-auth.service";
+import { TokenStoreService } from "../../services/auth/token-store.service";
+import { PointsService } from "../../services/payment/points.service";
+import { StripeService } from "../../services/payment/stripe.service";
+import { JwtService } from "../../services/auth/jwt.service";
+import { S3Service } from "../../services/storage/s3.service";
 
 
 // Repositories
@@ -27,36 +27,39 @@ import { TypeORMDesignGenerationRepository } from "../../repository/typeorm-desi
 
 
 // Use Cases - Design
-import { EditDesignWithAIUseCase } from "../../../application/use-cases/edit-design-with-ai.use-case";
-import { GeneratePrototypeConnectionsUseCase } from "../../../application/use-cases/generate-prototype-connections.use-case";
-import { GenerateDesignBasedOnExistingUseCase } from "../../../application/use-cases/generate-design-based-on-existing.use-case";
-import { GenerateDesignFromConversationUseCase } from "../../../application/use-cases/generate-design-from-conversation.use-case";
+import { EditDesignWithAIUseCase } from "../../../application/use-cases/design/edit-design-with-ai.use-case";
+import { GeneratePrototypeConnectionsUseCase } from "../../../application/use-cases/design/generate-prototype-connections.use-case";
+import { GenerateDesignBasedOnExistingUseCase } from "../../../application/use-cases/design/generate-design-based-on-existing.use-case";
+import { GenerateDesignFromConversationUseCase } from "../../../application/use-cases/design/generate-design-from-conversation.use-case";
 
-import { CreateUILibraryProjectUseCase } from "../../../application/use-cases/create-ui-library-project.use-case";
-import { GetUILibraryProjectsUseCase } from "../../../application/use-cases/get-ui-library-projects.use-case";
-import { DeleteUILibraryProjectUseCase } from "../../../application/use-cases/delete-ui-library-project.use-case";
-import { CreateUILibraryComponentUseCase } from "../../../application/use-cases/create-ui-library-component.use-case";
-import { GetUILibraryComponentsByProjectUseCase } from "../../../application/use-cases/get-ui-library-components-by-project.use-case";
-import { DeleteUILibraryComponentUseCase } from "../../../application/use-cases/delete-ui-library-component.use-case";
-import { UploadComponentImageUseCase } from "../../../application/use-cases/upload-component-image.use-case";
+// Use Cases - UI Library
+import { CreateUILibraryProjectUseCase } from "../../../application/use-cases/ui-library/create-ui-library-project.use-case";
+import { GetUILibraryProjectsUseCase } from "../../../application/use-cases/ui-library/get-ui-library-projects.use-case";
+import { DeleteUILibraryProjectUseCase } from "../../../application/use-cases/ui-library/delete-ui-library-project.use-case";
+import { CreateUILibraryComponentUseCase } from "../../../application/use-cases/ui-library/create-ui-library-component.use-case";
+import { GetUILibraryComponentsByProjectUseCase } from "../../../application/use-cases/ui-library/get-ui-library-components-by-project.use-case";
+import { DeleteUILibraryComponentUseCase } from "../../../application/use-cases/ui-library/delete-ui-library-component.use-case";
+import { UploadComponentImageUseCase } from "../../../application/use-cases/ui-library/upload-component-image.use-case";
 
 // Use Cases - Auth
-import { GoogleSignInUseCase } from "../../../application/use-cases/google-sign-in.use-case";
-import { CreateCheckoutSessionUseCase } from "../../../application/use-cases/create-checkout-session.use-case";
-import { HandleStripeWebhookUseCase } from "../../../application/use-cases/handle-stripe-webhook.use-case";
-import { GetUserBalanceUseCase } from "../../../application/use-cases/get-user-balance.use-case";
-import { GetPaymentHistoryUseCase } from "../../../application/use-cases/get-payment-history.use-case";
-import { GetAvailablePackagesUseCase } from "../../../application/use-cases/get-available-packages.use-case";
-import { PollPaymentStatusUseCase } from "../../../application/use-cases/poll-payment-status.use-case";
+import { GoogleSignInUseCase } from "../../../application/use-cases/auth/google-sign-in.use-case";
+
+// Use Cases - Payment
+import { CreateCheckoutSessionUseCase } from "../../../application/use-cases/payment/create-checkout-session.use-case";
+import { HandleStripeWebhookUseCase } from "../../../application/use-cases/payment/handle-stripe-webhook.use-case";
+import { GetUserBalanceUseCase } from "../../../application/use-cases/payment/get-user-balance.use-case";
+import { GetPaymentHistoryUseCase } from "../../../application/use-cases/payment/get-payment-history.use-case";
+import { GetAvailablePackagesUseCase } from "../../../application/use-cases/payment/get-available-packages.use-case";
+import { PollPaymentStatusUseCase } from "../../../application/use-cases/payment/poll-payment-status.use-case";
 
 // Use Cases - Subscriptions
-import { CreateSubscriptionCheckoutUseCase } from "../../../application/use-cases/create-subscription-checkout.use-case";
-import { CancelSubscriptionUseCase } from "../../../application/use-cases/cancel-subscription.use-case";
-import { GetSubscriptionStatusUseCase } from "../../../application/use-cases/get-subscription-status.use-case";
-import { GetAvailableSubscriptionPlansUseCase } from "../../../application/use-cases/get-available-subscription-plans.use-case";
+import { CreateSubscriptionCheckoutUseCase } from "../../../application/use-cases/subscription/create-subscription-checkout.use-case";
+import { CancelSubscriptionUseCase } from "../../../application/use-cases/subscription/cancel-subscription.use-case";
+import { GetSubscriptionStatusUseCase } from "../../../application/use-cases/subscription/get-subscription-status.use-case";
+import { GetAvailableSubscriptionPlansUseCase } from "../../../application/use-cases/subscription/get-available-subscription-plans.use-case";
 
 // Use Cases - Client Errors
-import { ReportClientErrorUseCase } from "../../../application/use-cases/report-client-error.use-case";
+import { ReportClientErrorUseCase } from "../../../application/use-cases/client-error/report-client-error.use-case";
 
 // Use Cases - Design Generations
 import { SaveDesignGenerationUseCase } from "../../../application/use-cases/design-generation/save-design-generation.use-case";
