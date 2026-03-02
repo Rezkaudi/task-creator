@@ -135,7 +135,7 @@ function ChatInterface({
         } else if (currentMode === 'prototype') {
             welcomeMessage = `Prototype Mode: Attach 2 or more frames with 📎 to generate connections between them. Then click Send. 🔗`;
         } else {
-            welcomeMessage = `Describe what you'd like to create using <strong>${modelName}</strong> + <strong>${systemName}</strong>. Attach a frame with 📎 to use it as a style reference.`;
+            welcomeMessage = `What would you like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>? Attach a frame with 📎 to use it as a style reference.`;
         }
 
         setMessages([{ role: 'assistant', content: welcomeMessage, isHtml: true }]);
@@ -143,6 +143,23 @@ function ChatInterface({
 
         setTimeout(() => inputRef.current?.focus(), 100);
     }, [currentMode, currentModelId, currentDesignSystemId, availableModels, availableDesignSystems]);
+
+    useEffect(() => {
+        if (currentMode !== 'create') return;
+        const model = availableModels.find(m => m.id === currentModelId);
+        const system = availableDesignSystems.find(s => s.id === currentDesignSystemId);
+        const modelName = model?.name || defaultModel.name;
+        const systemName = system?.name || defaultDesignSystem.name;
+
+        const welcomeMessage = selectedFrames.length > 0
+            ? `Designing based on <strong>"${selectedFrames[0].name}"</strong> as your style reference. Describe what you'd like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>.`
+            : `What would you like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>? Attach a frame with 📎 to use it as a style reference.`;
+
+        setMessages(prev => {
+            if (prev.length === 0) return prev;
+            return [{ role: 'assistant', content: welcomeMessage, isHtml: true }, ...prev.slice(1)];
+        });
+    }, [selectedFrames, currentMode, currentModelId, currentDesignSystemId, availableModels, availableDesignSystems]);
 
     const scrollToBottom = useCallback(() => {
         if (chatMessagesRef.current) {
