@@ -77,18 +77,6 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 2.00,
     outputPricePerMillion: 12.00,
     isFree: false,
-  },
-  {
-    id: 'grok-4',
-    name: 'Grok 4',
-    description: 'Best for fast responses',
-    icon: 'Gk',
-    maxTokens: 128000,
-    apiKey: ENV_CONFIG.POE_API_KEY,
-    baseURL: "https://api.poe.com/v1",
-    inputPricePerMillion: 3.00,
-    outputPricePerMillion: 15.00,
-    isFree: false,
   }
 ];
 export function getModels() {

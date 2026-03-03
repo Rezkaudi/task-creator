@@ -207,13 +207,13 @@ function ChatInterface({
         const message = inputValue.trim();
         if ((!message) || isGenerating) return;
 
-        if (currentMode === 'edit') {
-            if (selectedFrames.length === 0) {
+        if (currentMode === 'edit' || isBasedOnExistingMode) {
+            if (selectedFrames.length === 0 && currentMode === 'edit') {
                 addMessage('assistant', '⚠️ Please attach a frame to edit using the 📎 button or select an existing frame in the canvas.');
                 return;
             }
             if (selectedFrames.length > 1) {
-                addMessage('assistant', '⚠️ Please attach only one frame for editing.');
+                addMessage('assistant', '⚠️ Please attach only one frame.');
                 return;
             }
         }

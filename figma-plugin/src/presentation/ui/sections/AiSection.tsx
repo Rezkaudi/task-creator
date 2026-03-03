@@ -68,6 +68,14 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
     }, [framesLoaded, loadFrames]);
 
     const toggleFrameSelection = useCallback((frameId: string) => {
+        if (currentMode !== 'prototype') {
+            // Create/edit mode: only one frame at a time
+            setSelectedFrameIds(prev => {
+                if (prev.has(frameId) && prev.size === 1) return new Set();
+                return new Set([frameId]);
+            });
+            return;
+        }
         setSelectedFrameIds(prev => {
             const next = new Set(prev);
             if (next.has(frameId)) {
@@ -77,7 +85,7 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
             }
             return next;
         });
-    }, []);
+    }, [currentMode]);
 
     const selectAllFrames = useCallback(() => {
         setSelectedFrameIds(new Set(availableFrames.map(f => f.id)));
@@ -309,8 +317,12 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
                             <span className="fp-title-icon"></span> Select Frames {availableFrames?.length ? `- ${availableFrames.length} available` : ""}
                         </div>
                         <div className="fp-actions">
-                            <button className="fp-action-btn" onClick={selectAllFrames}>All</button>
-                            <button className="fp-action-btn" onClick={deselectAllFrames}>None</button>
+                            {currentMode === 'prototype' && (
+                                <>
+                                    <button className="fp-action-btn" onClick={selectAllFrames}>All</button>
+                                    <button className="fp-action-btn" onClick={deselectAllFrames}>None</button>
+                                </>
+                            )}
                             <button className="fp-action-btn" onClick={loadFrames}>🔄</button>
                             <button className="fp-close" onClick={toggleFramePicker}>✕</button>
                         </div>
