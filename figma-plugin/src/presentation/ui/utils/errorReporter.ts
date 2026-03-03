@@ -28,7 +28,7 @@ export async function reportError(error: unknown, context: ErrorContext = {}): P
 export function reportErrorAsync(error: unknown, context: ErrorContext = {}): void {
     const payload = buildPayload(error, context);
     pendingErrors.push(payload);
-    processQueue().catch(console.error);
+    processQueue().catch(() => {});
 }
 
 function buildPayload(error: unknown, context: ErrorContext): ErrorPayload {

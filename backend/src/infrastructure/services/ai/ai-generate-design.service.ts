@@ -275,12 +275,18 @@ export class AiGenerateDesignService implements IAiDesignService {
         aiModel: AIModelConfig,
         messages: AiMessage[]
     ): Promise<CompletionResult> {
+        let totalInputTokens = 0;
+        let totalOutputTokens = 0;
+
         // let completion = await this.createCompletionWithRetry(openai, {
         let completion = await openai.chat.completions.create({
             model: aiModel.id,
             messages: messages,
             tools: iconTools,
         });
+
+        totalInputTokens += completion.usage?.prompt_tokens ?? 0;
+        totalOutputTokens += completion.usage?.completion_tokens ?? 0;
 
         // Handle tool calls loop
         while (completion.choices[0]?.message?.tool_calls) {
@@ -306,6 +312,9 @@ export class AiGenerateDesignService implements IAiDesignService {
                 messages: messages,
                 tools: iconTools,
             });
+
+            totalInputTokens += completion.usage?.prompt_tokens ?? 0;
+            totalOutputTokens += completion.usage?.completion_tokens ?? 0;
         }
 
         const responseText = completion.choices[0]?.message?.content;
@@ -316,7 +325,11 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         return {
             responseText,
-            usage: completion.usage
+            usage: {
+                prompt_tokens: totalInputTokens,
+                completion_tokens: totalOutputTokens,
+                total_tokens: totalInputTokens + totalOutputTokens,
+            }
         };
     }
 

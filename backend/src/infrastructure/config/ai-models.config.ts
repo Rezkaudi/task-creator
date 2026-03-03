@@ -68,7 +68,7 @@ export const AI_MODELS: AIModelConfig[] = [
   },
   {
     id: 'gemini-3.1-pro',
-    name: 'Gemini 3.1 Pro Preview',
+    name: 'Gemini 3.1 Pro',
     description: 'Latest flagship - Advanced reasoning & multimodal',
     icon: 'Gem',
     maxTokens: 2000000,
@@ -76,18 +76,6 @@ export const AI_MODELS: AIModelConfig[] = [
     baseURL: "https://api.poe.com/v1",
     inputPricePerMillion: 2.00,
     outputPricePerMillion: 12.00,
-    isFree: false,
-  },
-  {
-    id: 'grok-4.1-fast-reasoning',
-    name: 'Grok 4.1 Fast Reasoning',
-    description: 'Fast reasoning - Best for fast responses',
-    icon: 'Gk',
-    maxTokens: 128000,
-    apiKey: ENV_CONFIG.POE_API_KEY,
-    baseURL: "https://api.poe.com/v1",
-    inputPricePerMillion: 0.20,
-    outputPricePerMillion: 0.50,
     isFree: false,
   }
 ];
