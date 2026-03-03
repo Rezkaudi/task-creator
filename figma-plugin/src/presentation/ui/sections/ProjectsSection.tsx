@@ -108,7 +108,7 @@ export default function ProjectsSection({ sendMessage, onSaveSelected, isSavingE
                     <span>No components yet</span>
                 </div>
             ) : (
-                <div className="uil-components-grid" style={{ padding: '8px 4px' }}>
+                <div className="uil-components-grid" style={{ padding: '8px' }}>
                     {lib.components.map((component: UIComponent) => (
                         <div
                             key={component.id}
@@ -166,7 +166,6 @@ export default function ProjectsSection({ sendMessage, onSaveSelected, isSavingE
     return (
         <div className={`ps-wrapper ${isOpen ? 'ps-open' : ''}`}>
             <button className="ps-toggle" onClick={() => setIsOpen(v => !v)}>
-                <span className="ps-toggle-icon"></span>
                 <span className="ps-toggle-label">Projects (UI Library)</span>
                 <ChevronDown size={14} className={`ps-chevron ${isOpen ? 'ps-chevron-open' : ''}`} />
             </button>
