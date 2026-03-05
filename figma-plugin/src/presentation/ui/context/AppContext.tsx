@@ -39,9 +39,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
         case 'SET_AVAILABLE_MODELS':
             return { ...state, availableModels: action.models };
         case 'SET_POINTS_BALANCE':
-            return { ...state, pointsBalance: Math.max(0, Number(action.balance || 0)) };
+            return { ...state, pointsBalance: action.balance };
         case 'DEDUCT_POINTS':
-            return { ...state, pointsBalance: Math.max(0, state.pointsBalance - Number(action.points || 0)) };
+            return { ...state, pointsBalance: state.pointsBalance - Number(action.points || 0) };
         case 'SET_HAS_PURCHASED':
             return { ...state, hasPurchased: Boolean(action.hasPurchased) };
         case 'SET_SUBSCRIPTION':

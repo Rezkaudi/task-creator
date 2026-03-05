@@ -63,14 +63,15 @@ export function ProfileDropdown({
                     </div>
                 </div>
             )}
-            {pointsBalance > 0 && (
+
+            {(pointsBalance > 0 || pointsBalance < 0) && (
                 <div className="profile-dd-points-row">
                     <span className="profile-dd-points-val blue">{Number(pointsBalance).toLocaleString()} pts</span>
                     <span className="profile-dd-points-sub">one-time balance</span>
                 </div>
             )}
             {!subscription && pointsBalance === 0 && (
-                <div className="profile-dd-empty">No credits yet</div>
+                <div className="profile-dd-empty">No Points yet</div>
             )}
 
             <div className="profile-dd-divider" />

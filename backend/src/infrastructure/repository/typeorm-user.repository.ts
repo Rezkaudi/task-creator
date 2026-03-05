@@ -59,7 +59,7 @@ export class TypeORMUserRepository implements IUserRepository {
 
     async deductPoints(userId: string, points: number): Promise<User> {
         const result = await this.repository.query(
-            'UPDATE "users" SET "pointsBalance" = "pointsBalance" - $1 WHERE "id" = $2 AND "pointsBalance" >= $1 RETURNING *',
+            'UPDATE "users" SET "pointsBalance" = "pointsBalance" - $1 WHERE "id" = $2 RETURNING *',
             [points, userId],
         );
 
