@@ -59,12 +59,12 @@ export class TypeORMUserRepository implements IUserRepository {
 
     async deductPoints(userId: string, points: number): Promise<User> {
         const result = await this.repository.query(
-            'UPDATE "users" SET "pointsBalance" = "pointsBalance" - $1 WHERE "id" = $2 AND "pointsBalance" >= $1 RETURNING *',
+            'UPDATE "users" SET "pointsBalance" = "pointsBalance" - $1 WHERE "id" = $2 RETURNING *',
             [points, userId],
         );
 
         if (!result || result.length === 0) {
-            throw new Error("Insufficient points balance");
+            throw new Error("Insufficient credits balance");
         }
 
         return this.toUser(result[0] as UserEntity);

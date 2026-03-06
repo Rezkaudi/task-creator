@@ -242,7 +242,7 @@ export default function BuyPointsModal(): React.JSX.Element | null {
                         className={`buy-points-tab ${activeTab === 'onetime' ? 'active' : ''}`}
                         onClick={() => setActiveTab('onetime')}
                     >
-                        One-Time Points
+                        One-Time Credits
                     </button>
                 </div>
 
@@ -294,7 +294,7 @@ export default function BuyPointsModal(): React.JSX.Element | null {
                                     <div className="points-card-points">{plan.dailyPointsLimit} / day</div>
                                     <div className="points-card-price">${plan.priceUsd}<span className="price-period">/mo</span></div>
                                     <div className="subscription-card-detail">
-                                        {plan.dailyPointsLimit} Points per day
+                                        {plan.dailyPointsLimit} Credits per day
                                     </div>
                                     {subscription && !subscription.cancelAtPeriodEnd ? (
                                         <button className="points-buy-btn" disabled>
@@ -319,7 +319,7 @@ export default function BuyPointsModal(): React.JSX.Element | null {
                             <div key={pkg.id} className={`points-card ${pkg.id === 'pro' ? 'pro' : ''}`}>
                                 {pkg.id === 'pro' && <div className="points-best-value">Best Value</div>}
                                 <div className="points-card-title">{pkg.name}</div>
-                                <div className="points-card-points">{Number(pkg.points || 0).toLocaleString()} pts</div>
+                                <div className="points-card-points">{Number(pkg.points || 0).toLocaleString()} credits</div>
                                 <div className="points-card-price">${Number(pkg.priceUsd || 0).toFixed(2)}</div>
                                 <button
                                     className="points-buy-btn"
