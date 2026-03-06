@@ -18,7 +18,7 @@ export class CreateCheckoutSessionUseCase {
 
         const selectedPackage = getPointsPackage(packageId);
         if (!selectedPackage) {
-            throw new Error("Invalid points package");
+            throw new Error("Invalid credits package");
         }
 
         if (!selectedPackage.stripePriceId) {

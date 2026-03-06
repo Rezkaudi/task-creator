@@ -398,17 +398,17 @@ export class DesignController {
         }
 
         if (!user.hasPurchased) {
-            throw new PaymentRequiredError("Purchase points to unlock paid AI models.");
+            throw new PaymentRequiredError("Purchase credits to unlock paid AI models.");
         }
 
         const hasEnoughPoints = await this.pointsService.hasEnoughPoints(userId, ENV_CONFIG.MIN_PRE_FLIGHT_POINTS);
         if (!hasEnoughPoints) {
             if (subscription) {
                 throw new PaymentRequiredError(
-                    `Daily limit of ${subscription.dailyPointsLimit} points reached. Buy points for additional usage.`
+                    `Daily limit of ${subscription.dailyPointsLimit} credits reached. Buy credits for additional usage.`
                 );
             }
-            throw new PaymentRequiredError("Insufficient points balance. Please buy points to continue.");
+            throw new PaymentRequiredError("Insufficient credits balance. Please buy credits to continue.");
         }
     }
 
@@ -467,9 +467,9 @@ export class DesignController {
                     outputTokens,
                 );
             } catch (error) {
-                const message = error instanceof Error ? error.message : "Insufficient points";
+                const message = error instanceof Error ? error.message : "Insufficient credits";
                 if (message.toLowerCase().includes("insufficient")) {
-                    throw new PaymentRequiredError("Insufficient points balance. Please buy points to continue.");
+                    throw new PaymentRequiredError("Insufficient credits balance. Please buy credits to continue.");
                 }
                 throw error;
             }
@@ -494,7 +494,7 @@ export class DesignController {
         }
 
         const message = error instanceof Error ? error.message.toLowerCase() : "";
-        if (message.includes("insufficient points") || message.includes("purchase points") || message.includes("daily limit")) {
+        if (message.includes("insufficient credits") || message.includes("purchase credits") || message.includes("daily limit")) {
             return 402;
         }
 

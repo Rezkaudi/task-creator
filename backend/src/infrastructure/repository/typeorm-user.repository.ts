@@ -64,7 +64,7 @@ export class TypeORMUserRepository implements IUserRepository {
         );
 
         if (!result || result.length === 0) {
-            throw new Error("Insufficient points balance");
+            throw new Error("Insufficient credits balance");
         }
 
         return this.toUser(result[0] as UserEntity);

@@ -42,8 +42,8 @@ export function ProfileDropdown({
 
             <div className="profile-dd-divider" />
 
-            {/* Points section */}
-            <div className="profile-dd-section-label">Points</div>
+            {/* Credits section */}
+            <div className="profile-dd-section-label">Credits</div>
             {subscription && (
                 <div className="profile-dd-points-row">
                     <div className="profile-dd-points-info">
@@ -51,7 +51,7 @@ export function ProfileDropdown({
                             {subscription.planId === 'premium' ? 'Premium' : 'Basic'}
                         </span>
                         <span className="profile-dd-points-val green">
-                            {Number((subscription.dailyPointsLimit || 0) - (subscription.dailyPointsUsed || 0)).toLocaleString()} pts
+                            {Number((subscription.dailyPointsLimit || 0) - (subscription.dailyPointsUsed || 0)).toLocaleString()} credits
                         </span>
                         <span className="profile-dd-points-sub">remaining today</span>
                     </div>
@@ -66,12 +66,12 @@ export function ProfileDropdown({
 
             {(pointsBalance > 0 || pointsBalance < 0) && (
                 <div className="profile-dd-points-row">
-                    <span className="profile-dd-points-val blue">{Number(pointsBalance).toLocaleString()} pts</span>
+                    <span className="profile-dd-points-val blue">{Number(pointsBalance).toLocaleString()} credits</span>
                     <span className="profile-dd-points-sub">one-time balance</span>
                 </div>
             )}
             {!subscription && pointsBalance === 0 && (
-                <div className="profile-dd-empty">No Points yet</div>
+                <div className="profile-dd-empty">No Credits yet</div>
             )}
 
             <div className="profile-dd-divider" />
@@ -81,7 +81,7 @@ export function ProfileDropdown({
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M7 1.5v11M10.5 4.5H5.25a1.75 1.75 0 000 3.5h3.5a1.75 1.75 0 010 3.5H3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Buy Points / Plan
+                Buy Credits / Plan
             </button>
 
             <button className="profile-dd-item" onClick={() => { onClose(); onImportExport(); }}>

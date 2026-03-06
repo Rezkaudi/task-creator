@@ -252,7 +252,7 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
         'prototype-connections-error': (msg: PluginMessage) => {
             ChatInterface.handleError?.(msg);
             const errorText = `${msg.error || ''}`.toLowerCase();
-            if (msg.statusCode === 402 || errorText.includes('insufficient') || errorText.includes('purchase points')) {
+            if (msg.statusCode === 402 || errorText.includes('insufficient') || errorText.includes('purchase credits')) {
                 dispatch({ type: 'OPEN_BUY_POINTS_MODAL' });
             }
         },
