@@ -74,8 +74,8 @@ export const AI_MODELS: AIModelConfig[] = [
     maxTokens: 2000000,
     apiKey: ENV_CONFIG.POE_API_KEY,
     baseURL: "https://api.poe.com/v1",
-    inputPricePerMillion: 2.40,
-    outputPricePerMillion: 14.40,
+    inputPricePerMillion: 2.00,
+    outputPricePerMillion: 12.00,
     isFree: false,
   }
 ];
