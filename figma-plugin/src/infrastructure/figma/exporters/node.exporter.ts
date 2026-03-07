@@ -19,7 +19,7 @@ export class NodeExporter {
   /**
    * Export a node with all its properties
    */
-  async export(node: SceneNode, layerIndex: number = 0): Promise<DesignNode | null> {
+  async export(node: SceneNode, layerIndex: number = 0, isNested: boolean = false): Promise<DesignNode | null> {
     try {
       switch (node.type) {
         case 'FRAME':
@@ -31,7 +31,7 @@ export class NodeExporter {
         case 'COMPONENT_SET':
           return this.exportComponentSet(node, layerIndex);
         case 'INSTANCE':
-          return this.exportInstance(node, layerIndex);
+          return this.exportInstance(node, layerIndex, isNested);
         case 'SECTION':
           return this.exportSection(node, layerIndex);
         case 'RECTANGLE':
@@ -149,7 +149,7 @@ export class NodeExporter {
     return result as DesignNode;
   }
 
-  private async exportInstance(node: InstanceNode, layerIndex: number): Promise<DesignNode> {
+  private async exportInstance(node: InstanceNode, layerIndex: number, isNested: boolean = false): Promise<DesignNode> {
     const result: Partial<DesignNode> = {
       ...this.getBaseProperties(node, layerIndex),
       type: 'INSTANCE',
@@ -162,28 +162,34 @@ export class NodeExporter {
       clipsContent: node.clipsContent,
     };
 
-    // Store main component reference (use async method for dynamic-page documentAccess)
-    try {
-      const mainComponent = await node.getMainComponentAsync();
-      if (mainComponent) {
-        result.mainComponentId = mainComponent.key;
-        // Also store the node ID for local component lookup
-        (result as any)._mainComponentNodeId = mainComponent.id;
+    // Only resolve main component for top-level instances — nested ones are fully
+    // described by their exported children and the slow async lookup isn't needed.
+    if (!isNested) {
+      try {
+        const mainComponent = await node.getMainComponentAsync();
+        if (mainComponent) {
+          result.mainComponentId = mainComponent.key;
+          (result as any)._mainComponentNodeId = mainComponent.id;
+        }
+      } catch (error) {
+        console.warn('Could not get main component for instance:', error);
       }
-    } catch (error) {
-      console.warn('Could not get main component for instance:', error);
     }
 
     // Export component property overrides
-    if (node.componentProperties && Object.keys(node.componentProperties).length > 0) {
-      const componentProps: Record<string, any> = {};
-      for (const [key, prop] of Object.entries(node.componentProperties)) {
-        componentProps[key] = {
-          type: prop.type,
-          value: prop.value,
-        };
+    try {
+      if (node.componentProperties && Object.keys(node.componentProperties).length > 0) {
+        const componentProps: Record<string, any> = {};
+        for (const [key, prop] of Object.entries(node.componentProperties)) {
+          componentProps[key] = {
+            type: prop.type,
+            value: prop.value,
+          };
+        }
+        result.componentProperties = componentProps;
       }
-      result.componentProperties = componentProps;
+    } catch (error) {
+      console.warn('Could not get componentProperties for instance:', node.name, error);
     }
 
     // Export overrides
@@ -192,6 +198,10 @@ export class NodeExporter {
         id: o.id,
         overriddenFields: [...o.overriddenFields],
       }));
+    }
+
+    if (node.children.length > 0) {
+      result.children = await this.exportChildren(node.children, true);
     }
 
     return result as DesignNode;
@@ -1174,12 +1184,12 @@ export class NodeExporter {
 
   // ==================== CHILDREN EXPORT ====================
 
-  private async exportChildren(children: readonly SceneNode[]): Promise<DesignNode[]> {
+  private async exportChildren(children: readonly SceneNode[], isNested: boolean = false): Promise<DesignNode[]> {
     const result: DesignNode[] = [];
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      const exported = await this.export(child, i);
+      const exported = await this.export(child, i, isNested);
       if (exported) {
         result.push(exported);
       }

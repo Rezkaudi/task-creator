@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"function\\\\|const.*=.*\\\\\\(\" /home/rezk/task-creator/figma-plugin/src/infrastructure/figma/creators/*.ts)"
+    ]
+  }
+}

@@ -274,6 +274,9 @@ export interface DesignNode {
   // Image data (for embedded images)
   imageData?: string;
 
+  // SVG URL for icon nodes (uses figma.createNodeFromSvg instead of image fill)
+  svgUrl?: string;
+
   // Instance-specific (for finding local components)
   _mainComponentNodeId?: string;
 }
