@@ -40,13 +40,13 @@ export class MessageBuilderService {
             { role: 'system', content: systemPrompt }
         ];
 
-        const recentHistory = history.slice(-3);
-        for (const msg of recentHistory) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // const recentHistory = history.slice(-3);
+        // for (const msg of recentHistory) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
 
         messages.push({
             role: 'user',
@@ -75,13 +75,13 @@ export class MessageBuilderService {
             { role: 'system', content: systemPrompt }
         ];
 
-        const recentHistory = history.slice(-3);
-        for (const msg of recentHistory) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // const recentHistory = history.slice(-3);
+        // for (const msg of recentHistory) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
 
         messages.push({
             role: 'user',
@@ -107,13 +107,13 @@ export class MessageBuilderService {
             { role: 'system', content: systemPrompt }
         ];
 
-        const recentHistory = history.slice(-3);
-        for (const msg of recentHistory) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // const recentHistory = history.slice(-3);
+        // for (const msg of recentHistory) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
 
         messages.push({
             role: 'user',

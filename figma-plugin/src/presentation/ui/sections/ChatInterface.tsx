@@ -74,7 +74,7 @@ function ChatInterface({
     const { updateSubscription, updatePointsBalance } = useAuth();
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [conversationHistory, setConversationHistory] = useState<Array<{ role: string; content: string }>>([]);
+    // const [conversationHistory, setConversationHistory] = useState<Array<{ role: string; content: string }>>([]);
     const [inputValue, setInputValue] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
@@ -139,7 +139,7 @@ function ChatInterface({
         }
 
         setMessages([{ role: 'assistant', content: welcomeMessage, isHtml: true }]);
-        setConversationHistory([]);
+        // setConversationHistory([]);
 
         setTimeout(() => inputRef.current?.focus(), 100);
     }, [currentMode, currentModelId, currentDesignSystemId, availableModels, availableDesignSystems]);
@@ -218,20 +218,23 @@ function ChatInterface({
             }
         }
 
-        addMessage('user', message);
+        // Clear previous exchange, keep only the welcome assistant message
+        setMessages(prev => prev.slice(0, 1));
         setInputValue('');
         setIsGenerating(true);
         requestStartTime.current = Date.now();
 
-        const newHistory = [...conversationHistory, { role: 'user', content: message }];
-        setConversationHistory(newHistory);
+        // const newHistory = [...conversationHistory, { role: 'user', content: message }];
+        // setConversationHistory(newHistory);
+
+        addMessage('user', message);
 
         if (isBasedOnExistingMode) {
             const referenceFrame = selectedFrames[0];
             addMessage('assistant', `Creating new design based on "${referenceFrame.name}" style...`, { isLoading: true });
             sendMessage('ai-generate-based-on-existing', {
                 message,
-                history: newHistory,
+                history: [],
                 referenceId: referenceFrame.id,
                 ...(referenceFrame.designJson ? { referenceJson: referenceFrame.designJson as Record<string, unknown> } : {}),
                 model: currentModelId
@@ -241,7 +244,7 @@ function ChatInterface({
             addMessage('assistant', `Editing "${attachedFrame.name}"...`, { isLoading: true });
             sendMessage('ai-edit-design', {
                 message,
-                history: newHistory,
+                history: [],
                 layerId: attachedFrame.id,
                 ...(attachedFrame.designJson ? { layerJson: attachedFrame.designJson as Record<string, unknown> } : {}),
                 model: currentModelId,
@@ -265,12 +268,12 @@ function ChatInterface({
             addMessage('assistant', 'Creating in progress ...', { isLoading: true });
             sendMessage('ai-chat-message', {
                 message,
-                history: newHistory,
+                history: [],
                 model: currentModelId,
                 designSystemId: currentDesignSystemId
             });
         }
-    }, [inputValue, isGenerating, conversationHistory, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, sendMessage, addMessage, selectedFrames]);
+    }, [inputValue, isGenerating, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, sendMessage, addMessage, selectedFrames]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.shiftKey) return;
@@ -325,7 +328,7 @@ function ChatInterface({
             } : null,
         });
 
-        setConversationHistory(prev => [...prev, { role: 'assistant', content: msg.message as string }]);
+        // setConversationHistory(prev => [...prev, { role: 'assistant', content: msg.message as string }]);
 
         if (msg.designData) {
             const newMsgIndex = messagesRef.current.filter(m => !m.isLoading).length;

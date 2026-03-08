@@ -66,7 +66,7 @@ export class ImportDesignUseCase {
         throw new Error('No nodes were created from the provided data.');
       }
 
-      this.nodeRepository.setSelection(createdNodes);
+      // this.nodeRepository.setSelection(createdNodes);
       this.nodeRepository.focusOnNodes(createdNodes);
 
       const message = `✅ Imported ${createdNodes.length} design element${createdNodes.length > 1 ? 's' : ''}!`;
