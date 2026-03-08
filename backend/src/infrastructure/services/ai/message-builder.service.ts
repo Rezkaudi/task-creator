@@ -94,7 +94,8 @@ export class MessageBuilderService {
     buildBasedOnExistingMessages(
         currentMessage: string,
         history: ConversationMessage[],
-        referenceToon: string
+        referenceToon: string,
+        iconNames?: string[]
     ): AiMessage[] {
         const systemPrompt = [
             basedOnExistingPrompt,
@@ -115,10 +116,15 @@ export class MessageBuilderService {
         //     });
         // }
 
-        messages.push({
-            role: 'user',
-            content: `REFERENCE DESIGN:\n\`\`\`\n${referenceToon}\n\`\`\`\n\nUSER REQUEST: ${currentMessage}`
-        });
+        let userContent = `REFERENCE DESIGN:\n\`\`\`\n${referenceToon}\n\`\`\``;
+
+        if (iconNames && iconNames.length > 0) {
+            userContent += `\n\nAVAILABLE ICONS FROM REFERENCE (use these exact names when placing icons): ${iconNames.join(', ')}`;
+        }
+
+        userContent += `\n\nUSER REQUEST: ${currentMessage}`;
+
+        messages.push({ role: 'user', content: userContent });
 
         return messages;
     }
