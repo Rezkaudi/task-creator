@@ -40,13 +40,13 @@ export class MessageBuilderService {
             { role: 'system', content: systemPrompt }
         ];
 
-        const recentHistory = history.slice(-3);
-        for (const msg of recentHistory) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // const recentHistory = history.slice(-3);
+        // for (const msg of recentHistory) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
 
         messages.push({
             role: 'user',
@@ -75,13 +75,13 @@ export class MessageBuilderService {
             { role: 'system', content: systemPrompt }
         ];
 
-        const recentHistory = history.slice(-3);
-        for (const msg of recentHistory) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // const recentHistory = history.slice(-3);
+        // for (const msg of recentHistory) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
 
         messages.push({
             role: 'user',
@@ -94,7 +94,7 @@ export class MessageBuilderService {
     buildBasedOnExistingMessages(
         currentMessage: string,
         history: ConversationMessage[],
-        referenceToon: string
+        referenceToon: string,
     ): AiMessage[] {
         const systemPrompt = [
             basedOnExistingPrompt,
@@ -107,18 +107,16 @@ export class MessageBuilderService {
             { role: 'system', content: systemPrompt }
         ];
 
-        const recentHistory = history.slice(-3);
-        for (const msg of recentHistory) {
-            messages.push({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content
-            });
-        }
+        // const recentHistory = history.slice(-3);
+        // for (const msg of recentHistory) {
+        //     messages.push({
+        //         role: msg.role as 'user' | 'assistant',
+        //         content: msg.content
+        //     });
+        // }
+        const userContent = `REFERENCE DESIGN:\n\`\`\`json\n${referenceToon}\n\`\`\`\n\nUSER REQUEST: ${currentMessage}`;
 
-        messages.push({
-            role: 'user',
-            content: `REFERENCE DESIGN:\n\`\`\`\n${referenceToon}\n\`\`\`\n\nUSER REQUEST: ${currentMessage}`
-        });
+        messages.push({ role: 'user', content: userContent });
 
         return messages;
     }

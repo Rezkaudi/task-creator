@@ -15,6 +15,8 @@ import { PointsService } from "../../services/payment/points.service";
 import { StripeService } from "../../services/payment/stripe.service";
 import { JwtService } from "../../services/auth/jwt.service";
 import { S3Service } from "../../services/storage/s3.service";
+import { IconExtractorService } from "../../services/ai/icon-extractor.service";
+import { IconPostProcessorService } from "../../services/ai/icon-post-processor.service";
 
 
 // Repositories
@@ -105,6 +107,8 @@ export const setupDependencies = () => {
     const pointsService = new PointsService(userRepository);
     const jwtService = new JwtService();
     const s3Service = new S3Service();
+    const iconExtractorService = new IconExtractorService();
+    const iconPostProcessorService = new IconPostProcessorService(iconExtractorService);
 
     const defaultAiDesignService = new AiGenerateDesignService(
         aiCostCalculatorService,
@@ -118,7 +122,9 @@ export const setupDependencies = () => {
     const editDesignWithAIUseCase = new EditDesignWithAIUseCase(defaultAiDesignService);
     const generateDesignBasedOnExistingUseCase = new GenerateDesignBasedOnExistingUseCase(
         defaultAiDesignService,
-        jsonToToonService
+        jsonToToonService,
+        iconExtractorService,
+        iconPostProcessorService
     );
 
     const generatePrototypeConnectionsUseCase = new GeneratePrototypeConnectionsUseCase(

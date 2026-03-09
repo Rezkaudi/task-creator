@@ -160,6 +160,46 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
   }
 
   /**
+   * Returns the SVG URL from nodeData.svgUrl or from an IMAGE fill with an SVG URL.
+   * Returns null if no SVG source is found.
+   */
+  private getSvgIconUrl(nodeData: DesignNode): string | null {
+    if (nodeData.svgUrl) return nodeData.svgUrl;
+    if (!nodeData.fills) return null;
+    for (const fill of nodeData.fills) {
+      if (fill.type === 'IMAGE' && fill.imageUrl) {
+        const url = fill.imageUrl;
+        if (url.endsWith('.svg') || url.includes('/svg/') || url.includes('api.iconify.design')) {
+          return url;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Fetch an SVG from a URL and create a Figma node using figma.createNodeFromSvg().
+   * Falls back to null on error (caller will use a rectangle placeholder instead).
+   */
+  private async createNodeFromSvgUrl(svgUrl: string, nodeData: DesignNode): Promise<FrameNode | null> {
+    try {
+      const response = await fetch(svgUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const svgString = await response.text();
+      const svgNode = figma.createNodeFromSvg(svgString);
+      // Derive name from Iconify URL as "prefix:name" (e.g. "mdi:car"), fallback to nodeData.name
+      const iconifyMatch = svgUrl.match(/api\.iconify\.design\/([^/]+)\/([^/?#]+?)(?:\.svg)?(?:[?#]|$)/);
+      svgNode.name = iconifyMatch ? `${iconifyMatch[1]}:${iconifyMatch[2]}` : (nodeData.name || 'Icon');
+      const { width, height } = this.ensureMinDimensions(nodeData.width, nodeData.height, 24);
+      svgNode.resize(width, height);
+      return svgNode;
+    } catch (error) {
+      console.error('Error creating node from SVG URL:', svgUrl, error);
+      return null;
+    }
+  }
+
+  /**
    * Get all frames from current page with their interactive elements
    */
   async getFramesWithInteractiveElements(): Promise<FrameInfo[]> {
@@ -412,6 +452,11 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
         if (hasChildren(nodeData)) {
           return this.rectangleCreator.createAsFrame(nodeData, createChildBound);
         }
+        // If rectangle has an SVG fill/url, create as SVG node
+        {
+          const svgUrl = this.getSvgIconUrl(nodeData);
+          if (svgUrl) return this.createNodeFromSvgUrl(svgUrl, nodeData);
+        }
         return this.rectangleCreator.create(nodeData);
 
       case 'TEXT':
@@ -433,6 +478,11 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
         // Check if we have vector path data
         if (nodeData.vectorPaths || nodeData.vectorNetwork) {
           return this.shapeCreator.createVector(nodeData);
+        }
+        // If vector has an SVG fill/url, create as SVG node
+        {
+          const svgUrl = this.getSvgIconUrl(nodeData);
+          if (svgUrl) return this.createNodeFromSvgUrl(svgUrl, nodeData);
         }
         return this.shapeCreator.createVectorPlaceholder(nodeData);
 

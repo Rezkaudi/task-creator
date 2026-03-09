@@ -3,8 +3,8 @@ declare const process: { env: { [key: string]: string } };
  * Plugin configuration constants
  */
 export const PluginConfig = {
-  UI_WIDTH: 780,
-  UI_HEIGHT: 900,
+  UI_WIDTH: 400,
+  UI_HEIGHT: 700,
   THEME_COLORS: true,
 } as const;
 

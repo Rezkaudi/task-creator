@@ -82,7 +82,7 @@ export class ImportAIDesignUseCase {
 
       this.positionNewDesign(createdNodes, designBounds);
 
-      this.nodeRepository.setSelection(createdNodes);
+      // this.nodeRepository.setSelection(createdNodes);
       this.nodeRepository.focusOnNodes(createdNodes);
 
       const message = `✅ Imported ${createdNodes.length} AI-generated page${createdNodes.length > 1 ? 's' : ''}!`;

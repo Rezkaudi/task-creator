@@ -231,8 +231,8 @@ export class FillMapper {
   }
 
   /**
-   * Fetch an image from a URL and create a Figma Image
-   * Note: Figma only supports PNG, JPEG, GIF, and WebP. SVG is converted via proxy.
+   * Fetch an image from a URL and create a Figma Image.
+   * Note: Figma only supports PNG, JPEG, GIF, and WebP. SVG icons should use figma.createNodeFromSvg() instead.
    */
   private static async fetchImageFromUrl(url: string): Promise<Image | null> {
     // Check cache first
@@ -244,17 +244,7 @@ export class FillMapper {
     try {
       console.log('Fetching image from URL:', url);
 
-      // Convert SVG URLs to PNG via proxy service
-      let fetchUrl = url;
-      const isSvg = url.endsWith('.svg') || url.includes('/svg/') || url.includes('api.iconify.design');
-
-      if (isSvg) {
-        console.log('🔄 SVG detected - converting to PNG via proxy...');
-        fetchUrl = FillMapper.convertSvgUrlToPng(url);
-        console.log('   Converted URL:', fetchUrl);
-      }
-
-      const response = await fetch(fetchUrl);
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.status} ${response.statusText || ''}`);
@@ -294,22 +284,6 @@ export class FillMapper {
       console.error('   Error:', errorMessage);
       return null;
     }
-  }
-
-  /**
-   * Convert SVG URL to PNG via image proxy service
-   * Uses wsrv.nl (weserv) - a free image proxy that converts SVG to PNG
-   */
-  private static convertSvgUrlToPng(svgUrl: string): string {
-    // Use wsrv.nl to convert SVG to PNG
-    // Documentation: https://wsrv.nl/docs/
-    const encodedUrl = encodeURIComponent(svgUrl);
-
-    // wsrv.nl parameters:
-    // - output=png: convert to PNG format
-    // - w=512: width (optional, for better quality)
-    // - h=512: height (optional, for better quality)
-    return `https://wsrv.nl/?url=${encodedUrl}&output=png&w=512&h=512`;
   }
 
   /**

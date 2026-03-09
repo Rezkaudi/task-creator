@@ -1,6 +1,12 @@
 ICONS — USE ICONIFY API (NOT VECTOR PATHS)
 
-When you need an icon in the design:
+IMPORTANT — AVAILABLE ICONS FROM REFERENCE:
+If an "AVAILABLE ICONS FROM REFERENCE" list is provided in the user message:
+- Use those exact names for the icon nodes in your output (e.g., name the node "google" not "Google Icon")
+- Still use RECTANGLE with IMAGE fill from Iconify as usual — the system will automatically restore the original icons after generation
+- DO NOT call searchIcons for these — pick the closest matching Iconify icon visually and name the node with the exact reference name
+
+When you need an icon NOT in the reference list (or when no list is provided):
 
 1. FIRST: Call the `searchIcons` tool with a keyword (e.g., "home", "arrow", "user")
 2. THEN: Call the `getIconUrl` tool with the best matching icon from results

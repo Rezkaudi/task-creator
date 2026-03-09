@@ -52,7 +52,7 @@ export const AI_MODELS: AIModelConfig[] = [
     baseURL: "https://api.poe.com/v1",
     inputPricePerMillion: 5.00,
     outputPricePerMillion: 25.00,
-    isFree: false,
+    isFree: true,
   },
   {
     id: 'gpt-5.2',
@@ -64,7 +64,7 @@ export const AI_MODELS: AIModelConfig[] = [
     baseURL: "https://api.poe.com/v1",
     inputPricePerMillion: 1.75,
     outputPricePerMillion: 14.00,
-    isFree: false,
+    isFree: true,
   },
   {
     id: 'gemini-3.1-pro',
@@ -76,7 +76,7 @@ export const AI_MODELS: AIModelConfig[] = [
     baseURL: "https://api.poe.com/v1",
     inputPricePerMillion: 2.00,
     outputPricePerMillion: 12.00,
-    isFree: false,
+    isFree: true,
   }
 ];
 export function getModels() {

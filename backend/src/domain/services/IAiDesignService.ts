@@ -35,6 +35,6 @@ export interface IAiDesignService {
         userMessage: string,
         history: ConversationMessage[],
         referenceToon: string,
-        modelId: string
+        modelId: string,
     ): Promise<DesignGenerationResult>;
 }
