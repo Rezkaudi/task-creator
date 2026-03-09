@@ -8,7 +8,9 @@ import { IconPostProcessorService } from "../../../infrastructure/services/ai/ic
 export class GenerateDesignBasedOnExistingUseCase {
     constructor(
         private aiDesignService: IAiDesignService,
-        private jsonToToonService: JsonToToonService
+        private jsonToToonService: JsonToToonService,
+        private iconExtractorService: IconExtractorService,
+        private iconPostProcessorService: IconPostProcessorService
     ) { }
 
     async execute(
@@ -17,38 +19,30 @@ export class GenerateDesignBasedOnExistingUseCase {
         referenceDesign: any,
         modelId: string
     ): Promise<DesignGenerationResult> {
-        if (!message || message.trim().length === 0) {
-            throw new Error('Message is required to generate a design.');
-        }
-
-        if (!referenceDesign) {
-            throw new Error('Reference design is required to extract design system.');
-        }
-
-        const toonFormat = this.jsonToToonService.convertToSample(referenceDesign);
-        console.log(`📊 Design system size: ${JSON.stringify(referenceDesign).length} → ${toonFormat.length} chars`);
 
         // Build icon map server-side — full nodes kept in memory, NOT sent to AI
-        const iconMap = IconExtractorService.buildIconMap(referenceDesign);
-        const iconNames = IconExtractorService.extractIconNames(iconMap);
-        if (iconNames.length > 0) {
-            console.log(`🎨 Found ${iconNames.length} icon(s) in reference: ${iconNames.join(', ')}`);
-        }
+        const iconMap = this.iconExtractorService.buildIconMap(referenceDesign);
+        const iconNames = this.iconExtractorService.extractIconNames(iconMap);
+
+        // Build rich reference context: design tokens + backgrounds + component samples + icon names
+        const referenceContext = this.jsonToToonService.buildReferenceContext(
+            referenceDesign,
+            iconNames.length > 0 ? iconNames : undefined
+        );
+        console.log(`📊 Reference context: ${JSON.stringify(referenceDesign).length} → ${referenceContext.length} chars`);
 
         const validHistory = Array.isArray(history) ? history : [];
 
-        // AI only receives icon names as a hint — no geometry, no IDs
         const result = await this.aiDesignService.generateDesignBasedOnExisting(
             message,
             validHistory,
-            toonFormat,
+            referenceContext,
             modelId,
-            iconNames.length > 0 ? iconNames : undefined
         );
 
         // Post-process: replace any named icon placeholders with the original nodes
         if (iconMap.size > 0 && result.design) {
-            result.design = IconPostProcessorService.restore(result.design, iconMap);
+            result.design = this.iconPostProcessorService.restore(result.design, iconMap);
         }
 
         return result;

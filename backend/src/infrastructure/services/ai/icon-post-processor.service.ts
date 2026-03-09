@@ -11,21 +11,25 @@ import { IconExtractorService } from './icon-extractor.service';
  */
 export class IconPostProcessorService {
 
-    static restore(generatedDesign: any, iconMap: Map<string, any>): any {
+    constructor(
+        private iconExtractorService: IconExtractorService
+    ) { }
+
+    restore(generatedDesign: any, iconMap: Map<string, any>): any {
         if (!iconMap.size || !generatedDesign) return generatedDesign;
 
         if (Array.isArray(generatedDesign)) {
-            return generatedDesign.map(node => IconPostProcessorService.processNode(node, iconMap));
+            return generatedDesign.map(node => this.processNode(node, iconMap));
         }
-        return IconPostProcessorService.processNode(generatedDesign, iconMap);
+        return this.processNode(generatedDesign, iconMap);
     }
 
-    private static processNode(node: any, iconMap: Map<string, any>): any {
+    private processNode(node: any, iconMap: Map<string, any>): any {
         if (!node || typeof node !== 'object') return node;
 
         // Only attempt replacement on plausible icon nodes
-        if (IconPostProcessorService.isIconCandidate(node)) {
-            const original = IconPostProcessorService.findMatch(node.name, iconMap);
+        if (this.isIconCandidate(node)) {
+            const original = this.findMatch(node.name, iconMap);
             if (original) {
                 // Replace with original icon; keep position from generated layout
                 return {
@@ -42,7 +46,7 @@ export class IconPostProcessorService {
             return {
                 ...node,
                 children: node.children.map(child =>
-                    IconPostProcessorService.processNode(child, iconMap)
+                    this.processNode(child, iconMap)
                 ),
             };
         }
@@ -55,10 +59,10 @@ export class IconPostProcessorService {
      * Tries exact normalized match first, then checks if the normalized node name
      * starts with a known icon key (handles AI adding "Icon" or "Logo" suffixes).
      */
-    private static findMatch(name: string, iconMap: Map<string, any>): any | null {
+    private findMatch(name: string, iconMap: Map<string, any>): any | null {
         if (!name) return null;
 
-        const normalized = IconExtractorService.normalizeName(name);
+        const normalized = this.iconExtractorService.normalizeName(name);
 
         // 1. Exact normalized match
         if (iconMap.has(normalized)) return iconMap.get(normalized)!;
@@ -81,7 +85,7 @@ export class IconPostProcessorService {
      * - RECTANGLE with IMAGE fill (Iconify-generated icon)
      * - Small FRAME/GROUP nodes with icon-like names
      */
-    private static isIconCandidate(node: any): boolean {
+    private isIconCandidate(node: any): boolean {
         if (node.type === 'INSTANCE') return true;
         if (node.type === 'VECTOR') return true;
 

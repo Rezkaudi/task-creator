@@ -152,7 +152,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         history: ConversationMessage[],
         referenceToon: string,
         modelId: string,
-        iconNames?: string[]
     ): Promise<DesignGenerationResult> {
         const aiModel = getModelById(modelId);
         const openai = this.clientFactory.createClient(aiModel);
@@ -163,7 +162,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             userMessage,
             history,
             referenceToon,
-            iconNames
         );
 
         console.log('--- 2. Sending messages to AI  ---');

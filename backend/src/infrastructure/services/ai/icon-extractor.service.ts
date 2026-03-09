@@ -13,11 +13,11 @@ export class IconExtractorService {
      * The full node (including all children and vector data) is preserved
      * in memory for use by the post-processor.
      */
-    static buildIconMap(referenceJson: any): Map<string, any> {
+    buildIconMap(referenceJson: any): Map<string, any> {
         const map = new Map<string, any>();
         const nodes = Array.isArray(referenceJson) ? referenceJson : [referenceJson];
         for (const node of nodes) {
-            IconExtractorService.walk(node, map);
+            this.walk(node, map);
         }
         return map;
     }
@@ -26,7 +26,7 @@ export class IconExtractorService {
      * Returns a list of icon names from the map for inclusion in the AI prompt.
      * Only names are sent to the AI — no geometry, no IDs.
      */
-    static extractIconNames(iconMap: Map<string, any>): string[] {
+    extractIconNames(iconMap: Map<string, any>): string[] {
         return Array.from(iconMap.keys());
     }
 
@@ -37,7 +37,7 @@ export class IconExtractorService {
      * - Removes common suffixes: "-icon", " icon", " logo"
      * - Strips all separators (spaces, dashes, underscores, slashes)
      */
-    static normalizeName(name: string): string {
+    normalizeName(name: string): string {
         return (name || '')
             .toLowerCase()
             .replace(/^(icon[s]?[\s/\-_]+|logo[s]?[\s/\-_]+|ic[\s/\-_]+)/i, '')
@@ -46,12 +46,12 @@ export class IconExtractorService {
             .trim();
     }
 
-    private static walk(node: any, map: Map<string, any>): void {
+    private walk(node: any, map: Map<string, any>): void {
         if (!node || typeof node !== 'object') return;
         if (map.size >= MAX_ICONS) return;
 
-        if (IconExtractorService.isIconNode(node)) {
-            const key = IconExtractorService.normalizeName(node.name);
+        if (this.isIconNode(node)) {
+            const key = this.normalizeName(node.name);
             if (key && !map.has(key)) {
                 map.set(key, node);
             }
@@ -61,12 +61,12 @@ export class IconExtractorService {
 
         if (Array.isArray(node.children)) {
             for (const child of node.children) {
-                IconExtractorService.walk(child, map);
+                this.walk(child, map);
             }
         }
     }
 
-    private static isIconNode(node: any): boolean {
+    private isIconNode(node: any): boolean {
         const name = (node.name || '').toLowerCase();
 
         // Name-based: contains icon/logo keywords
