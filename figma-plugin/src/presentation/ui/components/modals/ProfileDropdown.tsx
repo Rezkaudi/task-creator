@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../../utils/formatters';
 import type { User, Subscription, SelectionInfo } from '../../types';
+import { Contact, DollarSign, Download, GlobeLock, Info, MessageCircle } from 'lucide-react';
 
 interface ProfileDropdownProps {
     user: User;
@@ -78,40 +79,34 @@ export function ProfileDropdown({
 
             {/* Actions */}
             <button className="profile-dd-item accent" onClick={() => { onClose(); onBuyPoints(); }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M7 1.5v11M10.5 4.5H5.25a1.75 1.75 0 000 3.5h3.5a1.75 1.75 0 010 3.5H3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <DollarSign size={16} />
                 Buy Credits / Plan
             </button>
 
             <button className="profile-dd-item" onClick={() => { onClose(); onImportExport(); }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M9.5 5.5L7 3 4.5 5.5M7 3v7M2.5 11h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <Download size={16} />
                 Import / Export
             </button>
 
             <div className="profile-dd-divider" />
 
+            <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://www.figma.com/community/plugin/1607375783904843279', '_blank', 'noopener,noreferrer'); }}>
+                <MessageCircle size={16} />
+                Leave a Comment
+            </button>
+
             <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://rio-app.design/#about', '_blank', 'noopener,noreferrer'); }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.4" />
-                    <path d="M7 4.5v3l1.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
+                <Info size={16} />
                 About Us
             </button>
 
             <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://rio-app.design/privacy-policy', '_blank', 'noopener,noreferrer'); }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M7 1.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM7 5v4M7 9.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
+                <GlobeLock size={16} />
                 Privacy Policy
             </button>
 
             <button className="profile-dd-item" onClick={() => { onClose(); window.open(`${API_BASE_URL}/contact`, '_blank', 'noopener,noreferrer'); }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M2.5 4.5h9M2.5 9.5h9M1.5 7h11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
+                <Contact size={16} />
                 Contact Us
             </button>
         </div>
