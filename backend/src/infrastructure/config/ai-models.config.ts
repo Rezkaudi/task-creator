@@ -12,6 +12,7 @@ export interface AIModelConfig {
   inputPricePerMillion: number;
   outputPricePerMillion: number;
   isFree: boolean;
+  supportsAgenticWorkflow: boolean;
 }
 
 export const DEFAULT_MODEL_ID = 'devstral-latest'; // default model
@@ -28,7 +29,8 @@ export const AI_MODELS: AIModelConfig[] = [
     baseURL: "https://api.mistral.ai/v1",
     inputPricePerMillion: 0.40,
     outputPricePerMillion: 2.00,
-    isFree: true
+    isFree: true,
+    supportsAgenticWorkflow: true,
   },
   {
     id: 'gemini-2.5-flash',
@@ -40,7 +42,8 @@ export const AI_MODELS: AIModelConfig[] = [
     baseURL: "https://generativelanguage.googleapis.com/v1beta",
     inputPricePerMillion: 0.30,
     outputPricePerMillion: 2.50,
-    isFree: true
+    isFree: true,
+    supportsAgenticWorkflow: true,
   },
   {
     id: 'claude-opus-4.6',
@@ -53,6 +56,7 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 5.00,
     outputPricePerMillion: 25.00,
     isFree: true,
+    supportsAgenticWorkflow: true,
   },
   {
     id: 'gpt-5.2',
@@ -65,6 +69,7 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 1.75,
     outputPricePerMillion: 14.00,
     isFree: true,
+    supportsAgenticWorkflow: true,
   },
   {
     id: 'gemini-3.1-pro',
@@ -77,6 +82,7 @@ export const AI_MODELS: AIModelConfig[] = [
     inputPricePerMillion: 2.00,
     outputPricePerMillion: 12.00,
     isFree: true,
+    supportsAgenticWorkflow: true,
   }
 ];
 export function getModels() {
@@ -86,6 +92,7 @@ export function getModels() {
     description: model.description,
     icon: model.icon,
     isFree: model.isFree,
+    supportsAgenticWorkflow: model.supportsAgenticWorkflow,
   }));
 }
 

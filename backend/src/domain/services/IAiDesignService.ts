@@ -13,6 +13,7 @@ export interface DesignGenerationResult {
     design: any;
     previewHtml?: string | null;
     cost: CostBreakdown;
+    agenticIterations?: number;
 }
 
 export interface IAiDesignService {

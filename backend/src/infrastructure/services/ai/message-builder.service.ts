@@ -11,7 +11,8 @@ import {
     createDesignPrompt,
     editDesignPrompt,
     basedOnExistingPrompt,
-    prototypeConnectionsPrompt
+    prototypeConnectionsPrompt,
+    agenticReviewPrompt,
 } from '../../config/prompt.config';
 
 
@@ -26,7 +27,7 @@ export class MessageBuilderService {
         currentMessage: string,
         history: ConversationMessage[],
         designSystemId: string
-    ): AiMessage[] {
+    ): { messages: AiMessage[]; systemPrompt: string } {
         const designSystem = getDesignSystemById(designSystemId);
         const systemPrompt = [
             createDesignPrompt,
@@ -53,7 +54,25 @@ export class MessageBuilderService {
             content: currentMessage
         });
 
-        return messages;
+        return { messages, systemPrompt };
+    }
+
+    buildAgenticReviewMessages(
+        originalUserRequest: string,
+        generatedDraft: any,
+        originalSystemPrompt: string
+    ): AiMessage[] {
+        const systemPrompt = [agenticReviewPrompt, originalSystemPrompt].join('\n\n');
+        return [
+            { role: 'system', content: systemPrompt },
+            {
+                role: 'user',
+                content: [
+                    `ORIGINAL USER REQUEST:\n${originalUserRequest}`,
+                    `GENERATED DESIGN DRAFT:\n\`\`\`json\n${JSON.stringify(generatedDraft)}\n\`\`\``,
+                ].join('\n\n'),
+            },
+        ];
     }
 
     buildEditMessages(

@@ -53,3 +53,8 @@ export const prototypeConnectionsPrompt = fs.readFileSync(
     path.join(__dirname, '../../../public/prompt/design/actions/prototype-connections-prompt.txt'),
     'utf-8'
 ).trim();
+
+export const agenticReviewPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/design/actions/agentic-review-prompt.txt'),
+    'utf-8'
+).trim();

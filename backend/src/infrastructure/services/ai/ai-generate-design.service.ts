@@ -52,7 +52,7 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         console.log('--- 1. Prepare messages  ---');
 
-        const messages = this.messageBuilder.buildConversationMessages(
+        const { messages, systemPrompt } = this.messageBuilder.buildConversationMessages(
             userMessage,
             history,
             designSystemId
@@ -62,30 +62,41 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         try {
 
-            const { responseText, usage } = await this.executeWithToolCalls(
-                openai,
-                aiModel,
-                messages
-            );
+            const pass1 = await this.executeWithToolCalls(openai, aiModel, messages);
 
             console.log('--- 3. Response parsed  ---');
 
-            const result = this.responseParser.parseAIResponse(responseText);
+            let result = this.responseParser.parseAIResponse(pass1.responseText);
+            let totalUsage = pass1.usage;
+            let agenticIterations = 0;
+
+            if (aiModel.supportsAgenticWorkflow) {
+                console.log('--- Agentic review pass ---');
+                const pass2 = await this.runAgenticReview(openai, aiModel, userMessage, result.data, systemPrompt);
+                result = this.responseParser.parseAIResponse(pass2.responseText);
+                totalUsage = {
+                    prompt_tokens: (totalUsage?.prompt_tokens ?? 0) + (pass2.usage?.prompt_tokens ?? 0),
+                    completion_tokens: (totalUsage?.completion_tokens ?? 0) + (pass2.usage?.completion_tokens ?? 0),
+                    total_tokens: (totalUsage?.total_tokens ?? 0) + (pass2.usage?.total_tokens ?? 0),
+                };
+                agenticIterations = 1;
+            }
 
             console.log('--- 4. Calculating cost  ---');
 
             const costBreakdown = this.calculateCost(
                 aiModel,
-                usage,
+                totalUsage,
                 JSON.stringify(messages),
-                responseText
+                pass1.responseText
             );
 
             return {
                 message: result.message,
                 design: result.data,
                 previewHtml: null,
-                cost: costBreakdown
+                cost: costBreakdown,
+                agenticIterations,
             };
 
         } catch (error) {
@@ -247,6 +258,21 @@ export class AiGenerateDesignService implements IAiDesignService {
         } catch (error) {
             this.handleError(error, 'generateConnections');
         }
+    }
+
+    private async runAgenticReview(
+        openai: OpenAI,
+        aiModel: AIModelConfig,
+        originalUserRequest: string,
+        draft: any,
+        originalSystemPrompt: string
+    ): Promise<CompletionResult> {
+        const reviewMessages = this.messageBuilder.buildAgenticReviewMessages(
+            originalUserRequest,
+            draft,
+            originalSystemPrompt
+        );
+        return this.executeWithToolCalls(openai, aiModel, reviewMessages);
     }
 
     private async createCompletionWithRetry(
