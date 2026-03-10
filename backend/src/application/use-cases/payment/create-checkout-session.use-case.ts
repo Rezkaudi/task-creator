@@ -45,7 +45,7 @@ export class CreateCheckoutSessionUseCase {
             stripeSessionId: sessionId,
             packageName: selectedPackage.id,
             pointsPurchased: selectedPackage.points,
-            amountPaid: selectedPackage.priceCents,
+            amountPaid: selectedPackage.priceUsd,
             currency: "usd",
             status: "pending",
         });

@@ -85,6 +85,9 @@ export class StripeService {
                 packageName: input.packageName,
                 pointsPurchased: String(input.pointsPurchased),
             },
+            payment_intent_data: {
+                description: input.packageName,
+            },
             success_url: ENV_CONFIG.REDIRECT_URL,
             cancel_url: ENV_CONFIG.REDIRECT_URL,
         });

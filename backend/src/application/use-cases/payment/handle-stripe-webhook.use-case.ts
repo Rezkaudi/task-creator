@@ -56,7 +56,7 @@ export class HandleStripeWebhookUseCase {
                 stripeSessionId: session.id,
                 packageName: packageId,
                 pointsPurchased: packageConfig.points,
-                amountPaid: packageConfig.priceCents,
+                amountPaid: packageConfig.priceUsd,
                 currency: (session.currency || "usd").toLowerCase(),
                 status: "pending",
             });
