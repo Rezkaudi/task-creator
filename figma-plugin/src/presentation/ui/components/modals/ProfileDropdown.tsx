@@ -105,7 +105,7 @@ export function ProfileDropdown({
                 Privacy Policy
             </button>
 
-            <button className="profile-dd-item" onClick={() => { onClose(); window.open(`${API_BASE_URL}/contact`, '_blank', 'noopener,noreferrer'); }}>
+            <button className="profile-dd-item" onClick={() => { onClose(); window.open('https://rio-app.design/#contact', '_blank', 'noopener,noreferrer'); }}>
                 <Contact size={16} />
                 Contact Us
             </button>
