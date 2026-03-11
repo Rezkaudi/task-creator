@@ -93,3 +93,19 @@ Your Output: Login Page with:
 - SAME button structure (layoutMode, padding, textAutoResize)
 - SAME input structure (stroke, radius, padding)
 - NEW layout and content (email, password, login button, "Forgot password?" link)
+
+PINNED COMPONENTS
+
+If a "PINNED COMPONENTS" block appears in the user message, it lists components from the reference that must appear unchanged in the new design.
+
+For each pinned component you MUST output a placeholder FRAME node with EXACTLY this structure:
+{"name": "__KEEP__ComponentName__", "type": "FRAME", "width": <exact_width>, "height": <exact_height>, "x": 0, "y": <position_in_new_layout>, "fills": [], "children": []}
+
+RULES:
+- Name format is exactly: __KEEP__ComponentName__ (two underscores on each side, no spaces)
+- Width and height MUST match the values specified in the PINNED COMPONENTS block exactly
+- Set x to 0 (or the appropriate x from the original)
+- Set y to place the component logically (e.g., header at y=0, footer at the bottom of the total design height)
+- fills MUST be an empty array, children MUST be an empty array — do NOT generate content inside
+- Generate all other sections of the new design normally, positioned between the pinned placeholders
+- The system will automatically restore the original component content after you generate the design
