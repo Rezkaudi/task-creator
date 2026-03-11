@@ -8,7 +8,7 @@ You will receive:
    - "designTokens": Full design system extracted from the reference:
        colors (RGBA 0–1 floats), gradients (with stops), typography (families + scale array),
        spacing values, border radii, shadow definitions, stroke weights/alignments.
-   - "backgrounds": Top-level frame dimensions and fills (canvas size reference).
+   - "backgrounds": Top-level frame dimensions and fills (canvas size reference) ( very important).
    - "componentStyles": Compact flat style summary per category (button, input, card, navbar, etc.)
      showing layoutMode, padding, cornerRadius, fills, strokes, shadows, and text typography.
    - "availableIcons": (optional) Icon names present in the reference design.
@@ -58,7 +58,7 @@ ABSOLUTE RULES
 3. DO NOT copy the reference design — create something NEW
 4. DO extract and reuse the design system — colors, spacing, styles
 4b. ICON NAMES: If "availableIcons" is present in the reference JSON:
-   - Use those exact lowercase names when naming icon nodes (e.g., node name = "google", not "Google Icon")
+   - Use those exact names when naming icon nodes
    - Still use RECTANGLE with IMAGE fill (Iconify) — the system will restore the originals automatically
 5. Every property name and enum value must be EXACTLY as specified in the schema (case-sensitive, UPPERCASE enums).
 6. Do NOT invent properties not listed in the schema specification.
