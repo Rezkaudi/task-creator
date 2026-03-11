@@ -152,33 +152,33 @@ export class JsonToToonService {
   // Shared helpers
   // ---------------------------------------------------------------------------
 
-  private static readonly STRIP_KEYS = new Set([
+  private readonly STRIP_KEYS = new Set([
     'x', 'y', 'reactions', 'exportSettings', 'constraints', 'blendMode',
     'visible', 'locked', 'clipsContent', 'imageData', 'imageTransform',
     'filters', 'scalingFactor', 'vectorPaths', 'textSegments',
     'showShadowBehindNode', 'preserveRatio',
   ]);
 
-  private static readonly PATTERNS: Record<string, string[]> = {
-    button:   ['button', 'btn', 'cta'],
-    input:    ['input', 'field', 'textfield', 'search'],
-    card:     ['card', 'container', 'panel', 'box'],
-    heading:  ['header', 'heading', 'title', 'hero'],
-    body:     ['body', 'subtitle', 'label', 'caption', 'paragraph'],
-    icon:     ['icon'],
-    divider:  ['divider', 'separator'],
-    navbar:   ['navbar', 'navigation', 'nav', 'topbar', 'appbar'],
-    footer:   ['footer', 'bottombar', 'bottom-bar'],
-    badge:    ['badge', 'tag', 'chip', 'pill'],
-    avatar:   ['avatar', 'profile'],
-    list:     ['list', 'listitem', 'list-item', 'row'],
-    modal:    ['modal', 'dialog', 'overlay', 'popup', 'drawer'],
-    toggle:   ['toggle', 'switch', 'checkbox', 'radio'],
+  private readonly PATTERNS: Record<string, string[]> = {
+    button: ['button', 'btn', 'cta'],
+    input: ['input', 'field', 'textfield', 'search'],
+    card: ['card', 'container', 'panel', 'box'],
+    heading: ['header', 'heading', 'title', 'hero'],
+    body: ['body', 'subtitle', 'label', 'caption', 'paragraph'],
+    icon: ['icon'],
+    divider: ['divider', 'separator'],
+    navbar: ['navbar', 'navigation', 'nav', 'topbar', 'appbar'],
+    footer: ['footer', 'bottombar', 'bottom-bar'],
+    badge: ['badge', 'tag', 'chip', 'pill'],
+    avatar: ['avatar', 'profile'],
+    list: ['list', 'listitem', 'list-item', 'row'],
+    modal: ['modal', 'dialog', 'overlay', 'popup', 'drawer'],
+    toggle: ['toggle', 'switch', 'checkbox', 'radio'],
   };
 
   private matchPattern(name: string): string | null {
     const lower = (name || '').toLowerCase();
-    for (const [key, keywords] of Object.entries(JsonToToonService.PATTERNS)) {
+    for (const [key, keywords] of Object.entries(this.PATTERNS)) {
       if (keywords.some(k => lower.includes(k))) return key;
     }
     return null;
@@ -188,7 +188,7 @@ export class JsonToToonService {
     const result: any = {};
 
     for (const [key, value] of Object.entries(node)) {
-      if (JsonToToonService.STRIP_KEYS.has(key)) continue;
+      if (this.STRIP_KEYS.has(key)) continue;
       if (value === null || value === undefined) continue;
       if (Array.isArray(value) && value.length === 0) continue;
 
@@ -340,13 +340,13 @@ export class JsonToToonService {
     const nodes = Array.isArray(data) ? data : [data];
 
     // Token accumulators
-    const colorSet    = new Set<string>();
+    const colorSet = new Set<string>();
     const gradientSet = new Set<string>();
-    const fontSet     = new Set<string>();
-    const spacingSet  = new Set<number>();
-    const radiusSet   = new Set<number>();
-    const shadowSet   = new Set<string>();
-    const strokeSet   = new Set<string>();
+    const fontSet = new Set<string>();
+    const spacingSet = new Set<number>();
+    const radiusSet = new Set<number>();
+    const shadowSet = new Set<string>();
+    const strokeSet = new Set<string>();
 
     // Compact component styles: first match per category
     const componentStyles: Record<string, any> = {};
@@ -450,20 +450,20 @@ export class JsonToToonService {
     }
 
     const parsedFonts = Array.from(fontSet).map(s => JSON.parse(s));
-    const families    = [...new Set(parsedFonts.map((f: any) => f.family))];
+    const families = [...new Set(parsedFonts.map((f: any) => f.family))];
 
     const output: any = {
       designTokens: {
-        colors:     Array.from(colorSet),
-        gradients:  Array.from(gradientSet).map(s => JSON.parse(s)),
+        colors: Array.from(colorSet),
+        gradients: Array.from(gradientSet).map(s => JSON.parse(s)),
         typography: {
           families,
           scale: parsedFonts.sort((a: any, b: any) => a.size - b.size),
         },
-        spacing:    Array.from(spacingSet).sort((a, b) => a - b),
-        radii:      Array.from(radiusSet).sort((a, b) => a - b),
-        shadows:    Array.from(shadowSet).map(s => JSON.parse(s)),
-        strokes:    Array.from(strokeSet).map(s => JSON.parse(s)),
+        spacing: Array.from(spacingSet).sort((a, b) => a - b),
+        radii: Array.from(radiusSet).sort((a, b) => a - b),
+        shadows: Array.from(shadowSet).map(s => JSON.parse(s)),
+        strokes: Array.from(strokeSet).map(s => JSON.parse(s)),
       },
       backgrounds,
       componentStyles,

@@ -4,7 +4,7 @@
  * The AI only receives the icon names, and a post-processor swaps them in after generation.
  */
 
-const MAX_ICONS = 30;
+const MAX_ICONS = 50;
 
 export class IconExtractorService {
 
@@ -39,11 +39,11 @@ export class IconExtractorService {
      */
     normalizeName(name: string): string {
         return (name || '')
-            .toLowerCase()
-            .replace(/^(icon[s]?[\s/\-_]+|logo[s]?[\s/\-_]+|ic[\s/\-_]+)/i, '')
-            .replace(/([\s/\-_]+icon[s]?$|[\s/\-_]+logo[s]?$)/i, '')
-            .replace(/[\s\-_/]+/g, '')
-            .trim();
+        // .toLowerCase()
+        // .replace(/^(icon[s]?[\s/\-_]+|logo[s]?[\s/\-_]+|ic[\s/\-_]+)/i, '')
+        // .replace(/([\s/\-_]+icon[s]?$|[\s/\-_]+logo[s]?$)/i, '')
+        // .replace(/[\s\-_/]+/g, '')
+        // .trim();
     }
 
     private walk(node: any, map: Map<string, any>): void {
@@ -67,17 +67,42 @@ export class IconExtractorService {
     }
 
     private isIconNode(node: any): boolean {
-        const name = (node.name || '').toLowerCase();
+        const name = (node.name || '');
+        const w: number = node.width ?? Infinity;
+        const h: number = node.height ?? Infinity;
+        const isSmall = w > 0 && h > 0 && w <= 64 && h <= 64;
 
-        // Name-based: contains icon/logo keywords
-        if (/icon|logo|arrow|chevron|brand/.test(name)) return true;
+        // 1. Name keywords
+        if (/icon|logo|arrow|chevron|brand|glyph|symbol|badge/.test(name)) return true;
 
-        // INSTANCE whose children are predominantly VECTORs (SVG component pattern)
-        if (node.type === 'INSTANCE' && Array.isArray(node.children) && node.children.length > 0) {
-            const vectorCount = node.children.filter((c: any) => c.type === 'VECTOR').length;
-            if (vectorCount / node.children.length >= 0.7) return true;
+        // 2. Standalone vector path or boolean operation on paths → always icon content
+        if (node.type === 'VECTOR' || node.type === 'BOOLEAN_OPERATION') return true;
+
+        // 3. Small node with IMAGE fill (bitmap or embedded SVG icon)
+        if (isSmall && Array.isArray(node.fills) && node.fills.some((f: any) => f.type === 'IMAGE')) return true;
+
+        // 4. Small container with predominantly vector descendants (any container type)
+        const containerTypes = ['INSTANCE', 'FRAME', 'GROUP', 'COMPONENT', 'COMPONENT_SET'];
+        if (isSmall && containerTypes.includes(node.type) && Array.isArray(node.children) && node.children.length > 0) {
+            const vectorCount = this.countVectorDescendants(node.children);
+            if (vectorCount / node.children.length >= 0.5) return true;
         }
 
+        // 5. Small INSTANCE — trust size alone (component instances that fit an icon footprint)
+        if (node.type === 'INSTANCE' && isSmall) return true;
+
         return false;
+    }
+
+    private countVectorDescendants(children: any[]): number {
+        let count = 0;
+        for (const child of children) {
+            if (child.type === 'VECTOR' || child.type === 'BOOLEAN_OPERATION') {
+                count++;
+            } else if (Array.isArray(child.children)) {
+                count += this.countVectorDescendants(child.children);
+            }
+        }
+        return count;
     }
 }

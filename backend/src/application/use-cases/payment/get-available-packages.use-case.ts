@@ -7,7 +7,6 @@ export class GetAvailablePackagesUseCase {
             name: pkg.name,
             points: pkg.points,
             priceUsd: pkg.priceUsd,
-            priceCents: pkg.priceCents,
         }));
     }
 }

@@ -70,11 +70,6 @@ export class Server {
       res.sendFile(join(pagesDir, 'home.html'));
     });
 
-    // Contact redirect
-    this.app.get('/contact', (_, res) => {
-      res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Contact</title></head><body><script>window.location.href='mailto:riodesigns2026@gmail.com';</script><p>Opening mail client... <a href="mailto:riodesigns2026@gmail.com">riodesigns2026@gmail.com</a></p></body></html>`);
-    });
-
     // Routes
     this.app.use('/api', (req, res, next) => {
       this.container.authMiddleware.requireAuthForApi(req, res, next);
