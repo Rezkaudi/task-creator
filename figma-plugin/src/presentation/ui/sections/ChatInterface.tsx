@@ -55,6 +55,10 @@ interface ChatInterfaceProps {
     onToggleFramePicker?: () => void;
     framePickerOpen?: boolean;
     systemMessages?: SystemMessage[];
+    pinnedComponentNames?: Set<string>;
+    isNodeJsonLoading?: boolean;
+    pinnedPickerOpen?: boolean;
+    onTogglePinnedPicker?: () => void;
 }
 
 function ChatInterface({
@@ -68,6 +72,10 @@ function ChatInterface({
     onToggleFramePicker,
     framePickerOpen = false,
     systemMessages = [],
+    pinnedComponentNames,
+    isNodeJsonLoading = false,
+    pinnedPickerOpen = false,
+    onTogglePinnedPicker,
 }: ChatInterfaceProps): React.JSX.Element {
     const { state, dispatch } = useAppContext();
     const { currentModelId, availableModels, currentDesignSystemId, availableDesignSystems, hasPurchased } = state;
@@ -231,13 +239,16 @@ function ChatInterface({
 
         if (isBasedOnExistingMode) {
             const referenceFrame = selectedFrames[0];
-            addMessage('assistant', `Creating new design based on "${referenceFrame.name}" style...`, { isLoading: true });
+            const pinned = pinnedComponentNames && pinnedComponentNames.size > 0 ? Array.from(pinnedComponentNames) : [];
+            const pinnedNote = pinned.length > 0 ? ` (keeping ${pinned.join(', ')})` : '';
+            addMessage('assistant', `Creating new design based on "${referenceFrame.name}" style${pinnedNote}...`, { isLoading: true });
             sendMessage('ai-generate-based-on-existing', {
                 message,
                 history: [],
                 referenceId: referenceFrame.id,
                 ...(referenceFrame.designJson ? { referenceJson: referenceFrame.designJson as Record<string, unknown> } : {}),
-                model: currentModelId
+                model: currentModelId,
+                pinnedComponentNames: pinned,
             });
         } else if (currentMode === 'edit') {
             const attachedFrame = selectedFrames[0];
@@ -573,6 +584,29 @@ function ChatInterface({
                         >
                             📎
                         </button>
+                        {isBasedOnExistingMode && (
+                            <button
+                                className={`attach-btn ${pinnedPickerOpen ? 'active' : ''}`}
+                                onClick={onTogglePinnedPicker}
+                                title="Keep components from reference"
+                                disabled={isNodeJsonLoading}
+                                style={{ position: 'relative' }}
+                            >
+                                {isNodeJsonLoading ? (
+                                    <div
+                                        className="loading-spinner"
+                                        style={{ width: 12, height: 12, border: '2px solid #e5e7eb', borderTopColor: '#6366f1', margin: 0 }}
+                                    />
+                                ) : (
+                                    <>
+                                        📌
+                                        {(pinnedComponentNames?.size ?? 0) > 0 && (
+                                            <span className="pinned-trigger-badge">{pinnedComponentNames!.size}</span>
+                                        )}
+                                    </>
+                                )}
+                            </button>
+                        )}
                         <textarea
                             className="input-field"
                             ref={inputRef}

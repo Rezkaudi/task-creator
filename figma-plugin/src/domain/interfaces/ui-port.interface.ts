@@ -82,6 +82,7 @@ export type PluginMessage =
   }
   | { type: 'request-layer-selection-for-edit' }
   | { type: 'request-layer-selection-for-reference' }
+  | { type: 'request-node-json-by-id'; nodeId: string; nodeName?: string }
   | {
     type: 'ai-edit-design';
     message: string;

@@ -34,7 +34,7 @@ export default function DesignPreview({ designData, previewHtml, isImporting, on
                     disabled={!designData}
                     onClick={onSave}
                 >
-                    💾 Save
+                    Save
                 </button>
             </div>
         </div>

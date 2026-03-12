@@ -17,6 +17,8 @@ import { JwtService } from "../../services/auth/jwt.service";
 import { S3Service } from "../../services/storage/s3.service";
 import { IconExtractorService } from "../../services/ai/icon-extractor.service";
 import { IconPostProcessorService } from "../../services/ai/icon-post-processor.service";
+import { PinnedComponentExtractorService } from "../../services/ai/pinned-component-extractor.service";
+import { PinnedComponentPostProcessorService } from "../../services/ai/pinned-component-post-processor.service";
 
 
 // Repositories
@@ -109,6 +111,8 @@ export const setupDependencies = () => {
     const s3Service = new S3Service();
     const iconExtractorService = new IconExtractorService();
     const iconPostProcessorService = new IconPostProcessorService(iconExtractorService);
+    const pinnedComponentExtractorService = new PinnedComponentExtractorService();
+    const pinnedComponentPostProcessorService = new PinnedComponentPostProcessorService();
 
     const defaultAiDesignService = new AiGenerateDesignService(
         aiCostCalculatorService,
@@ -124,7 +128,9 @@ export const setupDependencies = () => {
         defaultAiDesignService,
         jsonToToonService,
         iconExtractorService,
-        iconPostProcessorService
+        iconPostProcessorService,
+        pinnedComponentExtractorService,
+        pinnedComponentPostProcessorService
     );
 
     const generatePrototypeConnectionsUseCase = new GeneratePrototypeConnectionsUseCase(

@@ -95,6 +95,7 @@ export class MessageBuilderService {
         currentMessage: string,
         history: ConversationMessage[],
         referenceToon: string,
+        pinnedInstructions?: string,
     ): AiMessage[] {
         const systemPrompt = [
             basedOnExistingPrompt,
@@ -114,7 +115,8 @@ export class MessageBuilderService {
         //         content: msg.content
         //     });
         // }
-        const userContent = `REFERENCE DESIGN:\n\`\`\`json\n${referenceToon}\n\`\`\`\n\nUSER REQUEST: ${currentMessage}`;
+        const pinnedBlock = pinnedInstructions ? `\n\n${pinnedInstructions}` : '';
+        const userContent = `REFERENCE DESIGN:\n\`\`\`json\n${referenceToon}\n\`\`\`${pinnedBlock}\n\nUSER REQUEST: ${currentMessage}`;
 
         messages.push({ role: 'user', content: userContent });
 

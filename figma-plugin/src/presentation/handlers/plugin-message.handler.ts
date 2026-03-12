@@ -73,6 +73,19 @@ export class PluginMessageHandler {
         case 'request-layer-selection-for-reference':
           await this.handleRequestLayerSelectionForReference();
           break;
+        case 'request-node-json-by-id':
+          if (message.nodeId) {
+            const nodeJson = await this.exportNodeById(message.nodeId as string);
+            if (nodeJson) {
+              this.uiPort.postMessage({
+                type: 'layer-selected-for-reference',
+                layerId: message.nodeId,
+                layerName: message.nodeName ?? '',
+                layerJson: nodeJson,
+              });
+            }
+          }
+          break;
         case 'ai-edit-design':
           if (message.message !== undefined) {
             let editLayerJson = message.layerJson;
@@ -98,7 +111,8 @@ export class PluginMessageHandler {
                 message.message,
                 message.history,
                 refJson,
-                message.model
+                message.model,
+                (message as any).pinnedComponentNames as string[] | undefined
               );
             }
           }
@@ -599,7 +613,8 @@ export class PluginMessageHandler {
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
     referenceJson: any,
-    model?: string
+    model?: string,
+    pinnedComponentNames?: string[]
   ): Promise<void> {
     try {
       let conversationHistory: Array<{ role: string; content: string }> = [];
@@ -625,7 +640,8 @@ export class PluginMessageHandler {
           message: userMessage,
           history: conversationHistory,
           referenceDesign: cleanedDesign,
-          modelId: selectedModel
+          modelId: selectedModel,
+          pinnedComponentNames: pinnedComponentNames ?? []
         })
       });
 

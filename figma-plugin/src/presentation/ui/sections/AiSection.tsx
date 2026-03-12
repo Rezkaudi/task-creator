@@ -5,6 +5,7 @@ import { reportErrorAsync } from '../utils';
 import ChatInterface from './ChatInterface.tsx';
 import PrototypePanel from './PrototypePanel.tsx';
 import ProjectsSection from './ProjectsSection.tsx';
+import PinnedComponentPicker from '../components/shared/PinnedComponentPicker.tsx';
 import { Frame, UIComponent, PluginMessage, SendMessageFn } from '../types/index.ts';
 import '../styles/ModeBar.css';
 import '../styles/UILibraryTab.css';
@@ -51,6 +52,9 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
     const [framesLoaded, setFramesLoaded] = useState(false);
 
     const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
+    const [pinnedComponentNames, setPinnedComponentNames] = useState<Set<string>>(new Set());
+    const [isNodeJsonLoading, setIsNodeJsonLoading] = useState(false);
+    const [pinnedPickerOpen, setPinnedPickerOpen] = useState(false);
 
     const loadFrames = useCallback(() => {
         setFramesLoading(true);
@@ -126,6 +130,40 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
 
     // Automatically use by-reference API when a frame is attached in create mode
     const isBasedOnExistingMode = currentMode === 'create' && selectedFrames.length > 0;
+
+    // Reset pinned components when the reference frame changes
+    const prevSelectedFrameIdsRef = React.useRef(selectedFrameIds);
+    React.useEffect(() => {
+        if (prevSelectedFrameIdsRef.current !== selectedFrameIds) {
+            setPinnedComponentNames(new Set());
+            setPinnedPickerOpen(false);
+            prevSelectedFrameIdsRef.current = selectedFrameIds;
+        }
+    }, [selectedFrameIds]);
+
+    const handleTogglePinComponent = useCallback((name: string) => {
+        setPinnedComponentNames(prev => {
+            const next = new Set(prev);
+            next.has(name) ? next.delete(name) : next.add(name);
+            return next;
+        });
+    }, []);
+
+    const handleTogglePinnedPicker = useCallback(() => {
+        setPinnedPickerOpen(prev => !prev);
+    }, []);
+
+    // Auto-fetch designJson for canvas-selected frames (selection-changed gives no JSON)
+    const fetchingNodeIdRef = React.useRef<string | null>(null);
+    React.useEffect(() => {
+        if (!isBasedOnExistingMode) return;
+        const ref = selectedFrames[0];
+        if (!ref || ref.designJson) return;
+        if (fetchingNodeIdRef.current === ref.id) return; // already requested
+        fetchingNodeIdRef.current = ref.id;
+        setIsNodeJsonLoading(true);
+        sendMessage('request-node-json-by-id', { nodeId: ref.id, nodeName: ref.name });
+    }, [isBasedOnExistingMode, selectedFrames, sendMessage]);
 
     const handleModeSwitch = useCallback((mode: Mode) => {
         if (mode === currentMode) return;
@@ -205,6 +243,8 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
             const layerId = msg.layerId as string;
             const layerName = msg.layerName as string;
             const layerJson = msg.layerJson;
+            setIsNodeJsonLoading(false);
+            fetchingNodeIdRef.current = null;
             setAvailableFrames(prev => {
                 if (prev.some(f => f.id === layerId)) {
                     return prev.map(f => f.id === layerId ? { ...f, designJson: layerJson } : f);
@@ -297,6 +337,10 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
                     onToggleFramePicker={toggleFramePicker}
                     framePickerOpen={framePickerOpen}
                     systemMessages={systemMessages}
+                    pinnedComponentNames={pinnedComponentNames}
+                    isNodeJsonLoading={isNodeJsonLoading}
+                    pinnedPickerOpen={pinnedPickerOpen}
+                    onTogglePinnedPicker={handleTogglePinnedPicker}
                 />
             )}
 
@@ -306,6 +350,34 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
                     onBack={handleBackFromPrototype}
                     sendMessage={sendMessage}
                 />
+            )}
+
+            {/* Pinned Component Picker Overlay */}
+            {isBasedOnExistingMode && !!selectedFrames[0]?.designJson && (
+                <div className={`frame-picker-overlay ${pinnedPickerOpen ? 'show' : ''}`}>
+                    <div className="fp-backdrop" onClick={handleTogglePinnedPicker} />
+                    <div className="fp-panel">
+                        <div className="fp-header">
+                            <div className="fp-title">
+                                <span className="fp-title-icon">📌</span>
+                                Keep components
+                                {pinnedComponentNames.size > 0 && (
+                                    <span className="pinned-picker-badge">{pinnedComponentNames.size}</span>
+                                )}
+                            </div>
+                            <div className="fp-actions">
+                                <button className="fp-close" onClick={handleTogglePinnedPicker}>✕</button>
+                            </div>
+                        </div>
+                        <div className="fp-list">
+                            <PinnedComponentPicker
+                                referenceDesignJson={selectedFrames[0].designJson}
+                                pinnedNames={pinnedComponentNames}
+                                onToggle={handleTogglePinComponent}
+                            />
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Frame Picker Overlay */}
