@@ -1,4 +1,5 @@
 // src/application/use-cases/generate-design-based-on-existing.use-case.ts
+// import fs from "fs";
 
 import { IAiDesignService, ConversationMessage, DesignGenerationResult } from "../../../domain/services/IAiDesignService";
 import { JsonToToonService } from "../../../infrastructure/services/ai/json-to-toon.service";
@@ -45,6 +46,9 @@ export class GenerateDesignBasedOnExistingUseCase {
             referenceDesign,
             iconNames.length > 0 ? iconNames : undefined
         );
+
+        // fs.writeFileSync('referenceContext.txt', referenceContext);
+
         console.log(`📊 Reference context: ${JSON.stringify(referenceDesign).length} → ${referenceContext.length} chars`);
 
         const validHistory = Array.isArray(history) ? history : [];
@@ -57,6 +61,8 @@ export class GenerateDesignBasedOnExistingUseCase {
             pinnedInstructions || undefined,
         );
 
+        // fs.writeFileSync('resultllm.json', JSON.stringify(result, null, 2));
+
         // Post-process: replace any named icon placeholders with the original nodes
         if (iconMap.size > 0 && result.design) {
             result.design = this.iconPostProcessorService.restore(result.design, iconMap);
@@ -66,6 +72,9 @@ export class GenerateDesignBasedOnExistingUseCase {
         if (pinnedMap.size > 0 && result.design) {
             result.design = this.pinnedComponentPostProcessorService.restore(result.design, pinnedMap);
         }
+
+        // fs.writeFileSync('result.json', JSON.stringify(result, null, 2));
+
 
         return result;
     }

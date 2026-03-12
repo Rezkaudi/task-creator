@@ -37,6 +37,8 @@ export class PinnedComponentPostProcessorService {
                     ...original,
                     x: node.x ?? original.x ?? 0,
                     y: node.y ?? original.y ?? 0,
+                    width: node.width ?? original.width ?? 0,
+                    height: node.height ?? original.height ?? 0,
                 };
             }
         }

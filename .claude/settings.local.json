@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(tsc --noEmit)",
-      "Bash(npx tsc --noEmit)"
-    ]
-  }
-}

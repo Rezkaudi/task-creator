@@ -24,7 +24,7 @@ YOUR TASK
    - Read "designTokens.radii" for cornerRadius values
    - Read "designTokens.shadows" for shadow definitions (type, radius, offset, spread, color)
    - Read "designTokens.strokes" for strokeWeight, strokeAlign, and dashPattern
-   - Read "backgrounds" for canvas dimensions and background fill colors
+   - Read "backgrounds" for canvas dimensions and background fill colors; if a background entry has "layoutMode", that root frame uses auto-layout — note its layoutMode, primaryAxisSizingMode, counterAxisSizingMode, itemSpacing, and padding values
    - Read "componentStyles" for how design tokens are applied per component type — each entry is a flat object with layoutMode, padding, cornerRadius, fills, strokes, shadows, and text font info
    - Read "availableIcons" (if present) for the exact icon names available from the reference
 
@@ -38,6 +38,8 @@ YOUR TASK
    - Use the SAME shadow patterns (type, radius, alpha values)
    - Follow the SAME component design patterns (button padding, input height, card structure)
    - Preserve the SAME layout behavior (layoutGrow, layoutAlign, textAutoResize)
+   - If backgrounds[i].layoutMode is set, the generated root FRAME MUST include layoutMode (and its primaryAxisSizingMode, counterAxisSizingMode, itemSpacing, padding) matching the reference root frame
+   - If backgrounds[i] does NOT have a layoutMode property, do NOT add layoutMode or any auto-layout properties (primaryAxisSizingMode, counterAxisSizingMode, primaryAxisAlignItems, counterAxisAlignItems, itemSpacing) to the generated root FRAME
 
 4. ENSURE CONSISTENCY:
    - The new design should feel like it belongs to the same project
@@ -46,7 +48,7 @@ YOUR TASK
 
 5. ENHANCE where appropriate:
    - If the reference uses only SOLID fills, consider using GRADIENT_LINEAR for hero sections or primary CTAs to add visual richness
-   - Carry over auto-layout patterns: match layoutMode, sizing modes, and spacing values
+   - Carry over auto-layout patterns from componentStyles: match layoutMode, sizing modes, and spacing values for inner components (NOT the root frame unless backgrounds specifies it)
    - Preserve layoutGrow/layoutAlign patterns for responsive behavior
    - Match text styling: textAutoResize, textCase, letterSpacing values
    - Preserve clipsContent behavior for frames
@@ -105,7 +107,14 @@ RULES:
 - Name format is exactly: __KEEP__ComponentName__ (two underscores on each side, no spaces)
 - Width and height MUST match the values specified in the PINNED COMPONENTS block exactly
 - Set x to 0 (or the appropriate x from the original)
-- Set y to place the component logically (e.g., header at y=0, footer at the bottom of the total design height)
+- Use the EXACT y values stated in the PINNED COMPONENTS block (e.g., "PLACE AT y=0", "PLACE AT y=new_total_height-326")
 - fills MUST be an empty array, children MUST be an empty array — do NOT generate content inside
 - Generate all other sections of the new design normally, positioned between the pinned placeholders
 - The system will automatically restore the original component content after you generate the design
+
+CRITICAL LAYOUT RULES (no white space, no overlaps):
+- Children of the root frame MUST stack with NO GAPS and NO OVERLAPS
+- Compute y as a cumulative sum: child[n].y = child[n-1].y + child[n-1].height
+- Example: Header(y=0,h=80) → PageBody(y=80,h=3766) → Footer(y=3846,h=326) → root height=4172
+- root_frame.height MUST equal the exact sum of all children heights
+- VERIFY before outputting: last_child.y + last_child.height == root_frame.height

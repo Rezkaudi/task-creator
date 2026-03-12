@@ -440,10 +440,18 @@ export class JsonToToonService {
     };
 
     for (const node of nodes) {
-      // Capture top-level FRAME fills as background reference
+      // Capture top-level FRAME fills and auto-layout as background reference
       if (node.type === 'FRAME') {
         const bg: any = { name: node.name, width: node.width, height: node.height };
         if (Array.isArray(node.fills) && node.fills.length > 0) bg.fills = node.fills;
+        if (node.layoutMode) bg.layoutMode = node.layoutMode;
+        if (node.primaryAxisSizingMode) bg.primaryAxisSizingMode = node.primaryAxisSizingMode;
+        if (node.counterAxisSizingMode) bg.counterAxisSizingMode = node.counterAxisSizingMode;
+        if (typeof node.itemSpacing === 'number' && node.itemSpacing > 0) bg.itemSpacing = node.itemSpacing;
+        if (typeof node.paddingTop === 'number' && node.paddingTop > 0) bg.paddingTop = node.paddingTop;
+        if (typeof node.paddingRight === 'number' && node.paddingRight > 0) bg.paddingRight = node.paddingRight;
+        if (typeof node.paddingBottom === 'number' && node.paddingBottom > 0) bg.paddingBottom = node.paddingBottom;
+        if (typeof node.paddingLeft === 'number' && node.paddingLeft > 0) bg.paddingLeft = node.paddingLeft;
         backgrounds.push(bg);
       }
       walk(node);
