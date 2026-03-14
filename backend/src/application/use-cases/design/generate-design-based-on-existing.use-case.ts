@@ -35,10 +35,15 @@ export class GenerateDesignBasedOnExistingUseCase {
             ? this.pinnedComponentExtractorService.extract(referenceDesign, pinnedComponentNames)
             : new Map<string, any>();
 
-        const pinnedInstructions = this.pinnedComponentExtractorService.buildPlaceholderInstructions(pinnedMap);
+        // Classify pinned components by position (top/bottom) and compute available space
+        const pinnedLayout = this.pinnedComponentExtractorService.classifyLayout(referenceDesign, pinnedMap);
+
+        // Build space constraint instructions (tells AI to generate for available space only)
+        const pinnedInstructions = this.pinnedComponentExtractorService.buildSpaceConstraints(pinnedLayout);
 
         if (pinnedMap.size > 0) {
             console.log(`📌 Pinned components: ${Array.from(pinnedMap.keys()).join(', ')}`);
+            console.log(`📐 Layout: top=${pinnedLayout.topReservedHeight}px, available=${pinnedLayout.availableHeight}px, bottom=${pinnedLayout.bottomReservedHeight}px`);
         }
 
         // Build rich reference context: design tokens + backgrounds + component samples + icon names
@@ -68,7 +73,12 @@ export class GenerateDesignBasedOnExistingUseCase {
             result.design = this.iconPostProcessorService.restore(result.design, iconMap);
         }
 
-        // Post-process: replace __KEEP__*__ placeholders with the original pinned nodes
+        // Post-process: deterministically inject pinned components at correct positions
+        if ((pinnedLayout.top.length > 0 || pinnedLayout.bottom.length > 0) && result.design) {
+            result.design = this.pinnedComponentPostProcessorService.inject(result.design, pinnedLayout);
+        }
+
+        // Fallback: also run legacy __KEEP__ placeholder restoration
         if (pinnedMap.size > 0 && result.design) {
             result.design = this.pinnedComponentPostProcessorService.restore(result.design, pinnedMap);
         }

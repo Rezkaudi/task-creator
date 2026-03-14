@@ -96,25 +96,21 @@ Your Output: Login Page with:
 - SAME input structure (stroke, radius, padding)
 - NEW layout and content (email, password, login button, "Forgot password?" link)
 
-PINNED COMPONENTS
+LAYOUT CONSTRAINTS (reserved regions for pinned components)
 
-If a "PINNED COMPONENTS" block appears in the user message, it lists components from the reference that must appear unchanged in the new design.
-
-For each pinned component you MUST output a placeholder FRAME node with EXACTLY this structure:
-{"name": "__KEEP__ComponentName__", "type": "FRAME", "width": <exact_width>, "height": <exact_height>, "x": 0, "y": <position_in_new_layout>, "fills": [], "children": []}
+If a "LAYOUT CONSTRAINTS" block appears in the user message, certain vertical regions of the design are reserved for pre-existing components (like headers, navigation bars, tab bars, or footers) that will be automatically injected after your generation.
 
 RULES:
-- Name format is exactly: __KEEP__ComponentName__ (two underscores on each side, no spaces)
-- Width and height MUST match the values specified in the PINNED COMPONENTS block exactly
-- Set x to 0 (or the appropriate x from the original)
-- Use the EXACT y values stated in the PINNED COMPONENTS block (e.g., "PLACE AT y=0", "PLACE AT y=new_total_height-326")
-- fills MUST be an empty array, children MUST be an empty array — do NOT generate content inside
-- Generate all other sections of the new design normally, positioned between the pinned placeholders
-- The system will automatically restore the original component content after you generate the design
+- Generate content ONLY for the available region specified in the LAYOUT CONSTRAINTS block
+- Set your root FRAME height to the available height given in the constraints
+- Set your root FRAME width to the width given in the constraints
+- Position all generated children starting at y=0 within the available space
+- Do NOT generate any component listed as reserved (headers, navigation bars, tab bars, footers, etc.)
+- The system will automatically inject the reserved components at the correct positions and adjust all coordinates
+- Focus on generating high-quality content for the remaining space
 
 CRITICAL LAYOUT RULES (no white space, no overlaps):
 - Children of the root frame MUST stack with NO GAPS and NO OVERLAPS
 - Compute y as a cumulative sum: child[n].y = child[n-1].y + child[n-1].height
-- Example: Header(y=0,h=80) → PageBody(y=80,h=3766) → Footer(y=3846,h=326) → root height=4172
 - root_frame.height MUST equal the exact sum of all children heights
 - VERIFY before outputting: last_child.y + last_child.height == root_frame.height

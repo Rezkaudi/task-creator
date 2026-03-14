@@ -1,11 +1,33 @@
 /**
  * Extracts pinned components from a reference Figma JSON and stores them in a Map.
- * The map is kept server-side only — nothing is sent to the AI except dimensions/position.
- * The AI receives placeholder instructions, and a post-processor swaps them in after generation.
+ * The map is kept server-side only — nothing is sent to the AI except space constraints.
  *
  * A "pinned component" is a top-level child of the reference frame that the user explicitly
  * wants to keep unchanged in the new generated design.
+ *
+ * Instead of asking the AI to generate __KEEP__ placeholders (which it often ignores),
+ * we classify pinned components by position (top/bottom), tell the AI about the available
+ * space, and deterministically inject the originals after generation.
  */
+
+export interface PinnedLayoutItem {
+    name: string;
+    node: any;
+    width: number;
+    height: number;
+    originalY: number;
+}
+
+export interface PinnedLayout {
+    top: PinnedLayoutItem[];
+    bottom: PinnedLayoutItem[];
+    topReservedHeight: number;
+    bottomReservedHeight: number;
+    availableHeight: number;
+    rootWidth: number;
+    rootHeight: number;
+}
+
 export class PinnedComponentExtractorService {
 
     /**
@@ -39,8 +61,92 @@ export class PinnedComponentExtractorService {
     }
 
     /**
-     * Builds a formatted instruction string to inject into the LLM prompt.
-     * Tells the LLM to output placeholder FRAME nodes for each pinned component.
+     * Classifies pinned components by their vertical position in the reference design.
+     * Components in the top ~20% are "top" (headers), bottom ~20% are "bottom" (navbars/footers).
+     */
+    classifyLayout(referenceJson: any, pinnedMap: Map<string, any>): PinnedLayout {
+        const nodes = Array.isArray(referenceJson) ? referenceJson : [referenceJson];
+        const rootNode = nodes[0];
+        const rootWidth = rootNode?.width ?? 390;
+        const rootHeight = rootNode?.height ?? 844;
+
+        const top: PinnedLayoutItem[] = [];
+        const bottom: PinnedLayoutItem[] = [];
+
+        for (const [name, node] of pinnedMap) {
+            const w = node.width ?? 0;
+            const h = node.height ?? 0;
+            const y = node.y ?? 0;
+
+            const item: PinnedLayoutItem = { name, node, width: w, height: h, originalY: y };
+
+            const relativeY = y / rootHeight;
+            const relativeEnd = (y + h) / rootHeight;
+
+            if (relativeY < 0.2) {
+                top.push(item);
+            } else if (relativeEnd > 0.8) {
+                bottom.push(item);
+            } else {
+                // Middle components — default to top classification to ensure they're included
+                top.push(item);
+            }
+        }
+
+        // Sort by original Y position
+        top.sort((a, b) => a.originalY - b.originalY);
+        bottom.sort((a, b) => a.originalY - b.originalY);
+
+        const topReservedHeight = top.reduce((sum, item) => sum + item.height, 0);
+        const bottomReservedHeight = bottom.reduce((sum, item) => sum + item.height, 0);
+        const availableHeight = Math.max(0, rootHeight - topReservedHeight - bottomReservedHeight);
+
+        return {
+            top,
+            bottom,
+            topReservedHeight,
+            bottomReservedHeight,
+            availableHeight,
+            rootWidth,
+            rootHeight,
+        };
+    }
+
+    /**
+     * Builds a space constraint instruction string for the AI prompt.
+     * Instead of asking the AI to generate __KEEP__ placeholders,
+     * we tell it the available space and what NOT to generate.
+     */
+    buildSpaceConstraints(layout: PinnedLayout): string {
+        if (layout.top.length === 0 && layout.bottom.length === 0) return '';
+
+        const lines: string[] = ['LAYOUT CONSTRAINTS (reserved space for pinned components):'];
+        lines.push(`Canvas dimensions: ${layout.rootWidth} x ${layout.rootHeight}`);
+
+        if (layout.top.length > 0) {
+            const topNames = layout.top.map(c => `"${c.name}"`).join(', ');
+            lines.push(`Top reserved: 0px to ${layout.topReservedHeight}px — occupied by: ${topNames}`);
+        }
+
+        if (layout.bottom.length > 0) {
+            const bottomNames = layout.bottom.map(c => `"${c.name}"`).join(', ');
+            const bottomStart = layout.rootHeight - layout.bottomReservedHeight;
+            lines.push(`Bottom reserved: ${bottomStart}px to ${layout.rootHeight}px — occupied by: ${bottomNames}`);
+        }
+
+        lines.push('');
+        lines.push(`Generate content ONLY for the available region (height: ${layout.availableHeight}px).`);
+        lines.push(`Set your root FRAME height to ${layout.availableHeight}.`);
+        lines.push(`Set your root FRAME width to ${layout.rootWidth}.`);
+        lines.push('Position all generated children starting at y=0 within the available space.');
+        lines.push('Do NOT generate any header, navigation bar, tab bar, or footer — those are injected automatically after generation.');
+
+        return lines.join('\n');
+    }
+
+    /**
+     * @deprecated Use buildSpaceConstraints() instead.
+     * Kept for backward compatibility — builds __KEEP__ placeholder instructions.
      */
     buildPlaceholderInstructions(pinnedMap: Map<string, any>): string {
         if (pinnedMap.size === 0) return '';
