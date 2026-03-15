@@ -97,8 +97,12 @@ export class PinnedComponentExtractorService {
         top.sort((a, b) => a.originalY - b.originalY);
         bottom.sort((a, b) => a.originalY - b.originalY);
 
-        const topReservedHeight = top.reduce((sum, item) => sum + item.height, 0);
-        const bottomReservedHeight = bottom.reduce((sum, item) => sum + item.height, 0);
+        const topReservedHeight = top.length > 0
+            ? Math.max(...top.map(item => item.originalY + item.height))
+            : 0;
+        const bottomReservedHeight = bottom.length > 0
+            ? rootHeight - Math.min(...bottom.map(item => item.originalY))
+            : 0;
         const availableHeight = Math.max(0, rootHeight - topReservedHeight - bottomReservedHeight);
 
         return {

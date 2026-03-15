@@ -40,16 +40,14 @@ export class PinnedComponentPostProcessorService {
 
         // ── Top pinned components ────────────────────────────────
         const topNodes: any[] = [];
-        let topY = 0;
         for (const item of layout.top) {
             topNodes.push({
                 ...item.node,
                 x: item.node.x ?? 0,
-                y: topY,
+                y: item.originalY,
                 width: item.width,
                 height: item.height,
             });
-            topY += item.height;
         }
 
         // ── AI content container ─────────────────────────────────
@@ -75,16 +73,14 @@ export class PinnedComponentPostProcessorService {
 
         // ── Bottom pinned components ─────────────────────────────
         const bottomNodes: any[] = [];
-        let bottomY = layout.rootHeight - layout.bottomReservedHeight;
         for (const item of layout.bottom) {
             bottomNodes.push({
                 ...item.node,
                 x: item.node.x ?? 0,
-                y: bottomY,
+                y: item.originalY,
                 width: item.width,
                 height: item.height,
             });
-            bottomY += item.height;
         }
 
         // ── Assemble final children ──────────────────────────────
