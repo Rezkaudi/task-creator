@@ -8,6 +8,7 @@ import {
   ExportAllUseCase,
 } from '../../application/use-cases';
 import { ApiConfig, defaultModel } from '../../shared/constants/plugin-config.js';
+import { NodeExporter } from '../../infrastructure/figma/exporters/node.exporter';
 import { GetUserInfoUseCase } from '@application/use-cases/getUserInfoUseCase';
 import { errorReporter } from '../../infrastructure/services/error-reporter.service';
 import { ImageOptimizerService, ImageReference } from '../../infrastructure/services/plugin-image-optimizer.service'; // ← NEW
@@ -84,6 +85,29 @@ export class PluginMessageHandler {
                 layerJson: nodeJson,
               });
             }
+          }
+          break;
+        case 'request-node-shallow-json':
+          if (message.nodeId) {
+            const shallowJson = await this.exportNodeShallow(message.nodeId as string);
+            if (shallowJson) {
+              this.uiPort.postMessage({
+                type: 'node-shallow-json',
+                nodeId: message.nodeId,
+                nodeName: message.nodeName ?? '',
+                shallowJson,
+              });
+            }
+          }
+          break;
+        case 'request-node-children-shallow':
+          if (message.nodeId) {
+            const children = await this.exportNodeChildrenShallow(message.nodeId as string);
+            this.uiPort.postMessage({
+              type: 'node-children-shallow',
+              parentNodeId: message.nodeId,
+              children: children || [],
+            });
           }
           break;
         case 'ai-edit-design':
@@ -380,6 +404,53 @@ export class PluginMessageHandler {
       return null;
     } catch (error) {
       console.error(`Failed to export node ${nodeId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Shallow-export a node: root properties + direct children metadata only (no deep recursion)
+   */
+  private async exportNodeShallow(nodeId: string): Promise<any | null> {
+    try {
+      const node = await figma.getNodeByIdAsync(nodeId);
+      if (!node) {
+        console.warn(`Node not found for shallow export: ${nodeId}`);
+        return null;
+      }
+      const exporter = new NodeExporter();
+      return await exporter.exportShallow(node as SceneNode);
+    } catch (error) {
+      console.error(`Failed to shallow-export node ${nodeId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Export only the direct children of a node as shallow metadata
+   */
+  private async exportNodeChildrenShallow(nodeId: string): Promise<any[] | null> {
+    try {
+      const node = await figma.getNodeByIdAsync(nodeId);
+      if (!node || !('children' in node)) return [];
+      const container = node as FrameNode | GroupNode | ComponentNode;
+      return container.children.map((child, i) => {
+        const childHasChildren = 'children' in child && (child as any).children?.length > 0;
+        const result: any = {
+          name: child.name,
+          type: child.type,
+          x: child.x,
+          y: child.y,
+          _nodeId: child.id,
+          _layerIndex: i,
+          hasChildren: childHasChildren,
+        };
+        if ('width' in child) result.width = (child as any).width;
+        if ('height' in child) result.height = (child as any).height;
+        return result;
+      });
+    } catch (error) {
+      console.error(`Failed to export children of node ${nodeId}:`, error);
       return null;
     }
   }

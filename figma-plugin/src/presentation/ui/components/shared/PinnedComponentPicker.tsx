@@ -11,19 +11,22 @@ interface ChildNode {
     width: number;
     height: number;
     hasChildren: boolean;
+    _nodeId?: string;
     /** Reference to the raw JSON node so we can drill into it */
     rawNode: Record<string, unknown>;
 }
 
 interface BreadcrumbEntry {
     name: string;
-    node: Record<string, unknown>;
+    nodeId: string;
 }
 
 interface PinnedComponentPickerProps {
     referenceDesignJson: unknown;
     pinnedNames: Set<string>;
     onToggle: (name: string) => void;
+    onRequestChildren?: (nodeId: string) => void;
+    childrenLoading?: boolean;
 }
 
 function getRootNode(designJson: unknown): Record<string, unknown> | null {
@@ -43,6 +46,8 @@ function getDirectChildren(node: Record<string, unknown>): ChildNode[] {
     for (const child of children) {
         if (!child || !child.name) continue;
         const childChildren = child.children as unknown[] | undefined;
+        // hasChildren is true if: the shallow flag says so, OR there are actual children loaded
+        const hasChildrenFlag = child.hasChildren === true || (Array.isArray(childChildren) && childChildren.length > 0);
         result.push({
             name: child.name as string,
             type: child.type as string,
@@ -50,21 +55,43 @@ function getDirectChildren(node: Record<string, unknown>): ChildNode[] {
             y: (child.y as number) || 0,
             width: (child.width as number) || 0,
             height: (child.height as number) || 0,
-            hasChildren: Array.isArray(childChildren) && childChildren.length > 0,
+            hasChildren: hasChildrenFlag,
+            _nodeId: child._nodeId as string | undefined,
             rawNode: child,
         });
     }
     return result;
 }
 
-function PinnedComponentPicker({ referenceDesignJson, pinnedNames, onToggle }: PinnedComponentPickerProps): React.JSX.Element {
+/** Check if a node's children have been loaded (vs just having a hasChildren flag) */
+function childrenLoaded(node: Record<string, unknown>): boolean {
+    return Array.isArray(node.children) && (node.children as unknown[]).length > 0;
+}
+
+/** Find a node by _nodeId in the tree (shallow search through children only) */
+function findNodeById(root: Record<string, unknown>, nodeId: string): Record<string, unknown> | null {
+    if ((root as any)._nodeId === nodeId) return root;
+    const children = root.children as Array<Record<string, unknown>> | undefined;
+    if (!Array.isArray(children)) return null;
+    for (const child of children) {
+        const found = findNodeById(child, nodeId);
+        if (found) return found;
+    }
+    return null;
+}
+
+function PinnedComponentPicker({ referenceDesignJson, pinnedNames, onToggle, onRequestChildren, childrenLoading }: PinnedComponentPickerProps): React.JSX.Element {
     const [view, setView] = useState<PickerView>('wireframe');
     // Navigation stack: empty = root level
     const [breadcrumb, setBreadcrumb] = useState<BreadcrumbEntry[]>([]);
 
     const rootNode = useMemo(() => getRootNode(referenceDesignJson), [referenceDesignJson]);
 
-    const currentNode = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].node : rootNode;
+    const currentNode = useMemo(() => {
+        if (breadcrumb.length === 0 || !rootNode) return rootNode;
+        const lastEntry = breadcrumb[breadcrumb.length - 1];
+        return findNodeById(rootNode, lastEntry.nodeId) ?? rootNode;
+    }, [breadcrumb, rootNode, referenceDesignJson]);
 
     const children = useMemo(() => {
         if (!currentNode) return [];
@@ -75,10 +102,15 @@ function PinnedComponentPicker({ referenceDesignJson, pinnedNames, onToggle }: P
     const frameHeight = (currentNode?.height as number) || 0;
 
     const handleDrillDown = useCallback((child: ChildNode) => {
-        if (child.hasChildren) {
-            setBreadcrumb(prev => [...prev, { name: child.name, node: child.rawNode }]);
+        if (!child.hasChildren || !child._nodeId) return;
+
+        // If children haven't been loaded yet, request them on demand
+        if (!childrenLoaded(child.rawNode) && onRequestChildren) {
+            onRequestChildren(child._nodeId);
         }
-    }, []);
+
+        setBreadcrumb(prev => [...prev, { name: child.name, nodeId: child._nodeId! }]);
+    }, [onRequestChildren]);
 
     const handleGoBack = useCallback(() => {
         setBreadcrumb(prev => prev.slice(0, -1));
@@ -89,11 +121,29 @@ function PinnedComponentPicker({ referenceDesignJson, pinnedNames, onToggle }: P
         setBreadcrumb(prev => prev.slice(0, index + 1));
     }, []);
 
-    // Reset breadcrumb when the reference design changes
-    const prevDesignRef = React.useRef(referenceDesignJson);
-    if (prevDesignRef.current !== referenceDesignJson) {
-        prevDesignRef.current = referenceDesignJson;
-        setBreadcrumb([]);
+    // Reset breadcrumb only when the root node identity changes (new frame selected),
+    // not when children are lazily populated into the existing tree.
+    const prevRootRef = React.useRef(rootNode);
+    if (prevRootRef.current !== null && rootNode !== null && prevRootRef.current !== rootNode) {
+        // Check if it's a truly different root (different _nodeId) vs same root with updated children
+        const prevId = (prevRootRef.current as any)?._nodeId;
+        const newId = (rootNode as any)?._nodeId;
+        if (prevId !== newId) {
+            setBreadcrumb([]);
+        }
+    }
+    prevRootRef.current = rootNode;
+
+    // Show loading if we drilled into a node whose children haven't arrived yet
+    const isWaitingForChildren = breadcrumb.length > 0 && childrenLoading && children.length === 0;
+
+    if (isWaitingForChildren) {
+        return (
+            <div className="fp-loading">
+                <div className="loading-spinner" />
+                <span>Loading children...</span>
+            </div>
+        );
     }
 
     if (!rootNode || children.length === 0) {

@@ -57,8 +57,7 @@ interface ChatInterfaceProps {
     systemMessages?: SystemMessage[];
     pinnedComponentNames?: Set<string>;
     isNodeJsonLoading?: boolean;
-    pinnedPickerOpen?: boolean;
-    onTogglePinnedPicker?: () => void;
+    onRequestGenerate?: (message: string) => void;
 }
 
 function ChatInterface({
@@ -74,8 +73,7 @@ function ChatInterface({
     systemMessages = [],
     pinnedComponentNames,
     isNodeJsonLoading = false,
-    pinnedPickerOpen = false,
-    onTogglePinnedPicker,
+    onRequestGenerate,
 }: ChatInterfaceProps): React.JSX.Element {
     const { state, dispatch } = useAppContext();
     const { currentModelId, availableModels, currentDesignSystemId, availableDesignSystems, hasPurchased } = state;
@@ -290,9 +288,14 @@ function ChatInterface({
         if (e.key === 'Enter' && e.shiftKey) return;
         if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
             e.preventDefault();
-            sendChatMessage();
+            if (isBasedOnExistingMode) {
+                const msg = inputValue.trim();
+                if (msg) onRequestGenerate?.(msg);
+            } else {
+                sendChatMessage();
+            }
         }
-    }, [sendChatMessage, isComposing]);
+    }, [sendChatMessage, isComposing, isBasedOnExistingMode, inputValue, onRequestGenerate]);
 
     const handleResponse = useCallback((msg: PluginMessage) => {
         const duration = requestStartTime.current != null ? (Date.now() - requestStartTime.current) / 1000 : undefined;
@@ -404,6 +407,7 @@ function ChatInterface({
     ChatInterface.handleResponse = handleResponse;
     ChatInterface.handleError = handleError;
     ChatInterface.handlePrototypeResponse = handlePrototypeResponse;
+    ChatInterface.triggerGeneration = sendChatMessage;
 
     const handleSaveDesign = useCallback((designData: unknown) => {
         dispatch({ type: 'SET_EXPORT_DATA', data: designData });
@@ -584,29 +588,6 @@ function ChatInterface({
                         >
                             📎
                         </button>
-                        {isBasedOnExistingMode && (
-                            <button
-                                className={`attach-btn ${pinnedPickerOpen ? 'active' : ''}`}
-                                onClick={onTogglePinnedPicker}
-                                title="Keep components from reference"
-                                disabled={isNodeJsonLoading}
-                                style={{ position: 'relative' }}
-                            >
-                                {isNodeJsonLoading ? (
-                                    <div
-                                        className="loading-spinner"
-                                        style={{ width: 12, height: 12, border: '2px solid #e5e7eb', borderTopColor: '#6366f1', margin: 0 }}
-                                    />
-                                ) : (
-                                    <>
-                                        📌
-                                        {(pinnedComponentNames?.size ?? 0) > 0 && (
-                                            <span className="pinned-trigger-badge">{pinnedComponentNames!.size}</span>
-                                        )}
-                                    </>
-                                )}
-                            </button>
-                        )}
                         <textarea
                             className="input-field"
                             ref={inputRef}
@@ -624,7 +605,7 @@ function ChatInterface({
                         />
                         <button
                             className="send-btn-icon"
-                            onClick={sendChatMessage}
+                            onClick={isBasedOnExistingMode ? () => onRequestGenerate?.(inputValue.trim()) : sendChatMessage}
                             disabled={isGenerating || !inputValue.trim()}
                         >
                             Generate
@@ -714,6 +695,7 @@ namespace ChatInterface {
     export let handleResponse: ((msg: PluginMessage) => void) | undefined;
     export let handleError: ((msg: PluginMessage) => void) | undefined;
     export let handlePrototypeResponse: ((msg: PluginMessage) => void) | undefined;
+    export let triggerGeneration: (() => void) | undefined;
 }
 
 export default ChatInterface;

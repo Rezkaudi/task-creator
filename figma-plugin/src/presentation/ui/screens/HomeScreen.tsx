@@ -66,6 +66,8 @@ export default function HomeScreen(): React.JSX.Element {
         'layer-selected-for-edit': (msg: PluginMessage) => AiSection.messageHandlers?.['layer-selected-for-edit']?.(msg),
         'no-layer-selected': (msg: PluginMessage) => AiSection.messageHandlers?.['no-layer-selected']?.(msg),
         'layer-selected-for-reference': (msg: PluginMessage) => AiSection.messageHandlers?.['layer-selected-for-reference']?.(msg),
+        'node-shallow-json': (msg: PluginMessage) => AiSection.messageHandlers?.['node-shallow-json']?.(msg),
+        'node-children-shallow': (msg: PluginMessage) => AiSection.messageHandlers?.['node-children-shallow']?.(msg),
         'ai-chat-response': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-chat-response']?.(msg),
         'ai-edit-response': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-edit-response']?.(msg),
         'ai-based-on-existing-response': (msg: PluginMessage) => AiSection.messageHandlers?.['ai-based-on-existing-response']?.(msg),
