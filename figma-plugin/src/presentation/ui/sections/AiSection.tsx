@@ -55,6 +55,8 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
     const [pinnedComponentNames, setPinnedComponentNames] = useState<Set<string>>(new Set());
     const [isNodeJsonLoading, setIsNodeJsonLoading] = useState(false);
     const [pinnedPickerOpen, setPinnedPickerOpen] = useState(false);
+    const [pickerShallowJson, setPickerShallowJson] = useState<Record<string, unknown> | null>(null);
+    const [childrenLoading, setChildrenLoading] = useState(false);
 
     const loadFrames = useCallback(() => {
         setFramesLoading(true);
@@ -134,9 +136,16 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
     // Reset pinned components when the reference frame changes
     const prevSelectedFrameIdsRef = React.useRef(selectedFrameIds);
     React.useEffect(() => {
-        if (prevSelectedFrameIdsRef.current !== selectedFrameIds) {
-            setPinnedComponentNames(new Set());
-            setPinnedPickerOpen(false);
+        const prev = prevSelectedFrameIdsRef.current;
+        if (prev !== selectedFrameIds) {
+            // Compare contents, not identity — selection-changed creates new Set objects frequently
+            const changed = prev.size !== selectedFrameIds.size || [...prev].some(id => !selectedFrameIds.has(id));
+            if (changed) {
+                setPinnedComponentNames(new Set());
+                setPinnedPickerOpen(false);
+                setPickerShallowJson(null);
+                fetchingNodeIdRef.current = null;
+            }
             prevSelectedFrameIdsRef.current = selectedFrameIds;
         }
     }, [selectedFrameIds]);
@@ -149,21 +158,35 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
         });
     }, []);
 
-    const handleTogglePinnedPicker = useCallback(() => {
-        setPinnedPickerOpen(prev => !prev);
-    }, []);
-
-    // Auto-fetch designJson for canvas-selected frames (selection-changed gives no JSON)
+    // Fetch shallow JSON on demand for the picker (first level only)
     const fetchingNodeIdRef = React.useRef<string | null>(null);
-    React.useEffect(() => {
+
+    const fetchShallowJsonIfNeeded = useCallback(() => {
         if (!isBasedOnExistingMode) return;
         const ref = selectedFrames[0];
-        if (!ref || ref.designJson) return;
+        if (!ref) return;
+        if (pickerShallowJson) return; // already loaded
         if (fetchingNodeIdRef.current === ref.id) return; // already requested
         fetchingNodeIdRef.current = ref.id;
         setIsNodeJsonLoading(true);
-        sendMessage('request-node-json-by-id', { nodeId: ref.id, nodeName: ref.name });
-    }, [isBasedOnExistingMode, selectedFrames, sendMessage]);
+        sendMessage('request-node-shallow-json', { nodeId: ref.id, nodeName: ref.name });
+    }, [isBasedOnExistingMode, selectedFrames, sendMessage, pickerShallowJson]);
+
+    const handleRequestChildren = useCallback((nodeId: string) => {
+        setChildrenLoading(true);
+        sendMessage('request-node-children-shallow', { nodeId });
+    }, [sendMessage]);
+
+    const handleGenerateRequest = useCallback((_message: string) => {
+        if (!_message) return;
+        fetchShallowJsonIfNeeded();
+        setPinnedPickerOpen(true);
+    }, [fetchShallowJsonIfNeeded]);
+
+    const handleStartGeneration = useCallback(() => {
+        setPinnedPickerOpen(false);
+        ChatInterface.triggerGeneration?.();
+    }, []);
 
     const handleModeSwitch = useCallback((mode: Mode) => {
         if (mode === currentMode) return;
@@ -257,6 +280,36 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
             setSystemMessages(prev => [...prev, { badge: 'Reference Added' }]);
         },
 
+        'node-shallow-json': (msg: PluginMessage) => {
+            setIsNodeJsonLoading(false);
+            fetchingNodeIdRef.current = null;
+            setPickerShallowJson(msg.shallowJson as Record<string, unknown>);
+        },
+
+        'node-children-shallow': (msg: PluginMessage) => {
+            setChildrenLoading(false);
+            const parentNodeId = msg.parentNodeId as string;
+            const children = msg.children as Array<Record<string, unknown>>;
+            // Build a synthetic node for the picker to drill into
+            setPickerShallowJson(prev => {
+                if (!prev) return prev;
+                // Find and update the child node in the shallow tree to include its children
+                const updateChildren = (node: Record<string, unknown>): Record<string, unknown> => {
+                    if ((node as any)._nodeId === parentNodeId) {
+                        return { ...node, children };
+                    }
+                    if (Array.isArray(node.children)) {
+                        return {
+                            ...node,
+                            children: (node.children as Array<Record<string, unknown>>).map(updateChildren),
+                        };
+                    }
+                    return node;
+                };
+                return updateChildren(prev) as Record<string, unknown>;
+            });
+        },
+
         'ai-chat-response': (msg: PluginMessage) => ChatInterface.handleResponse?.(msg),
         'ai-edit-response': (msg: PluginMessage) => ChatInterface.handleResponse?.(msg),
         'ai-based-on-existing-response': (msg: PluginMessage) => ChatInterface.handleResponse?.(msg),
@@ -339,8 +392,7 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
                     systemMessages={systemMessages}
                     pinnedComponentNames={pinnedComponentNames}
                     isNodeJsonLoading={isNodeJsonLoading}
-                    pinnedPickerOpen={pinnedPickerOpen}
-                    onTogglePinnedPicker={handleTogglePinnedPicker}
+                    onRequestGenerate={handleGenerateRequest}
                 />
             )}
 
@@ -353,28 +405,45 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
             )}
 
             {/* Pinned Component Picker Overlay */}
-            {isBasedOnExistingMode && !!selectedFrames[0]?.designJson && (
+            {isBasedOnExistingMode && (
                 <div className={`frame-picker-overlay ${pinnedPickerOpen ? 'show' : ''}`}>
-                    <div className="fp-backdrop" onClick={handleTogglePinnedPicker} />
-                    <div className="fp-panel">
+                    <div className="fp-backdrop" onClick={() => setPinnedPickerOpen(false)} />
+                    <div className="fp-panel fp-panel--pinned">
                         <div className="fp-header">
                             <div className="fp-title">
-                                <span className="fp-title-icon">📌</span>
-                                Keep components
+                                Select the parts you want to keep the same
                                 {pinnedComponentNames.size > 0 && (
                                     <span className="pinned-picker-badge">{pinnedComponentNames.size}</span>
                                 )}
                             </div>
                             <div className="fp-actions">
-                                <button className="fp-close" onClick={handleTogglePinnedPicker}>✕</button>
+                                <button className="fp-close" onClick={() => setPinnedPickerOpen(false)}>✕</button>
                             </div>
                         </div>
                         <div className="fp-list">
-                            <PinnedComponentPicker
-                                referenceDesignJson={selectedFrames[0].designJson}
-                                pinnedNames={pinnedComponentNames}
-                                onToggle={handleTogglePinComponent}
-                            />
+                            {isNodeJsonLoading || !pickerShallowJson ? (
+                                <div className="fp-loading">
+                                    <div className="loading-spinner" />
+                                    <span>Loading components...</span>
+                                </div>
+                            ) : (
+                                <PinnedComponentPicker
+                                    referenceDesignJson={pickerShallowJson}
+                                    pinnedNames={pinnedComponentNames}
+                                    onToggle={handleTogglePinComponent}
+                                    onRequestChildren={handleRequestChildren}
+                                    childrenLoading={childrenLoading}
+                                />
+                            )}
+                        </div>
+                        <div className="fp-footer">
+                            <button
+                                className="btn-primary fp-start-btn"
+                                onClick={handleStartGeneration}
+                                disabled={isNodeJsonLoading}
+                            >
+                                Start Generation
+                            </button>
                         </div>
                     </div>
                 </div>
