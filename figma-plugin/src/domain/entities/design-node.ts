@@ -164,6 +164,10 @@ export interface DesignNode {
 
   // Layer ordering (for preserving z-index during export/import)
   _layerIndex?: number;
+  // Figma node ID (for on-demand child fetching)
+  _nodeId?: string;
+  // Shallow export flag: indicates node has children that can be fetched on demand
+  hasChildren?: boolean;
 
   // Fills and strokes
   fills?: Fill[];

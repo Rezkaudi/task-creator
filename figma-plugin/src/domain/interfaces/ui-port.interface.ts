@@ -36,6 +36,8 @@ export type UIMessage =
   | { type: 'ai-chat-error'; error: string; statusCode?: number }
   | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any; _imageReferenceKey?: string }
   | { type: 'layer-selected-for-reference'; layerId: string; layerName: string; layerJson: any; _imageReferenceKey?: string }
+  | { type: 'node-shallow-json'; nodeId: string; nodeName: string; shallowJson: any }
+  | { type: 'node-children-shallow'; parentNodeId: string; children: any[] }
   | { type: 'no-layer-selected' }
   | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo; points?: PointsInfo }
   | { type: 'ai-edit-error'; error: string; statusCode?: number }
@@ -83,6 +85,8 @@ export type PluginMessage =
   | { type: 'request-layer-selection-for-edit' }
   | { type: 'request-layer-selection-for-reference' }
   | { type: 'request-node-json-by-id'; nodeId: string; nodeName?: string }
+  | { type: 'request-node-shallow-json'; nodeId: string; nodeName?: string }
+  | { type: 'request-node-children-shallow'; nodeId: string }
   | {
     type: 'ai-edit-design';
     message: string;

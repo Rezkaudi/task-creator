@@ -17,6 +17,51 @@ export class NodeExporter {
   }
 
   /**
+   * Export a node with only its direct children's basic metadata (no deep recursion).
+   * Each child includes _nodeId so we can fetch its children on demand later.
+   */
+  async exportShallow(node: SceneNode, layerIndex: number = 0): Promise<DesignNode | null> {
+    try {
+      const base = this.getBaseProperties(node, layerIndex);
+      const result: Partial<DesignNode> = {
+        ...base,
+        type: node.type as DesignNode['type'],
+      };
+
+      // Add dimensions for the root node
+      if ('width' in node) result.width = (node as any).width;
+      if ('height' in node) result.height = (node as any).height;
+
+      // Export direct children with minimal info only
+      if ('children' in node) {
+        const container = node as FrameNode | GroupNode | ComponentNode | InstanceNode;
+        if (container.children.length > 0) {
+          result.children = container.children.map((child, i) => {
+            const childHasChildren = 'children' in child && (child as any).children?.length > 0;
+            const childNode: any = {
+              name: child.name,
+              type: child.type,
+              x: child.x,
+              y: child.y,
+              _nodeId: child.id,
+              _layerIndex: i,
+              hasChildren: childHasChildren,
+            };
+            if ('width' in child) childNode.width = (child as any).width;
+            if ('height' in child) childNode.height = (child as any).height;
+            return childNode as DesignNode;
+          });
+        }
+      }
+
+      return result as DesignNode;
+    } catch (error) {
+      console.error(`Error shallow-exporting node ${node.name}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Export a node with all its properties
    */
   async export(node: SceneNode, layerIndex: number = 0, isNested: boolean = false): Promise<DesignNode | null> {
@@ -378,6 +423,7 @@ export class NodeExporter {
       x: node.x,
       y: node.y,
       _layerIndex: layerIndex,
+      _nodeId: node.id,
     };
 
     if ('width' in node) result.width = node.width;
