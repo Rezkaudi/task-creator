@@ -20,7 +20,7 @@ interface ProjectsSectionProps {
 }
 
 export default function ProjectsSection({ sendMessage, onSaveSelected, isSavingExport, onAttachComponent, attachedComponentIds }: ProjectsSectionProps) {
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
     const { state } = useAppContext();
     const hasSelection = (state.selectionInfo?.count ?? 0) > 0;
     const lib = useUILibrary('ProjectsSection');

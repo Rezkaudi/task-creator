@@ -32,7 +32,7 @@ export class PinnedComponentExtractorService {
 
     /**
      * Builds a map of component-name → full original node.
-     * Searches top-level nodes and their direct children for name matches.
+     * Recursively searches all children at every depth for name matches.
      */
     extract(referenceJson: any, pinnedNames: string[]): Map<string, any> {
         const map = new Map<string, any>();
@@ -41,20 +41,20 @@ export class PinnedComponentExtractorService {
         const nameSet = new Set(pinnedNames);
         const nodes = Array.isArray(referenceJson) ? referenceJson : [referenceJson];
 
-        for (const node of nodes) {
-            // Check if the top-level node itself matches
-            if (node && node.name && nameSet.has(node.name) && !map.has(node.name)) {
+        const searchRecursive = (node: any): void => {
+            if (!node) return;
+            if (node.name && nameSet.has(node.name) && !map.has(node.name)) {
                 map.set(node.name, node);
             }
-
-            // Check top-level children of the reference frame
-            if (Array.isArray(node?.children)) {
+            if (Array.isArray(node.children)) {
                 for (const child of node.children) {
-                    if (child && child.name && nameSet.has(child.name) && !map.has(child.name)) {
-                        map.set(child.name, child);
-                    }
+                    searchRecursive(child);
                 }
             }
+        };
+
+        for (const node of nodes) {
+            searchRecursive(node);
         }
 
         return map;

@@ -149,13 +149,10 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
         });
     }, []);
 
-    const handleTogglePinnedPicker = useCallback(() => {
-        setPinnedPickerOpen(prev => !prev);
-    }, []);
-
-    // Auto-fetch designJson for canvas-selected frames (selection-changed gives no JSON)
+    // Fetch designJson on demand (not automatically on selection to avoid freezing Figma)
     const fetchingNodeIdRef = React.useRef<string | null>(null);
-    React.useEffect(() => {
+
+    const fetchDesignJsonIfNeeded = useCallback(() => {
         if (!isBasedOnExistingMode) return;
         const ref = selectedFrames[0];
         if (!ref || ref.designJson) return;
@@ -164,6 +161,16 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
         setIsNodeJsonLoading(true);
         sendMessage('request-node-json-by-id', { nodeId: ref.id, nodeName: ref.name });
     }, [isBasedOnExistingMode, selectedFrames, sendMessage]);
+
+    const handleTogglePinnedPicker = useCallback(() => {
+        setPinnedPickerOpen(prev => {
+            const opening = !prev;
+            if (opening) {
+                fetchDesignJsonIfNeeded();
+            }
+            return opening;
+        });
+    }, [fetchDesignJsonIfNeeded]);
 
     const handleModeSwitch = useCallback((mode: Mode) => {
         if (mode === currentMode) return;
@@ -353,10 +360,10 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
             )}
 
             {/* Pinned Component Picker Overlay */}
-            {isBasedOnExistingMode && !!selectedFrames[0]?.designJson && (
+            {isBasedOnExistingMode && (
                 <div className={`frame-picker-overlay ${pinnedPickerOpen ? 'show' : ''}`}>
                     <div className="fp-backdrop" onClick={handleTogglePinnedPicker} />
-                    <div className="fp-panel">
+                    <div className="fp-panel fp-panel--pinned">
                         <div className="fp-header">
                             <div className="fp-title">
                                 <span className="fp-title-icon">📌</span>
@@ -370,11 +377,18 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
                             </div>
                         </div>
                         <div className="fp-list">
-                            <PinnedComponentPicker
-                                referenceDesignJson={selectedFrames[0].designJson}
-                                pinnedNames={pinnedComponentNames}
-                                onToggle={handleTogglePinComponent}
-                            />
+                            {isNodeJsonLoading || !selectedFrames[0]?.designJson ? (
+                                <div className="fp-loading">
+                                    <div className="loading-spinner" />
+                                    <span>Loading components...</span>
+                                </div>
+                            ) : (
+                                <PinnedComponentPicker
+                                    referenceDesignJson={selectedFrames[0].designJson}
+                                    pinnedNames={pinnedComponentNames}
+                                    onToggle={handleTogglePinComponent}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
