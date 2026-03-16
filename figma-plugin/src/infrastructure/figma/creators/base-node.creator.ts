@@ -261,6 +261,10 @@ export abstract class BaseNodeCreator {
       this.applyEffects(node as SceneNode & MinimalBlendMixin, nodeData.effects);
     }
 
+    // NOTE: style IDs (fillStyleId etc.) must be applied via setFillStyleIdAsync and friends
+    // (they are read-only when manifest has "documentAccess": "dynamic-page").
+    // Callers must invoke applyStyleIdsAsync(node, nodeData) separately after awaiting this method.
+
     // Constraints
     if (nodeData.constraints && 'constraints' in node) {
       (node as any).constraints = {
@@ -290,6 +294,51 @@ export abstract class BaseNodeCreator {
         } : { type: 'SCALE', value: 1 },
       }));
     }
+  }
+
+  /**
+   * Apply global style IDs to a node using the async setters required by
+   * "documentAccess": "dynamic-page" manifests.  Direct property assignment
+   * is silently ignored in that mode — only the async methods actually work.
+   *
+   * Must be called AFTER raw fills/effects are set so the style reference
+   * takes precedence (linking a style overwrites the node's raw fills).
+   */
+  protected async applyStyleIdsAsync(node: SceneNode, nodeData: DesignNode): Promise<void> {
+    const ops: Promise<void>[] = [];
+
+    if (nodeData.fillStyleId && 'setFillStyleIdAsync' in node) {
+      ops.push(
+        (node as any).setFillStyleIdAsync(nodeData.fillStyleId)
+          .catch((e: unknown) => console.warn('setFillStyleIdAsync failed:', e))
+      );
+    }
+    if (nodeData.strokeStyleId && 'setStrokeStyleIdAsync' in node) {
+      ops.push(
+        (node as any).setStrokeStyleIdAsync(nodeData.strokeStyleId)
+          .catch((e: unknown) => console.warn('setStrokeStyleIdAsync failed:', e))
+      );
+    }
+    if (nodeData.effectStyleId && 'setEffectStyleIdAsync' in node) {
+      ops.push(
+        (node as any).setEffectStyleIdAsync(nodeData.effectStyleId)
+          .catch((e: unknown) => console.warn('setEffectStyleIdAsync failed:', e))
+      );
+    }
+    if (nodeData.gridStyleId && 'setGridStyleIdAsync' in node) {
+      ops.push(
+        (node as any).setGridStyleIdAsync(nodeData.gridStyleId)
+          .catch((e: unknown) => console.warn('setGridStyleIdAsync failed:', e))
+      );
+    }
+    if (nodeData.textStyleId && node.type === 'TEXT' && 'setTextStyleIdAsync' in node) {
+      ops.push(
+        (node as any).setTextStyleIdAsync(nodeData.textStyleId)
+          .catch((e: unknown) => console.warn('setTextStyleIdAsync failed:', e))
+      );
+    }
+
+    if (ops.length > 0) await Promise.all(ops);
   }
 
   /**

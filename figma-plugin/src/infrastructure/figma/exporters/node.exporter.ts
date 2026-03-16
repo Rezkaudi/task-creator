@@ -411,6 +411,10 @@ export class NodeExporter {
       result.textSegments = segments;
     }
 
+    // Export text style ID
+    const tsi = (node as any).textStyleId;
+    if (tsi && typeof tsi === 'string') result.textStyleId = tsi;
+
     return result as DesignNode;
   }
 
@@ -505,6 +509,16 @@ export class NodeExporter {
         }
       }
     }
+
+    // Export style IDs (paint and effect styles)
+    const fsi = (node as any).fillStyleId;
+    if (fsi && typeof fsi === 'string') result.fillStyleId = fsi;
+
+    const ssi = (node as any).strokeStyleId;
+    if (ssi && typeof ssi === 'string') result.strokeStyleId = ssi;
+
+    const esi = (node as any).effectStyleId;
+    if (esi && typeof esi === 'string') result.effectStyleId = esi;
 
     return result;
   }
@@ -728,6 +742,10 @@ export class NodeExporter {
         offset: guide.offset,
       }));
     }
+
+    // Export grid style ID
+    const gsi = (node as any).gridStyleId;
+    if (gsi && typeof gsi === 'string') result.gridStyleId = gsi;
 
     // Export layout grids
     if (node.layoutGrids && node.layoutGrids.length > 0) {
