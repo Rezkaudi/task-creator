@@ -680,12 +680,12 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     fillStyleMap: Map<string, string>;
     textStyleMap: Map<string, string>;
     effectStyleMap: Array<{ id: string; key: string; effects: readonly Effect[] }>;
-    gridStyleMap: Map<string, string>;
+    gridStyleMap: Array<{ id: string; grids: ReadonlyArray<LayoutGrid> }>;
   }> {
     const fillStyleMap = new Map<string, string>();
     const textStyleMap = new Map<string, string>();
     const effectStyleMap: Array<{ id: string; key: string; effects: readonly Effect[] }> = [];
-    const gridStyleMap = new Map<string, string>();
+    const gridStyleMap: Array<{ id: string; grids: ReadonlyArray<LayoutGrid> }> = [];
 
     const [paintStyles, textStyles, effectStyles, gridStyles] = await Promise.all([
       figma.getLocalPaintStylesAsync(),
@@ -713,7 +713,7 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     }
 
     for (const style of gridStyles) {
-      gridStyleMap.set(style.name, style.id);
+      gridStyleMap.push({ id: style.id, grids: style.layoutGrids });
     }
 
     return { fillStyleMap, textStyleMap, effectStyleMap, gridStyleMap };
@@ -767,10 +767,17 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       }
     }
 
-    // Grid style — match by name
-    if ('gridStyleId' in node && !((node as any).gridStyleId) && 'setGridStyleIdAsync' in node) {
-      const id = gridStyleMap.get(node.name);
-      if (id) await (node as any).setGridStyleIdAsync(id).catch(() => {});
+    // Grid style — match by comparing layoutGrids values
+    if ('layoutGrids' in node && !((node as any).gridStyleId) && 'setGridStyleIdAsync' in node) {
+      const grids = (node as any).layoutGrids as ReadonlyArray<LayoutGrid>;
+      if (grids && grids.length > 0) {
+        for (const entry of gridStyleMap) {
+          if (this.gridsMatch(grids, entry.grids)) {
+            await (node as any).setGridStyleIdAsync(entry.id).catch(() => {});
+            break;
+          }
+        }
+      }
     }
 
     // Text style — guard against figma.mixed symbol (mixed styles)
@@ -794,6 +801,11 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
         await this.reattachStyles(child, styleMaps);
       }
     }
+  }
+
+  private gridsMatch(a: ReadonlyArray<LayoutGrid>, b: ReadonlyArray<LayoutGrid>): boolean {
+    if (a.length !== b.length) return false;
+    return a.every((g, i) => JSON.stringify(g) === JSON.stringify(b[i]));
   }
 
   private effectsMatch(a: readonly Effect[], b: readonly Effect[]): boolean {
