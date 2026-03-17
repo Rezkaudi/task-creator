@@ -47,36 +47,34 @@ export class TextNodeCreator extends BaseNodeCreator {
     const defaultFont = DefaultFonts.INTER;
 
     if (fontName) {
-      const fontKey = `${fontName.family}-${fontName.style}`;
-      if (this.loadedFonts.has(fontKey)) {
-        return fontName;
-      }
+      // Step 1: exact font
+      if (await this.tryLoadFont(fontName)) return fontName;
 
-      try {
-        await figma.loadFontAsync(fontName);
-        this.loadedFonts.add(fontKey);
-        return fontName;
-      } catch {
-        console.warn(`Failed to load font ${fontName.family} ${fontName.style}, trying default`);
-      }
+      console.warn(`Font "${fontName.family} ${fontName.style}" unavailable, falling back to Inter ${fontName.style}`);
+
+      // Step 2: Inter with same style (e.g., Inter Bold) — preserves weight intent
+      const interSameStyle = { family: 'Inter', style: fontName.style };
+      if (await this.tryLoadFont(interSameStyle)) return interSameStyle;
     }
 
+    // Step 3: Inter Regular
+    if (await this.tryLoadFont(defaultFont)) return defaultFont;
+
+    // Step 4: Arial Regular (last resort)
+    const arialFont = DefaultFonts.ARIAL;
+    await this.tryLoadFont(arialFont);
+    return arialFont;
+  }
+
+  private async tryLoadFont(fontName: { family: string; style: string }): Promise<boolean> {
+    const key = `${fontName.family}-${fontName.style}`;
+    if (this.loadedFonts.has(key)) return true;
     try {
-      const defaultKey = `${defaultFont.family}-${defaultFont.style}`;
-      if (!this.loadedFonts.has(defaultKey)) {
-        await figma.loadFontAsync(defaultFont);
-        this.loadedFonts.add(defaultKey);
-      }
-      return defaultFont;
+      await figma.loadFontAsync(fontName);
+      this.loadedFonts.add(key);
+      return true;
     } catch {
-      // Try Arial as last resort
-      const arialFont = DefaultFonts.ARIAL;
-      const arialKey = `${arialFont.family}-${arialFont.style}`;
-      if (!this.loadedFonts.has(arialKey)) {
-        await figma.loadFontAsync(arialFont);
-        this.loadedFonts.add(arialKey);
-      }
-      return arialFont;
+      return false;
     }
   }
 

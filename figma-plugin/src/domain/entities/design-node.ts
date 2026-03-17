@@ -196,6 +196,13 @@ export interface DesignNode {
   isMask?: boolean;
   maskType?: 'ALPHA' | 'VECTOR' | 'LUMINANCE';
 
+  // Global style references (all Figma style types)
+  fillStyleId?: string;
+  strokeStyleId?: string;
+  effectStyleId?: string;
+  gridStyleId?: string;
+  textStyleId?: string;
+
   // Constraints
   constraints?: {
     horizontal: ConstraintType;
