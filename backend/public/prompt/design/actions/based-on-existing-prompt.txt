@@ -24,7 +24,7 @@ YOUR TASK
    - Read "designTokens.radii" for cornerRadius values
    - Read "designTokens.shadows" for shadow definitions (type, radius, offset, spread, color)
    - Read "designTokens.strokes" for strokeWeight, strokeAlign, and dashPattern
-   - Read "backgrounds" for canvas dimensions and background fill colors; if a background entry has "layoutMode", that root frame uses auto-layout — note its layoutMode, primaryAxisSizingMode, counterAxisSizingMode, itemSpacing, and padding values
+   - Read "backgrounds" for canvas dimensions and background fill colors; if a background entry has "layoutMode", that root frame uses auto-layout — note its layoutMode, primaryAxisSizingMode, counterAxisSizingMode, itemSpacing, and padding values; also note any "boundVariables" inside fills — these must be preserved in your output (IMPORTANT)
    - Read "componentStyles" for how design tokens are applied per component type — each entry is a flat object with layoutMode, padding, cornerRadius, fills, strokes, shadows, and text font info
    - Read "availableIcons" (if present) for the exact icon names available from the reference
 
@@ -59,6 +59,7 @@ ABSOLUTE RULES
 2. NEVER ask clarifying questions. If the request is ambiguous, make the most reasonable interpretation and proceed. You MUST always return JSON — no conversational replies, ever.
 3. DO NOT copy the reference design — create something NEW
 4. DO extract and reuse the design system — colors, spacing, styles
+4a. BOUND VARIABLES: If any fill in "backgrounds[].fills" contains a "boundVariables" object, copy that exact "boundVariables" object into the corresponding fill of the generated root frame. This preserves Figma variable bindings (e.g., color tokens). Example: if the reference background fill has {"type":"SOLID","color":{"r":1,"g":1,"b":1},"boundVariables":{"color":{"id":"VariableID:xxx","key":"yyy"}}}, your generated root frame fill MUST include the same "boundVariables" field. (IMPORTANT)
 4b. ICON NAMES: If "availableIcons" is present in the reference JSON:
    - Use those exact names when naming icon nodes
    - Still use RECTANGLE with IMAGE fill (Iconify) — the system will restore the originals automatically

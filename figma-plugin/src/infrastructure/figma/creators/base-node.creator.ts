@@ -1,5 +1,5 @@
-import { DesignNode } from '../../../domain/entities/design-node';
-import { Fill } from '../../../domain/entities/fill';
+import { DesignNode, NodeBoundVariables } from '../../../domain/entities/design-node';
+import { Fill, VariableRef } from '../../../domain/entities/fill';
 import { Effect } from '../../../domain/entities/effect';
 import { FillMapper } from '../../mappers/fill.mapper';
 import { EffectMapper } from '../../mappers/effect.mapper';
@@ -339,6 +339,82 @@ export abstract class BaseNodeCreator {
     }
 
     if (ops.length > 0) await Promise.all(ops);
+  }
+
+  /**
+   * Resolve a VariableRef to a live Figma Variable.
+   * First tries the node-scope ID, then falls back to searching all local
+   * variables by their cross-file key.
+   */
+  private async getVariableByIdOrKey(ref: VariableRef): Promise<Variable | null> {
+    try {
+      const v = await figma.variables.getVariableByIdAsync(ref.id);
+      if (v) return v;
+    } catch { /* id not found in this file */ }
+
+    for (const type of ['COLOR', 'FLOAT', 'BOOLEAN', 'STRING'] as VariableResolvedDataType[]) {
+      try {
+        const locals = await figma.variables.getLocalVariablesAsync(type);
+        const match = locals.find(v => v.key === ref.key);
+        if (match) return match;
+      } catch {}
+    }
+    return null;
+  }
+
+  /**
+   * Apply Figma Variable bindings to a node.
+   * Must be called AFTER raw fills/strokes are set and AFTER applyStyleIdsAsync,
+   * so that setBoundVariableForPaint operates on the correct current paint array.
+   */
+  protected async applyBoundVariablesAsync(node: SceneNode, nodeData: DesignNode): Promise<void> {
+    // 1. Fill-level variables (color / opacity per paint)
+    for (const prop of ['fills', 'strokes'] as const) {
+      const fillData = prop === 'fills' ? nodeData.fills : nodeData.strokes;
+      if (!fillData?.length || !(prop in node)) continue;
+
+      const paints = [...((node as any)[prop] as Paint[])];
+      let changed = false;
+
+      for (let i = 0; i < fillData.length && i < paints.length; i++) {
+        const bv = fillData[i].boundVariables;
+        if (!bv) continue;
+        let paint = paints[i];
+
+        if (bv.color) {
+          const v = await this.getVariableByIdOrKey(bv.color);
+          if (v) { paint = figma.variables.setBoundVariableForPaint(paint as SolidPaint, 'color', v); changed = true; }
+        }
+        paints[i] = paint;
+      }
+
+      if (changed) (node as any)[prop] = paints;
+    }
+
+    // 2. Node-level scalar variables
+    const bv = nodeData.boundVariables;
+    if (!bv) return;
+
+    const FIELDS: (keyof NodeBoundVariables)[] = [
+      'opacity', 'width', 'height',
+      'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+      'itemSpacing', 'counterAxisSpacing',
+      'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius',
+      'fontSize', 'letterSpacing', 'lineHeight', 'strokeWeight',
+      'visible', 'characters',
+    ];
+
+    for (const field of FIELDS) {
+      const ref = (bv as any)[field] as VariableRef | undefined;
+      if (!ref) continue;
+      const v = await this.getVariableByIdOrKey(ref);
+      if (!v) continue;
+      try {
+        (node as any).setBoundVariable(field, v);
+      } catch (e) {
+        console.warn(`setBoundVariable(${field}) failed:`, e);
+      }
+    }
   }
 
   /**
