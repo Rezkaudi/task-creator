@@ -1,5 +1,5 @@
-import { DesignNode, VectorPath, VectorNetwork, TextSegment, LayoutGrid } from '../../../domain/entities/design-node';
-import { Fill } from '../../../domain/entities/fill';
+import { DesignNode, NodeBoundVariables, VectorPath, VectorNetwork, TextSegment, LayoutGrid } from '../../../domain/entities/design-node';
+import { Fill, FillBoundVariables, VariableRef } from '../../../domain/entities/fill';
 import { Effect } from '../../../domain/entities/effect';
 
 /**
@@ -520,6 +520,10 @@ export class NodeExporter {
     const esi = (node as any).effectStyleId;
     if (esi && typeof esi === 'string') result.effectStyleId = esi;
 
+    // Export node-level variable bindings (FLOAT / BOOLEAN / STRING)
+    const nodeBoundVars = await this.exportNodeBoundVariables(node as SceneNode);
+    if (nodeBoundVars) result.boundVariables = nodeBoundVars;
+
     return result;
   }
 
@@ -894,7 +898,7 @@ export class NodeExporter {
     switch (paint.type) {
       case 'SOLID': {
         const solidPaint = paint as SolidPaint;
-        return {
+        const fill: Fill = {
           ...baseFill,
           color: {
             r: solidPaint.color.r,
@@ -902,6 +906,24 @@ export class NodeExporter {
             b: solidPaint.color.b,
           },
         };
+
+        // Capture variable bindings on this paint (color / opacity)
+        const pv = (solidPaint as any).boundVariables;
+        if (pv && typeof pv === 'object') {
+          const bv: FillBoundVariables = {};
+          let hasBv = false;
+          if (pv.color?.type === 'VARIABLE_ALIAS') {
+            const ref = await this.variableAliasToRef(pv.color as VariableAlias);
+            if (ref) { bv.color = ref; hasBv = true; }
+          }
+          if (pv.opacity?.type === 'VARIABLE_ALIAS') {
+            const ref = await this.variableAliasToRef(pv.opacity as VariableAlias);
+            if (ref) { bv.opacity = ref; hasBv = true; }
+          }
+          if (hasBv) fill.boundVariables = bv;
+        }
+
+        return fill;
       }
 
       case 'GRADIENT_LINEAR':
@@ -1043,6 +1065,43 @@ export class NodeExporter {
       default:
         return baseFill;
     }
+  }
+
+  // ==================== VARIABLE EXPORT ====================
+
+  private async variableAliasToRef(alias: VariableAlias): Promise<VariableRef | null> {
+    try {
+      const variable = await figma.variables.getVariableByIdAsync(alias.id);
+      if (!variable) return null;
+      return { id: variable.id, key: variable.key };
+    } catch {
+      return null;
+    }
+  }
+
+  private async exportNodeBoundVariables(node: SceneNode): Promise<NodeBoundVariables | undefined> {
+    const raw = (node as any).boundVariables;
+    if (!raw || typeof raw !== 'object') return undefined;
+
+    const FIELDS: (keyof NodeBoundVariables)[] = [
+      'opacity', 'width', 'height',
+      'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+      'itemSpacing', 'counterAxisSpacing',
+      'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius',
+      'fontSize', 'letterSpacing', 'lineHeight', 'strokeWeight',
+      'visible', 'characters',
+    ];
+
+    const result: NodeBoundVariables = {};
+    let hasAny = false;
+    for (const field of FIELDS) {
+      const alias = raw[field];
+      if (alias?.type === 'VARIABLE_ALIAS') {
+        const ref = await this.variableAliasToRef(alias as VariableAlias);
+        if (ref) { (result as any)[field] = ref; hasAny = true; }
+      }
+    }
+    return hasAny ? result : undefined;
   }
 
   // ==================== EFFECTS EXPORT ====================

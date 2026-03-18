@@ -26,6 +26,25 @@ export interface ImageFilters {
 }
 
 /**
+ * Serialised reference to a Figma Variable.
+ * id  — node-scope ID for fast direct lookup
+ * key — cross-file key used as fallback when id mismatches
+ */
+export interface VariableRef {
+  id: string;
+  key: string;
+}
+
+/**
+ * Variable bindings on a single fill/stroke paint.
+ * Mirrors the shape of paint.boundVariables in the Figma Plugin API.
+ */
+export interface FillBoundVariables {
+  color?: VariableRef;
+  opacity?: VariableRef;
+}
+
+/**
  * Fill entity - represents all types of fills in Figma
  */
 export interface Fill {
@@ -50,6 +69,9 @@ export interface Fill {
   scalingFactor?: number;
   rotation?: number;
   filters?: ImageFilters;
+
+  // Variable bindings for this paint
+  boundVariables?: FillBoundVariables;
 }
 
 /**

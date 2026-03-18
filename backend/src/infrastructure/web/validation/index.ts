@@ -79,8 +79,8 @@ export const generateBasedOnExistingValidation = [
         .notEmpty().withMessage('Message is required')
         .isString().withMessage('Message must be a string'),
 
-    body('referenceDesign')
-        .notEmpty().withMessage('Reference design is required'),
+    body('referenceDesigns')
+        .isArray({ min: 1 }).withMessage('At least one reference design is required'),
 
     body('history')
         .optional()

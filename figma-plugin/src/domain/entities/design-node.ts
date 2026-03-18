@@ -1,4 +1,4 @@
-import { Fill } from './fill';
+import { Fill, VariableRef } from './fill';
 import { Effect } from './effect';
 import { NodeType, LayoutMode, TextAutoResize, TextCase, TextDecoration, ConstraintType, LayoutAlign, LayoutPositioning, StrokeCap, StrokeJoin } from '../../shared/types/node-types';
 
@@ -146,6 +146,36 @@ export interface OverrideInfo {
 }
 
 /**
+ * Variable bindings on a node's scalar properties.
+ * Keys match the field names accepted by node.setBoundVariable() in the Figma Plugin API.
+ */
+export interface NodeBoundVariables {
+  // FLOAT
+  opacity?: VariableRef;
+  width?: VariableRef;
+  height?: VariableRef;
+  paddingTop?: VariableRef;
+  paddingRight?: VariableRef;
+  paddingBottom?: VariableRef;
+  paddingLeft?: VariableRef;
+  itemSpacing?: VariableRef;
+  counterAxisSpacing?: VariableRef;
+  cornerRadius?: VariableRef;
+  topLeftRadius?: VariableRef;
+  topRightRadius?: VariableRef;
+  bottomLeftRadius?: VariableRef;
+  bottomRightRadius?: VariableRef;
+  fontSize?: VariableRef;
+  letterSpacing?: VariableRef;
+  lineHeight?: VariableRef;
+  strokeWeight?: VariableRef;
+  // BOOLEAN
+  visible?: VariableRef;
+  // STRING
+  characters?: VariableRef;
+}
+
+/**
  * Comprehensive Design Node interface
  * Represents ALL Figma node properties for lossless export/import
  */
@@ -202,6 +232,9 @@ export interface DesignNode {
   effectStyleId?: string;
   gridStyleId?: string;
   textStyleId?: string;
+
+  // Figma Variable bindings for scalar node properties
+  boundVariables?: NodeBoundVariables;
 
   // Constraints
   constraints?: {

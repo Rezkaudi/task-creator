@@ -43,6 +43,8 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       this.applyCommonProperties(node, nodeData);
       // Apply style IDs via async setters (read-only with dynamic-page documentAccess)
       await this.applyStyleIdsAsync(node, nodeData);
+      // Apply Figma Variable bindings (after fills are set, after style IDs)
+      await this.applyBoundVariablesAsync(node, nodeData);
 
       // Append to parent or page first so node.parent is set
       if (parentNode && 'appendChild' in parentNode) {
@@ -57,8 +59,12 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       // Reattach global styles by matching raw values against local document styles
       // (handles AI-generated nodes that have raw colors/fonts matching a global style)
       if (!parentNode) {
-        const styleMaps = await this.buildStyleMaps();
+        const [styleMaps, variableMaps] = await Promise.all([
+          this.buildStyleMaps(),
+          this.buildVariableMaps(),
+        ]);
         await this.reattachStyles(node, styleMaps);
+        await this.reattachVariables(node, variableMaps);
       }
 
       return node;
@@ -799,6 +805,78 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
     if ('children' in node) {
       for (const child of (node as FrameNode).children) {
         await this.reattachStyles(child, styleMaps);
+      }
+    }
+  }
+
+  /**
+   * Build a lookup map from the default-mode RGB value of every local COLOR
+   * variable to its variable ID. Used by reattachVariables for value-based matching.
+   */
+  private async buildVariableMaps(): Promise<{ colorVarMap: Map<string, string> }> {
+    const colorVarMap = new Map<string, string>();
+    try {
+      const colorVars = await figma.variables.getLocalVariablesAsync('COLOR');
+      for (const variable of colorVars) {
+        try {
+          const collection = await figma.variables.getVariableCollectionByIdAsync(
+            variable.variableCollectionId
+          );
+          if (!collection) continue;
+          const value = variable.valuesByMode[collection.defaultModeId];
+          if (value && typeof value === 'object' && 'r' in value) {
+            const rgb = value as { r: number; g: number; b: number };
+            const key = `${Math.round(rgb.r * 255)},${Math.round(rgb.g * 255)},${Math.round(rgb.b * 255)}`;
+            if (!colorVarMap.has(key)) colorVarMap.set(key, variable.id);
+          }
+        } catch { /* variable or collection not readable */ }
+      }
+    } catch { /* variables API not available */ }
+    return { colorVarMap };
+  }
+
+  /**
+   * Walk a node tree and bind SOLID fill colors to matching local COLOR variables.
+   * Skips paints that already have a color variable bound (round-trip case).
+   */
+  private async reattachVariables(
+    node: SceneNode,
+    variableMaps: { colorVarMap: Map<string, string> }
+  ): Promise<void> {
+    const { colorVarMap } = variableMaps;
+
+    if ('fills' in node) {
+      const fills = (node as GeometryMixin).fills;
+      if (Array.isArray(fills) && fills.length > 0) {
+        const updated = [...fills];
+        let changed = false;
+
+        for (let i = 0; i < fills.length; i++) {
+          const paint = fills[i];
+          if (paint.type !== 'SOLID') continue;
+          if ((paint as any).boundVariables?.color) continue; // already bound
+          const solid = paint as SolidPaint;
+          const key = `${Math.round(solid.color.r * 255)},${Math.round(solid.color.g * 255)},${Math.round(solid.color.b * 255)}`;
+          const varId = colorVarMap.get(key);
+          if (!varId) continue;
+          try {
+            const variable = await figma.variables.getVariableByIdAsync(varId);
+            if (variable) {
+              updated[i] = figma.variables.setBoundVariableForPaint(updated[i], 'color', variable);
+              changed = true;
+            }
+          } catch {}
+        }
+
+        if (changed) {
+          try { (node as GeometryMixin).fills = updated as Paint[]; } catch {}
+        }
+      }
+    }
+
+    if ('children' in node) {
+      for (const child of (node as FrameNode).children) {
+        await this.reattachVariables(child, variableMaps);
       }
     }
   }
