@@ -239,16 +239,26 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
                     const newFrames = selectedNodes.filter(n => !existingIds.has(n.id));
                     return newFrames.length > 0 ? [...prev, ...newFrames] : prev;
                 });
-
-                // Preserve library-attached component IDs (have designJson), replace Figma selection IDs
-                const libraryIds = new Set(availableFrames.filter(f => f.designJson != null).map(f => f.id));
-                const preserved = [...selectedFrameIds].filter(id => libraryIds.has(id));
-                setSelectedFrameIds(new Set([...preserved, ...nodes.map(n => n.id)]));
-            } else {
-                // Clear Figma selections but keep library-attached components
-                const libraryIds = new Set(availableFrames.filter(f => f.designJson != null).map(f => f.id));
-                setSelectedFrameIds(new Set([...selectedFrameIds].filter(id => libraryIds.has(id))));
             }
+
+            setSelectedFrameIds(prev => {
+                const libraryIds = new Set(availableFrames.filter(f => f.designJson != null).map(f => f.id));
+                const preservedLibraryIds = [...prev].filter(id => libraryIds.has(id));
+
+                if (currentMode === 'edit') {
+                    return nodes.length > 0
+                        ? new Set([...preservedLibraryIds, ...nodes.map(n => n.id)])
+                        : new Set(preservedLibraryIds);
+                }
+
+                // In create/prototype flows, keep previously attached canvas references
+                // so each new click adds another reference instead of replacing older ones.
+                if (nodes.length === 0) {
+                    return prev;
+                }
+
+                return new Set([...prev, ...nodes.map(n => n.id)]);
+            });
         },
 
         'layer-selected-for-edit': (msg: PluginMessage) => {
