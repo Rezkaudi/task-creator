@@ -208,17 +208,22 @@ export class DesignController {
 
     // Generate design based on existing design's style
     async generateBasedOnExisting(req: Request, res: Response): Promise<void> {
-        const { message, history, referenceDesign, modelId, pinnedComponentNames } = req.body;
+        const { message, history, referenceDesigns, modelId, pinnedComponentNames } = req.body;
 
         try {
 
             const userId = this.getUserId(req);
             await this.ensureModelUsable(userId, modelId);
 
+            // referenceDesigns is an array of all references — buildReferenceContext handles arrays natively
+            const allReferences = Array.isArray(referenceDesigns) && referenceDesigns.length > 0
+                ? referenceDesigns
+                : referenceDesigns; // fallback (should always be array)
+
             const result: DesignGenerationResult = await this.generateDesignBasedOnExistingUseCase.execute(
                 message,
                 history || [],
-                referenceDesign,
+                allReferences,
                 modelId,
                 Array.isArray(pinnedComponentNames) ? pinnedComponentNames : undefined
             );
@@ -237,7 +242,7 @@ export class DesignController {
                 operationType: 'create_by_reference',
                 modelId,
                 conversationHistory: history || [],
-                referenceDesign: referenceDesign ?? null,
+                referenceDesign: Array.isArray(referenceDesigns) ? referenceDesigns[0] ?? null : null,
                 resultDesign: result.design ?? null,
                 aiMessage: result.message ?? null,
                 status: 'success',

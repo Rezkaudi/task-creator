@@ -705,6 +705,31 @@
     }
 }
 
+.f-chip--main {
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.f-chip--support {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--text-secondary, #888);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.chip-badge {
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    opacity: 0.7;
+    flex-shrink: 0;
+    padding-right: 3px;
+    border-right: 1px solid currentColor;
+    margin-right: 1px;
+    line-height: 1;
+}
+
 .f-chip .chip-icon {
     font-size: 10px;
     flex-shrink: 0;

@@ -157,8 +157,11 @@ function ChatInterface({
         const modelName = model?.name || defaultModel.name;
         const systemName = system?.name || defaultDesignSystem.name;
 
+        const refLabel = selectedFrames.length > 1
+            ? `<strong>${selectedFrames.length} references</strong>`
+            : `<strong>"${selectedFrames[0]?.name}"</strong>`;
         const welcomeMessage = selectedFrames.length > 0
-            ? `Designing based on <strong>"${selectedFrames[0].name}"</strong> as your style reference. Describe what you'd like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>.`
+            ? `Designing based on ${refLabel} as your style reference. Describe what you'd like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>.`
             : `What would you like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>? Attach a frame with 📎 to use it as a style reference.`;
 
         setMessages(prev => {
@@ -218,8 +221,8 @@ function ChatInterface({
                 addMessage('assistant', '⚠️ Please attach a frame to edit using the 📎 button or select an existing frame in the canvas.');
                 return;
             }
-            if (selectedFrames.length > 1) {
-                addMessage('assistant', '⚠️ Please attach only one frame.');
+            if (currentMode === 'edit' && selectedFrames.length > 1) {
+                addMessage('assistant', '⚠️ Please attach only one frame for editing.');
                 return;
             }
         }
@@ -239,12 +242,18 @@ function ChatInterface({
             const referenceFrame = selectedFrames[0];
             const pinned = pinnedComponentNames && pinnedComponentNames.size > 0 ? Array.from(pinnedComponentNames) : [];
             const pinnedNote = pinned.length > 0 ? ` (keeping ${pinned.join(', ')})` : '';
-            addMessage('assistant', `Creating new design based on "${referenceFrame.name}" style${pinnedNote}...`, { isLoading: true });
+            const refNames = selectedFrames.length > 1
+                ? `${selectedFrames.length} references`
+                : `"${referenceFrame.name}"`;
+            addMessage('assistant', `Creating new design based on ${refNames} style${pinnedNote}...`, { isLoading: true });
             sendMessage('ai-generate-based-on-existing', {
                 message,
                 history: [],
-                referenceId: referenceFrame.id,
-                ...(referenceFrame.designJson ? { referenceJson: referenceFrame.designJson as Record<string, unknown> } : {}),
+                references: selectedFrames.map(f => ({
+                    id: f.id,
+                    name: f.name,
+                    ...(f.designJson ? { designJson: f.designJson as Record<string, unknown> } : {}),
+                })),
                 model: currentModelId,
                 pinnedComponentNames: pinned,
             });
@@ -441,7 +450,9 @@ function ChatInterface({
     }, []);
 
     const placeholder = isBasedOnExistingMode
-        ? `Create a design based on "${selectedFrames[0]?.name ?? 'reference'}"`
+        ? selectedFrames.length > 1
+            ? `Create a design based on ${selectedFrames.length} references...`
+            : `Create a design based on "${selectedFrames[0]?.name ?? 'reference'}"`
         : currentMode === 'edit'
             ? 'Change the background color to blue...'
             : currentMode === 'prototype'
@@ -546,10 +557,10 @@ function ChatInterface({
                 {/* Frame Chips */}
                 {selectedFrames.length > 0 && (
                     <div className="frame-chips">
-                        {selectedFrames.map(frame => (
-                            <span key={frame.id} className="f-chip">
-                                <span className="chip-icon"></span>
-                                {frame.name.length > 20 ? frame.name.slice(0, 20) + '…' : frame.name}
+                        {selectedFrames.map((frame, i) => (
+                            <span key={frame.id} className={`f-chip ${i === 0 ? 'f-chip--main' : 'f-chip--support'}`}>
+                                <span className="chip-badge">{i === 0 ? 'Main' : 'Support'}</span>
+                                {frame.name.length > 16 ? frame.name.slice(0, 16) + '…' : frame.name}
                                 <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
                             </span>
                         ))}

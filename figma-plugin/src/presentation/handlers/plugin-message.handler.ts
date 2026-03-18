@@ -124,17 +124,12 @@ export class PluginMessageHandler {
           break;
         case 'ai-generate-based-on-existing':
           if (message.message !== undefined) {
-            let refJson = message.referenceJson;
-            // If only referenceId is provided, fetch and export the node
-            if (!refJson && message.referenceId) {
-              refJson = await this.exportNodeById(message.referenceId);
-            }
-            if (refJson) {
-              console.log('Handling generate-based-on-existing request');
+            const rawRefs = (message as any).references as Array<{ id: string; name: string; designJson?: any }> | undefined;
+            if (rawRefs && rawRefs.length > 0) {
               await this.handleGenerateBasedOnExisting(
                 message.message,
                 message.history,
-                refJson,
+                rawRefs,
                 message.model,
                 (message as any).pinnedComponentNames as string[] | undefined
               );
@@ -683,26 +678,28 @@ export class PluginMessageHandler {
   private async handleGenerateBasedOnExisting(
     userMessage: string,
     history: Array<{ role: string; content: string }> | undefined,
-    referenceJson: any,
+    references: Array<{ id: string; name: string; designJson?: any }>,
     model?: string,
     pinnedComponentNames?: string[]
   ): Promise<void> {
     try {
-      let conversationHistory: Array<{ role: string; content: string }> = [];
-
-      if (history && history.length > 0) {
-        conversationHistory = history;
-      }
-
+      const conversationHistory = history && history.length > 0 ? history : [];
       const selectedModel = model || defaultModel.id;
 
-      // Strip images from reference
-      console.log('Plugin: Stripping images from reference design...');
-      const { cleanedDesign, imageReferences } = this.imageOptimizer.stripImages(referenceJson);
-      console.log(`Plugin: Extracted ${imageReferences.length} images from reference`);
+      // Fetch JSON for any reference that doesn't have it, then strip images from all
+      const cleanedReferences: any[] = [];
+      for (const ref of references) {
+        let refJson = ref.designJson;
+        if (!refJson && ref.id) {
+          refJson = await this.exportNodeById(ref.id);
+        }
+        if (refJson) {
+          const { cleanedDesign } = this.imageOptimizer.stripImages(refJson);
+          cleanedReferences.push(cleanedDesign);
+        }
+      }
 
-      console.log("Generating design based on existing reference");
-      console.log("Endpoint: /api/designs/generate-based-on-existing");
+      console.log(`Plugin: sending ${cleanedReferences.length} references to backend`);
 
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-based-on-existing`, {
         method: 'POST',
@@ -710,7 +707,7 @@ export class PluginMessageHandler {
         body: JSON.stringify({
           message: userMessage,
           history: conversationHistory,
-          referenceDesign: cleanedDesign,
+          referenceDesigns: cleanedReferences,
           modelId: selectedModel,
           pinnedComponentNames: pinnedComponentNames ?? []
         })

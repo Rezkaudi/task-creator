@@ -74,14 +74,15 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
     }, [framesLoaded, loadFrames]);
 
     const toggleFrameSelection = useCallback((frameId: string) => {
-        if (currentMode !== 'prototype') {
-            // Create/edit mode: only one frame at a time
+        if (currentMode === 'edit') {
+            // Edit mode: only one frame at a time
             setSelectedFrameIds(prev => {
                 if (prev.has(frameId) && prev.size === 1) return new Set();
                 return new Set([frameId]);
             });
             return;
         }
+        // Create mode (by-reference) and prototype: allow multiple
         setSelectedFrameIds(prev => {
             const next = new Set(prev);
             if (next.has(frameId)) {
