@@ -671,6 +671,18 @@
     overflow: scroll;
 }
 
+.frame-chips-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+}
+
+.frame-chips-wrap .frame-chips {
+    flex: 1;
+    min-width: 0;
+}
+
 .frame-chips:empty {
     padding: 0;
     display: none;
@@ -757,6 +769,26 @@
 .f-chip .chip-x:hover {
     opacity: 1;
     background: rgba(99, 102, 241, 0.15);
+}
+
+.frame-chips-clear {
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 0 9px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: 150ms;
+}
+
+.frame-chips-clear:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
 }
 
 /* === Attach Notification === */

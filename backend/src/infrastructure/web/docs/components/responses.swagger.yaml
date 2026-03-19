@@ -136,8 +136,6 @@ components:
                 design:
                   - name: "Login Page"
                     type: "FRAME"
-                previewHtml: "<div>...</div>"
-
     VersionListSuccess:
       description: Design versions retrieved successfully
       content:

@@ -13,7 +13,6 @@ export class GeneratePrototypeConnectionsUseCase {
         modelId?: string
     ): Promise<{
         connections: PrototypeConnection[];
-        message: string;
         cost?: any;
     }> {
 

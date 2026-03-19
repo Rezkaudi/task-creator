@@ -335,11 +335,6 @@ components:
         design:
           $ref: "#/components/schemas/FigmaDesign"
           description: Generated or modified design
-        previewHtml:
-          type: string
-          example: "<div style='background: blue;'>Button</div>"
-          description: HTML preview of the design
-
     # Design Version schemas
     DesignVersion:
       type: object

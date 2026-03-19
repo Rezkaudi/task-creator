@@ -20,38 +20,27 @@ export class ResponseParserService {
 
     /**
      * Fixes JSON where the AI generated extra closing brackets inside the data array,
-     * causing the outer object to close prematurely before the "message" key.
-     * Strategy: split at "message" key, strip trailing extra brackets from data portion,
-     * then reconstruct.
+     * causing the outer object to close prematurely.
+     * Strategy: balance the brackets until depth reaches 0.
      */
     private fixExtraClosingBrackets(json: string): string {
-        const msgIdx = json.lastIndexOf(',"message":');
-        if (msgIdx === -1) return json;
-
-        let dataPart = json.slice(0, msgIdx);
-        let msgPart = json.slice(msgIdx + 1); // "message":"...", then final }
-
-        // Strip trailing extra closing brackets from dataPart until depth == 1
-        // (outer { still open, data array closed)
-        while (this.getDepth(dataPart) < 1) {
-            const lastClose = Math.max(dataPart.lastIndexOf('}'), dataPart.lastIndexOf(']'));
-            if (lastClose === -1) break;
-            dataPart = dataPart.slice(0, lastClose) + dataPart.slice(lastClose + 1);
+        while (this.getDepth(json) !== 0) {
+            if (this.getDepth(json) < 0) {
+                const lastClose = Math.max(json.lastIndexOf('}'), json.lastIndexOf(']'));
+                if (lastClose === -1) break;
+                json = json.slice(0, lastClose) + json.slice(lastClose + 1);
+            } else {
+                json = json + '}';
+            }
         }
-
-        // Strip extra trailing } from msgPart (will be re-added for the outer close)
-        if (msgPart.endsWith('}')) {
-            msgPart = msgPart.slice(0, -1);
-        }
-
-        return dataPart + ',' + msgPart + '}';
+        return json;
     }
 
     /**
      * Universal parser for all AI responses.
-     * Expects JSON format: { "data": [...], "message": "..." }
+     * Expects JSON format: { "data": [...] }
      */
-    parseAIResponse(response: string): { data: any[]; message: string } {
+    parseAIResponse(response: string): { data: any[] } {
         try {
             let cleaned = response.trim();
 
@@ -88,7 +77,6 @@ export class ResponseParserService {
 
             return {
                 data: parsed.data || [],
-                message: parsed.message || 'Done'
             };
 
         } catch (error: any) {

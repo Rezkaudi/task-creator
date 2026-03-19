@@ -32,16 +32,16 @@ export type UIMessage =
   | { type: 'export-success'; data: DesignNode[]; nodeCount: number }
   | { type: 'export-error'; error: string }
   | { type: 'call-backend-for-claude'; prompt: string }
-  | { type: 'ai-chat-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo; points?: PointsInfo }
+  | { type: 'ai-chat-response'; designData: any; cost?: CostInfo; points?: PointsInfo }
   | { type: 'ai-chat-error'; error: string; statusCode?: number }
   | { type: 'layer-selected-for-edit'; layerName: string; layerJson: any; _imageReferenceKey?: string }
   | { type: 'layer-selected-for-reference'; layerId: string; layerName: string; layerJson: any; _imageReferenceKey?: string }
   | { type: 'node-shallow-json'; nodeId: string; nodeName: string; shallowJson: any }
   | { type: 'node-children-shallow'; parentNodeId: string; children: any[] }
   | { type: 'no-layer-selected' }
-  | { type: 'ai-edit-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo; points?: PointsInfo }
+  | { type: 'ai-edit-response'; designData: any; cost?: CostInfo; points?: PointsInfo }
   | { type: 'ai-edit-error'; error: string; statusCode?: number }
-  | { type: 'ai-based-on-existing-response'; message: string; designData: any; previewHtml?: string | null; cost?: CostInfo; points?: PointsInfo } // ✨ NEW
+  | { type: 'ai-based-on-existing-response'; designData: any; cost?: CostInfo; points?: PointsInfo }
   | { type: 'ai-based-on-existing-error'; error: string; statusCode?: number } // ✨ NEW
   | { type: 'design-updated'; layerJson: any; buttonId?: string }
   | { type: 'HEADERS_RESPONSE'; headers: any }

@@ -30,7 +30,6 @@ interface ChatMessage {
     isLoading?: boolean;
     isHtml?: boolean;
     designData?: unknown;
-    previewHtml?: string | null;
     cost?: CostInfo | null;
     isEditMode?: boolean;
     layerInfo?: LayerInfo | null;
@@ -52,6 +51,7 @@ interface ChatInterfaceProps {
     sendMessage: SendMessageFn;
     selectedFrames?: Frame[];
     onRemoveFrame?: (id: string) => void;
+    onClearFrames?: () => void;
     onToggleFramePicker?: () => void;
     framePickerOpen?: boolean;
     systemMessages?: SystemMessage[];
@@ -68,6 +68,7 @@ function ChatInterface({
     sendMessage,
     selectedFrames = [],
     onRemoveFrame,
+    onClearFrames,
     onToggleFramePicker,
     framePickerOpen = false,
     systemMessages = [],
@@ -198,7 +199,6 @@ function ChatInterface({
             isLoading: opts.isLoading || false,
             isHtml: opts.isHtml || false,
             designData: opts.designData || null,
-            previewHtml: opts.previewHtml || null,
             cost: opts.cost || null,
             isEditMode: opts.isEditMode || false,
             layerInfo: opts.layerInfo || null,
@@ -336,9 +336,8 @@ function ChatInterface({
         const rawCost = msg.cost as CostInfo | null;
         const cost: CostInfo | null = rawCost ? { ...rawCost, duration } : null;
 
-        addMessage('assistant', msg.message as string, {
+        addMessage('assistant', '', {
             designData: msg.designData,
-            previewHtml: msg.previewHtml as string | null,
             cost,
             isEditMode: isEdit,
             layerInfo: isEdit ? {
@@ -505,10 +504,9 @@ function ChatInterface({
                                     />
                                 )}
                                 {msg.cost && <CostBreakdown cost={msg.cost} />}
-                                {(msg.designData || msg.previewHtml) && (
+                                {!!msg.designData && (
                                     <DesignPreview
                                         designData={msg.designData}
-                                        previewHtml={msg.previewHtml}
                                         isEditMode={msg.isEditMode}
                                         isBasedOnExistingMode={isBasedOnExistingMode}
                                         layerInfo={msg.layerInfo}
@@ -556,14 +554,19 @@ function ChatInterface({
             <div className="chat-input-area">
                 {/* Frame Chips */}
                 {selectedFrames.length > 0 && (
-                    <div className="frame-chips">
-                        {selectedFrames.map((frame, i) => (
-                            <span key={frame.id} className={`f-chip ${i === 0 ? 'f-chip--main' : 'f-chip--support'}`}>
-                                <span className="chip-badge">{i === 0 ? 'Main' : 'Support'}</span>
-                                {frame.name.length > 16 ? frame.name.slice(0, 16) + '…' : frame.name}
-                                <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
-                            </span>
-                        ))}
+                    <div className="frame-chips-wrap">
+                        <div className="frame-chips">
+                            {selectedFrames.map((frame, i) => (
+                                <span key={frame.id} className={`f-chip ${i === 0 ? 'f-chip--main' : 'f-chip--support'}`}>
+                                    <span className="chip-badge">{i === 0 ? 'Main' : 'Support'}</span>
+                                    {frame.name.length > 16 ? frame.name.slice(0, 16) + '…' : frame.name}
+                                    <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
+                                </span>
+                            ))}
+                        </div>
+                        <button className="frame-chips-clear" onClick={onClearFrames} type="button">
+                            Clear
+                        </button>
                     </div>
                 )}
 

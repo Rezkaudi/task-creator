@@ -82,9 +82,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             );
 
             return {
-                message: result.message,
                 design: result.data,
-                previewHtml: null,
                 cost: costBreakdown
             };
 
@@ -136,9 +134,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             );
 
             return {
-                message: result.message,
                 design: result.data,
-                previewHtml: null,
                 cost: costBreakdown
             };
 
@@ -189,9 +185,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             );
 
             return {
-                message: result.message,
                 design: result.data,
-                previewHtml: null,
                 cost: costBreakdown
             };
 
@@ -205,7 +199,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         modelId?: string
     ): Promise<{
         connections: PrototypeConnection[];
-        message: string;
         cost?: any;
     }> {
         const aiModel = getModelById(modelId!);
@@ -242,7 +235,6 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 connections: result.data,
-                message: result.message,
                 cost: costBreakdown
             };
 
