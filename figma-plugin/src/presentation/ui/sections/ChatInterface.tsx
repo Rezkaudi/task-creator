@@ -52,6 +52,7 @@ interface ChatInterfaceProps {
     sendMessage: SendMessageFn;
     selectedFrames?: Frame[];
     onRemoveFrame?: (id: string) => void;
+    onClearFrames?: () => void;
     onToggleFramePicker?: () => void;
     framePickerOpen?: boolean;
     systemMessages?: SystemMessage[];
@@ -68,6 +69,7 @@ function ChatInterface({
     sendMessage,
     selectedFrames = [],
     onRemoveFrame,
+    onClearFrames,
     onToggleFramePicker,
     framePickerOpen = false,
     systemMessages = [],
@@ -556,14 +558,19 @@ function ChatInterface({
             <div className="chat-input-area">
                 {/* Frame Chips */}
                 {selectedFrames.length > 0 && (
-                    <div className="frame-chips">
-                        {selectedFrames.map((frame, i) => (
-                            <span key={frame.id} className={`f-chip ${i === 0 ? 'f-chip--main' : 'f-chip--support'}`}>
-                                <span className="chip-badge">{i === 0 ? 'Main' : 'Support'}</span>
-                                {frame.name.length > 16 ? frame.name.slice(0, 16) + '…' : frame.name}
-                                <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
-                            </span>
-                        ))}
+                    <div className="frame-chips-wrap">
+                        <div className="frame-chips">
+                            {selectedFrames.map((frame, i) => (
+                                <span key={frame.id} className={`f-chip ${i === 0 ? 'f-chip--main' : 'f-chip--support'}`}>
+                                    <span className="chip-badge">{i === 0 ? 'Main' : 'Support'}</span>
+                                    {frame.name.length > 16 ? frame.name.slice(0, 16) + '…' : frame.name}
+                                    <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
+                                </span>
+                            ))}
+                        </div>
+                        <button className="frame-chips-clear" onClick={onClearFrames} type="button">
+                            Clear
+                        </button>
                     </div>
                 )}
 

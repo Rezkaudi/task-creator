@@ -110,6 +110,14 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
         });
     }, []);
 
+    const clearSelectedFrames = useCallback(() => {
+        setSelectedFrameIds(new Set());
+        if (currentMode === 'edit') {
+            setSelectedLayerForEdit(null);
+            setSelectedLayerJson(null);
+        }
+    }, [currentMode]);
+
     const handleAttachComponent = useCallback((component: UIComponent) => {
         // Toggle: detach if already attached
         if (selectedFrameIds.has(component.id)) {
@@ -398,6 +406,7 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
                     sendMessage={sendMessage}
                     selectedFrames={selectedFrames}
                     onRemoveFrame={removeFrame}
+                    onClearFrames={clearSelectedFrames}
                     onToggleFramePicker={toggleFramePicker}
                     framePickerOpen={framePickerOpen}
                     systemMessages={systemMessages}
