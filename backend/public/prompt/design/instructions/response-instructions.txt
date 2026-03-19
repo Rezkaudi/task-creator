@@ -1,8 +1,7 @@
 RESPONSE FORMAT
 
-Return a single JSON object with exactly two keys:
+Return a single JSON object with exactly one key:
 - "data": The design array (array of FRAME objects)
-- "message": One sentence explaining what was created or modified
 
 STRICT RULES
 
@@ -15,9 +14,8 @@ STRICT RULES
 4. Position all top-level frames at x: 0, y: 0 (the plugin handles placement on canvas).
 5. Every node must be self-contained with all required properties. Do not reference external styles or variables.
 6. Output must be valid, parseable JSON. No trailing commas. No comments. No JavaScript expressions. No markdown. No code fences.
-7. The "message" string should describe what was created in 1-2 sentences, mentioning the key screens or components.
-8. Do NOT include any text before or after the JSON object.
-9. Do NOT wrap the JSON in markdown code blocks (no ```json or ```).
+7. Do NOT include any text before or after the JSON object.
+8. Do NOT wrap the JSON in markdown code blocks (no ```json or ```).
 
 REQUIRED OUTPUT STRUCTURE
 
@@ -36,6 +34,5 @@ REQUIRED OUTPUT STRUCTURE
       "counterAxisSizingMode": "FIXED",
       "children": [...]
     }
-  ],
-  "message": "Created a landing page with navigation bar, hero section, and feature grid."
+  ]
 }

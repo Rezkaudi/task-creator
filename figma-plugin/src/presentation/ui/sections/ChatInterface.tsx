@@ -338,7 +338,7 @@ function ChatInterface({
         const rawCost = msg.cost as CostInfo | null;
         const cost: CostInfo | null = rawCost ? { ...rawCost, duration } : null;
 
-        addMessage('assistant', msg.message as string, {
+        addMessage('assistant', '', {
             designData: msg.designData,
             previewHtml: msg.previewHtml as string | null,
             cost,

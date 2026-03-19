@@ -8,7 +8,6 @@ export interface IPrototypeService {
         modelId?: string
     ): Promise<{
         connections: PrototypeConnection[];
-        message: string;
         cost?: any;
     }>;
 }

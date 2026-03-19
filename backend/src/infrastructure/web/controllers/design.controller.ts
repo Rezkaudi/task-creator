@@ -66,7 +66,6 @@ export class DesignController {
                 designSystemId: designSystemId ?? null,
                 conversationHistory: history || [],
                 resultDesign: result.design ?? null,
-                aiMessage: result.message ?? null,
                 status: 'success',
                 inputTokens: result.cost?.inputTokens ?? null,
                 outputTokens: result.cost?.outputTokens ?? null,
@@ -76,7 +75,6 @@ export class DesignController {
 
             res.status(200).json({
                 success: true,
-                message: result.message,
                 design: result.design,
                 previewHtml: result.previewHtml,
                 cost: result.cost,
@@ -153,7 +151,6 @@ export class DesignController {
                 conversationHistory: history || [],
                 currentDesign: currentDesign ?? null,
                 resultDesign: result.design ?? null,
-                aiMessage: result.message ?? null,
                 status: 'success',
                 inputTokens: result.cost?.inputTokens ?? null,
                 outputTokens: result.cost?.outputTokens ?? null,
@@ -163,7 +160,6 @@ export class DesignController {
 
             res.status(200).json({
                 success: true,
-                message: result.message,
                 design: result.design,
                 previewHtml: result.previewHtml,
                 cost: result.cost,
@@ -244,7 +240,6 @@ export class DesignController {
                 conversationHistory: history || [],
                 referenceDesign: Array.isArray(referenceDesigns) ? referenceDesigns[0] ?? null : null,
                 resultDesign: result.design ?? null,
-                aiMessage: result.message ?? null,
                 status: 'success',
                 inputTokens: result.cost?.inputTokens ?? null,
                 outputTokens: result.cost?.outputTokens ?? null,
@@ -254,7 +249,6 @@ export class DesignController {
 
             res.status(200).json({
                 success: true,
-                message: result.message,
                 design: result.design,
                 previewHtml: result.previewHtml,
                 cost: result.cost,
@@ -322,7 +316,6 @@ export class DesignController {
                 operationType: 'prototype',
                 modelId,
                 resultConnections: result.connections ?? null,
-                aiMessage: result.message ?? null,
                 status: 'success',
                 inputTokens: result?.cost?.inputTokens ?? null,
                 outputTokens: result?.cost?.outputTokens ?? null,
@@ -333,7 +326,6 @@ export class DesignController {
             const response = {
                 success: true,
                 connections: result.connections,
-                message: result.message,
                 cost: result.cost,
                 points,
             };

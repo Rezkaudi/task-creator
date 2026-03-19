@@ -638,7 +638,6 @@ export class PluginMessageHandler {
 
       this.uiPort.postMessage({
         type: 'ai-edit-response',
-        message: result.message,
         designData: restoredDesign,
         previewHtml: result.previewHtml,
         cost: result.cost ? {
@@ -738,7 +737,6 @@ export class PluginMessageHandler {
 
       this.uiPort.postMessage({
         type: 'ai-based-on-existing-response',
-        message: result.message,
         designData: result.design,
         previewHtml: result.previewHtml,
         cost: result.cost ? {
@@ -827,7 +825,6 @@ export class PluginMessageHandler {
 
       this.uiPort.postMessage({
         type: 'ai-chat-response',
-        message: result.message,
         designData: result.design,
         previewHtml: result.previewHtml,
         cost: result.cost ? {
