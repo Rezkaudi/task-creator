@@ -559,7 +559,7 @@ function ChatInterface({
                             {selectedFrames.map((frame, i) => (
                                 <span key={frame.id} className={`f-chip ${i === 0 ? 'f-chip--main' : 'f-chip--support'}`}>
                                     <span className="chip-badge">{i === 0 ? 'Main' : 'Support'}</span>
-                                    {frame.name.length > 16 ? frame.name.slice(0, 16) + '…' : frame.name}
+                                    <span className="chip-name">{frame.name}</span>
                                     <button className="chip-x" onClick={() => onRemoveFrame?.(frame.id)}>✕</button>
                                 </span>
                             ))}
@@ -615,7 +615,7 @@ function ChatInterface({
                             onCompositionStart={() => setIsComposing(true)}
                             onCompositionEnd={() => setIsComposing(false)}
                             disabled={isGenerating}
-                            rows={1}
+                            rows={3}
                         />
                         <button
                             className="send-btn-icon"
