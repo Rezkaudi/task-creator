@@ -30,7 +30,6 @@ interface ChatMessage {
     isLoading?: boolean;
     isHtml?: boolean;
     designData?: unknown;
-    previewHtml?: string | null;
     cost?: CostInfo | null;
     isEditMode?: boolean;
     layerInfo?: LayerInfo | null;
@@ -200,7 +199,6 @@ function ChatInterface({
             isLoading: opts.isLoading || false,
             isHtml: opts.isHtml || false,
             designData: opts.designData || null,
-            previewHtml: opts.previewHtml || null,
             cost: opts.cost || null,
             isEditMode: opts.isEditMode || false,
             layerInfo: opts.layerInfo || null,
@@ -340,7 +338,6 @@ function ChatInterface({
 
         addMessage('assistant', '', {
             designData: msg.designData,
-            previewHtml: msg.previewHtml as string | null,
             cost,
             isEditMode: isEdit,
             layerInfo: isEdit ? {
@@ -507,10 +504,9 @@ function ChatInterface({
                                     />
                                 )}
                                 {msg.cost && <CostBreakdown cost={msg.cost} />}
-                                {(msg.designData || msg.previewHtml) && (
+                                {!!msg.designData && (
                                     <DesignPreview
                                         designData={msg.designData}
-                                        previewHtml={msg.previewHtml}
                                         isEditMode={msg.isEditMode}
                                         isBasedOnExistingMode={isBasedOnExistingMode}
                                         layerInfo={msg.layerInfo}

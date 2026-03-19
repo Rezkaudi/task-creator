@@ -83,7 +83,6 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 design: result.data,
-                previewHtml: null,
                 cost: costBreakdown
             };
 
@@ -136,7 +135,6 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 design: result.data,
-                previewHtml: null,
                 cost: costBreakdown
             };
 
@@ -188,7 +186,6 @@ export class AiGenerateDesignService implements IAiDesignService {
 
             return {
                 design: result.data,
-                previewHtml: null,
                 cost: costBreakdown
             };
 

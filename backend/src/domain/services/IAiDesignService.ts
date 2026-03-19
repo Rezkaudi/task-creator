@@ -10,7 +10,6 @@ export interface ConversationMessage {
 
 export interface DesignGenerationResult {
     design: any;
-    previewHtml?: string | null;
     cost: CostBreakdown;
 }
 

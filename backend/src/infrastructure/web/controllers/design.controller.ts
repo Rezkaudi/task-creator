@@ -76,7 +76,6 @@ export class DesignController {
             res.status(200).json({
                 success: true,
                 design: result.design,
-                previewHtml: result.previewHtml,
                 cost: result.cost,
                 points,
                 metadata: {
@@ -161,7 +160,6 @@ export class DesignController {
             res.status(200).json({
                 success: true,
                 design: result.design,
-                previewHtml: result.previewHtml,
                 cost: result.cost,
                 points,
                 metadata: {
@@ -250,7 +248,6 @@ export class DesignController {
             res.status(200).json({
                 success: true,
                 design: result.design,
-                previewHtml: result.previewHtml,
                 cost: result.cost,
                 points,
                 metadata: {

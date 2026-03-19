@@ -4,7 +4,6 @@ import FigmaIcon from './FigmaIcon.tsx';
 
 interface DesignPreviewProps {
     designData: unknown;
-    previewHtml?: string | null;
     isEditMode?: boolean;
     isBasedOnExistingMode?: boolean;
     layerInfo?: unknown;
@@ -14,8 +13,8 @@ interface DesignPreviewProps {
     onSave: () => void;
 }
 
-export default function DesignPreview({ designData, previewHtml, isImporting, onImport, onSave }: DesignPreviewProps): React.JSX.Element | null {
-    if (!designData && !previewHtml) return null;
+export default function DesignPreview({ designData, isImporting, onImport, onSave }: DesignPreviewProps): React.JSX.Element | null {
+    if (!designData) return null;
 
     return (
         <div className="design-preview">
