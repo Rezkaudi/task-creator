@@ -137,7 +137,9 @@ function AiSection({ sendMessage, onSaveSelected, isSavingExport }: AiTabProps):
         setSelectedFrameIds(prev => new Set([...prev, component.id]));
     }, [state.selectionInfo, selectedFrameIds, notify]);
 
-    const selectedFrames = availableFrames.filter(f => selectedFrameIds.has(f.id));
+    const selectedFrames = [...selectedFrameIds]
+        .map(id => availableFrames.find(f => f.id === id))
+        .filter((f): f is Frame => f !== undefined);
 
     // Automatically use by-reference API when a frame is attached in create mode
     const isBasedOnExistingMode = currentMode === 'create' && selectedFrames.length > 0;

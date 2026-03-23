@@ -539,6 +539,8 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
       this.applyCommonProperties(childNode, childData);
       // Apply style IDs via async setters (read-only with dynamic-page documentAccess)
       await this.applyStyleIdsAsync(childNode, childData);
+      // Apply variable bindings (must come after fills/strokes are set)
+      await this.applyBoundVariablesAsync(childNode, childData);
 
       // Append to parent first so node.parent is set
       parentNode.appendChild(childNode);
@@ -568,6 +570,7 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
           if (typeof childData.y === 'number') childNode.y = childData.y;
           this.applyCommonProperties(childNode, childData);
           await this.applyStyleIdsAsync(childNode, childData);
+          await this.applyBoundVariablesAsync(childNode, childData);
           this.appendToPage(childNode);
           this.applyLayoutChildProperties(childNode, childData);
           childNodes.push(childNode);
@@ -642,6 +645,7 @@ export class FigmaNodeRepository extends BaseNodeCreator implements INodeReposit
         if (typeof childData.y === 'number') childNode.y = childData.y;
         this.applyCommonProperties(childNode, childData);
         await this.applyStyleIdsAsync(childNode, childData);
+        await this.applyBoundVariablesAsync(childNode, childData);
         targetParent.appendChild(childNode);
         this.applyLayoutChildProperties(childNode, childData);
         childNodes.push(childNode);

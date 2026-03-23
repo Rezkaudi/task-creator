@@ -45,13 +45,13 @@ export class JsonToToonService {
           if (fill.type === 'SOLID' && fill.color) {
             const { r, g, b } = fill.color;
             const a = fill.opacity ?? fill.color.a ?? 1;
-            colorSet.add(`rgba(${r.toFixed(2)},${g.toFixed(2)},${b.toFixed(2)},${a.toFixed(2)})`);
+            colorSet.add(`rgba(${r},${g},${b},${a})`);
           } else if (fill.type === 'GRADIENT_LINEAR' || fill.type === 'GRADIENT_RADIAL') {
             if (fill.gradientStops) {
               const key = JSON.stringify({
                 type: fill.type,
                 stops: fill.gradientStops.map((s: any) => ({
-                  pos: parseFloat(s.position.toFixed(2)),
+                  pos: parseFloat(s.position),
                   color: s.color,
                 })),
               });
@@ -67,7 +67,7 @@ export class JsonToToonService {
           if (stroke.type === 'SOLID' && stroke.color) {
             const { r, g, b } = stroke.color;
             const a = stroke.opacity ?? stroke.color.a ?? 1;
-            colorSet.add(`rgba(${r.toFixed(2)},${g.toFixed(2)},${b.toFixed(2)},${a.toFixed(2)})`);
+            colorSet.add(`rgba(${r},${g},${b},${a})`);
           }
         }
       }
@@ -340,7 +340,7 @@ export class JsonToToonService {
     const nodes = Array.isArray(data) ? data : [data];
 
     // Token accumulators
-    const colorSet = new Set<string>();
+    const colorMap = new Map<string, any>(); // key = rgba string for dedup, value = {color, boundVariables?}
     const gradientSet = new Set<string>();
     const fontSet = new Set<string>();
     const spacingSet = new Set<number>();
@@ -363,7 +363,14 @@ export class JsonToToonService {
           if (fill.type === 'SOLID' && fill.color) {
             const { r, g, b } = fill.color;
             const a = fill.opacity ?? fill.color.a ?? 1;
-            colorSet.add(`rgba(${r.toFixed(2)},${g.toFixed(2)},${b.toFixed(2)},${a.toFixed(2)})`);
+            const key = `rgba(${r},${g},${b},${a})`;
+            if (!colorMap.has(key)) {
+              const entry: any = { color: { r, g, b } };
+              if (fill.boundVariables?.color) entry.boundVariables = { color: fill.boundVariables.color };
+              colorMap.set(key, entry);
+            } else if (fill.boundVariables?.color && !colorMap.get(key).boundVariables) {
+              colorMap.get(key).boundVariables = { color: fill.boundVariables.color };
+            }
           } else if (
             (fill.type === 'GRADIENT_LINEAR' || fill.type === 'GRADIENT_RADIAL') &&
             fill.gradientStops && gradientSet.size < 20
@@ -371,7 +378,7 @@ export class JsonToToonService {
             gradientSet.add(JSON.stringify({
               type: fill.type,
               stops: fill.gradientStops.map((s: any) => ({
-                pos: parseFloat(s.position.toFixed(2)),
+                pos: parseFloat(s.position),
                 color: s.color,
               })),
             }));
@@ -385,7 +392,14 @@ export class JsonToToonService {
           if (stroke.type === 'SOLID' && stroke.color) {
             const { r, g, b } = stroke.color;
             const a = stroke.opacity ?? stroke.color.a ?? 1;
-            colorSet.add(`rgba(${r.toFixed(2)},${g.toFixed(2)},${b.toFixed(2)},${a.toFixed(2)})`);
+            const key = `rgba(${r},${g},${b},${a})`;
+            if (!colorMap.has(key)) {
+              const entry: any = { color: { r, g, b } };
+              if (stroke.boundVariables?.color) entry.boundVariables = { color: stroke.boundVariables.color };
+              colorMap.set(key, entry);
+            } else if (stroke.boundVariables?.color && !colorMap.get(key).boundVariables) {
+              colorMap.get(key).boundVariables = { color: stroke.boundVariables.color };
+            }
           }
         }
         const strokeEntry: any = {};
@@ -462,7 +476,7 @@ export class JsonToToonService {
 
     const output: any = {
       designTokens: {
-        colors: Array.from(colorSet),
+        colors: Array.from(colorMap.values()),
         gradients: Array.from(gradientSet).map(s => JSON.parse(s)),
         typography: {
           families,
