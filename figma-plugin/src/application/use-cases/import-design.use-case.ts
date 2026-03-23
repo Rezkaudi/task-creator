@@ -17,6 +17,8 @@ export interface ImportResult {
  * Handles comprehensive lossless import of all node types
  */
 export class ImportDesignUseCase {
+  private static readonly NODE_SPACING = 200;
+
   constructor(
     private readonly nodeRepository: INodeRepository,
     private readonly notificationPort: INotificationPort,
@@ -66,6 +68,9 @@ export class ImportDesignUseCase {
         throw new Error('No nodes were created from the provided data.');
       }
 
+      this.arrangeNodesHorizontally(createdNodes);
+      this.placeAfterExisting(createdNodes);
+
       // this.nodeRepository.setSelection(createdNodes);
       this.nodeRepository.focusOnNodes(createdNodes);
 
@@ -95,5 +100,31 @@ export class ImportDesignUseCase {
       const indexB = b._layerIndex ?? 0;
       return indexA - indexB;
     });
+  }
+
+  private arrangeNodesHorizontally(nodes: SceneNode[]): void {
+    let currentX = 0;
+    for (const node of nodes) {
+      node.x = currentX;
+      node.y = 0;
+      if ('width' in node && typeof node.width === 'number') {
+        currentX += node.width + ImportDesignUseCase.NODE_SPACING;
+      }
+    }
+  }
+
+  private placeAfterExisting(nodes: SceneNode[]): void {
+    if (nodes.length === 0) return;
+    let maxX = 0;
+    for (const child of figma.currentPage.children) {
+      if (nodes.includes(child)) continue;
+      const rightEdge = child.x + child.width;
+      if (rightEdge > maxX) maxX = rightEdge;
+    }
+    const startX = maxX === 0 ? 0 : maxX + ImportDesignUseCase.NODE_SPACING;
+    const offsetX = startX - nodes[0].x;
+    for (const node of nodes) {
+      node.x += offsetX;
+    }
   }
 }
