@@ -96,6 +96,9 @@ function ChatInterface({
     const updateSubscriptionRef = useRef(updateSubscription);
     const updatePointsBalanceRef = useRef(updatePointsBalance);
 
+    const [attachedImage, setAttachedImage] = useState<string | null>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+
     const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
     const [dsDropdownOpen, setDsDropdownOpen] = useState(false);
     const [attachNotif, setAttachNotif] = useState<string | null>(null);
@@ -142,7 +145,7 @@ function ChatInterface({
         } else if (currentMode === 'prototype') {
             welcomeMessage = `Prototype Mode: Attach 2 or more frames with 📎 to generate connections between them. Then click Send. 🔗`;
         } else {
-            welcomeMessage = `What would you like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>? Attach a frame with 📎 to use it as a style reference.`;
+            welcomeMessage = `What would you like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>? Attach an image with 📎 to generate a design based on it.`;
         }
 
         setMessages([{ role: 'assistant', content: welcomeMessage, isHtml: true }]);
@@ -163,7 +166,7 @@ function ChatInterface({
             : `<strong>"${selectedFrames[0]?.name}"</strong>`;
         const welcomeMessage = selectedFrames.length > 0
             ? `Designing based on ${refLabel} as your style reference. Describe what you'd like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>.`
-            : `What would you like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>? Attach a frame with 📎 to use it as a style reference.`;
+            : `What would you like to create with <strong>${modelName}</strong> + <strong>${systemName}</strong>? Attach an image with 📎 to generate a design based on it.`;
 
         setMessages(prev => {
             if (prev.length === 0) return prev;
@@ -210,6 +213,18 @@ function ChatInterface({
 
     const removeLoadingMessages = useCallback(() => {
         setMessages(prev => prev.filter(m => !m.isLoading));
+    }, []);
+
+    const selectedModelObj = availableModels.find(m => m.id === currentModelId);
+    const modelSupportsVision = selectedModelObj?.supportsVision ?? false;
+
+    const handleImageAttach = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => setAttachedImage(reader.result as string);
+        reader.readAsDataURL(file);
+        e.target.value = '';
     }, []);
 
     const sendChatMessage = useCallback(() => {
@@ -283,15 +298,22 @@ function ChatInterface({
                 modelId: currentModelId
             });
         } else {
-            addMessage('assistant', 'Creating in progress ...', { isLoading: true });
+            if (attachedImage && !modelSupportsVision) {
+                addMessage('assistant', '⚠️ The selected model does not support images. Please switch to a vision-capable model (Gemini 2.5 Flash, Claude Opus, or GPT-5) using the model selector below.');
+                setIsGenerating(false);
+                return;
+            }
+            addMessage('assistant', attachedImage ? 'Analysing image and creating design...' : 'Creating in progress ...', { isLoading: true });
             sendMessage('ai-chat-message', {
                 message,
                 history: [],
                 model: currentModelId,
-                designSystemId: currentDesignSystemId
+                designSystemId: currentDesignSystemId,
+                ...(attachedImage ? { imageDataUrl: attachedImage } : {}),
             });
+            setAttachedImage(null);
         }
-    }, [inputValue, isGenerating, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, sendMessage, addMessage, selectedFrames]);
+    }, [inputValue, isGenerating, currentMode, isBasedOnExistingMode, currentModelId, currentDesignSystemId, selectedLayerJson, sendMessage, addMessage, selectedFrames, attachedImage]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && e.shiftKey) return;
@@ -570,6 +592,23 @@ function ChatInterface({
                     </div>
                 )}
 
+                {/* Image Preview */}
+                {attachedImage && (
+                    <div className="image-preview-row">
+                        <img src={attachedImage} className="image-preview-thumb" alt="reference" />
+                        <button className="chip-x" onClick={() => setAttachedImage(null)}>✕</button>
+                    </div>
+                )}
+
+                {/* Hidden image file input */}
+                <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={handleImageAttach}
+                />
+
                 {/* Input Row */}
                 {currentMode === 'prototype' ? (
                     <div className="input-row prototype-action" style={{ display: 'flex', gap: '8px' }}>
@@ -596,9 +635,10 @@ function ChatInterface({
                 ) : (
                     <div className="input-row">
                         <button
-                            className={`attach-btn ${framePickerOpen ? 'active' : ''}`}
-                            onClick={onToggleFramePicker}
-                            title="Attach frames"
+                            className={`attach-btn ${attachedImage ? 'active' : ''}`}
+                            onClick={() => imageInputRef.current?.click()}
+                            title={modelSupportsVision ? 'Attach image (image → design)' : 'Attach image — switch to a vision model (Gemini, Claude, GPT) to send'}
+                            disabled={isGenerating}
                         >
                             📎
                         </button>

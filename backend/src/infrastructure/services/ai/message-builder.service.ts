@@ -15,9 +15,16 @@ import {
 } from '../../config/prompt.config';
 
 
+export type AiMessageContent =
+    | string
+    | Array<
+        | { type: 'text'; text: string }
+        | { type: 'image_url'; image_url: { url: string } }
+    >;
+
 export interface AiMessage {
     role: 'system' | 'user' | 'assistant';
-    content: string;
+    content: AiMessageContent;
 }
 
 export class MessageBuilderService {
@@ -25,7 +32,8 @@ export class MessageBuilderService {
     buildConversationMessages(
         currentMessage: string,
         history: ConversationMessage[],
-        designSystemId: string
+        designSystemId: string,
+        imageDataUrl?: string,
     ): AiMessage[] {
         const designSystem = getDesignSystemById(designSystemId);
         const systemPrompt = [
@@ -40,18 +48,20 @@ export class MessageBuilderService {
             { role: 'system', content: systemPrompt }
         ];
 
-        // const recentHistory = history.slice(-3);
-        // for (const msg of recentHistory) {
-        //     messages.push({
-        //         role: msg.role as 'user' | 'assistant',
-        //         content: msg.content
-        //     });
-        // }
-
-        messages.push({
-            role: 'user',
-            content: currentMessage
-        });
+        if (imageDataUrl) {
+            messages.push({
+                role: 'user',
+                content: [
+                    { type: 'image_url', image_url: { url: imageDataUrl } },
+                    { type: 'text', text: currentMessage },
+                ],
+            });
+        } else {
+            messages.push({
+                role: 'user',
+                content: currentMessage,
+            });
+        }
 
         return messages;
     }

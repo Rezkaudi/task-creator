@@ -37,7 +37,7 @@ export class DesignController {
 
     // Generate design from conversation with history
     async generateFromConversation(req: Request, res: Response): Promise<void> {
-        const { message, history, modelId, designSystemId } = req.body;
+        const { message, history, modelId, designSystemId, imageDataUrl } = req.body;
 
         try {
             const userId = this.getUserId(req);
@@ -47,7 +47,8 @@ export class DesignController {
                 message,
                 history || [],
                 modelId,
-                designSystemId
+                designSystemId,
+                imageDataUrl,
             );
 
             const points = await this.applyPointsDeduction(

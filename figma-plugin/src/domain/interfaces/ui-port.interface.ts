@@ -75,6 +75,7 @@ export type PluginMessage =
     history?: Array<{ role: string; content: string }>;
     model?: string;
     designSystemId?: string;
+    imageDataUrl?: string;
   }
   | {
     type: 'import-design-from-chat';

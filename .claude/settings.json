@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(grep -r \"attach\\\\|📎\\\\|frame-chip\" /home/rezk/task-creator/figma-plugin/src/presentation/ui/styles/*.css)",
+      "Bash(grep -A 20 \"case ''get-frames-for-prototype''\" /home/rezk/task-creator/figma-plugin/src/presentation/handlers/plugin-message.handler.ts)",
+      "Bash(grep -n \"getFramesWithInteractiveElements\" /home/rezk/task-creator/figma-plugin/src/infrastructure/figma/*.ts)"
     ]
   }
 }

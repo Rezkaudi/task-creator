@@ -65,7 +65,7 @@ export class PluginMessageHandler {
           break;
         case 'ai-chat-message':
           if (message.message !== undefined) {
-            await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId);
+            await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId, message.imageDataUrl as string | undefined);
           }
           break;
         case 'request-layer-selection-for-edit':
@@ -776,7 +776,8 @@ export class PluginMessageHandler {
     userMessage: string,
     history?: Array<{ role: string; content: string }>,
     model?: string,
-    designSystemId?: string
+    designSystemId?: string,
+    imageDataUrl?: string,
   ): Promise<void> {
     try {
       if (history && history.length > 0) {
@@ -792,7 +793,8 @@ export class PluginMessageHandler {
           message: userMessage,
           history: this.conversationHistory,
           modelId: selectedModel,
-          designSystemId: designSystemId
+          designSystemId: designSystemId,
+          ...(imageDataUrl ? { imageDataUrl } : {}),
         })
       });
 

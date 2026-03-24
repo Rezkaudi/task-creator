@@ -111,6 +111,7 @@ export interface AiModel {
     icon?: string;
     description?: string;
     isFree?: boolean;
+    supportsVision?: boolean;
 }
 
 export interface DesignSystem {
