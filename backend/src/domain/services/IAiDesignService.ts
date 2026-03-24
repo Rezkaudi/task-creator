@@ -36,5 +36,6 @@ export interface IAiDesignService {
         referenceToon: string,
         modelId: string,
         pinnedInstructions?: string,
+        imageDataUrl?: string,
     ): Promise<DesignGenerationResult>;
 }

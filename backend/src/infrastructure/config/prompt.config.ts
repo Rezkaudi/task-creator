@@ -58,3 +58,8 @@ export const imageInstructionPrompt = fs.readFileSync(
     path.join(__dirname, '../../../public/prompt/design/actions/image-instruction-prompt.txt'),
     'utf-8'
 ).trim();
+
+export const imageReferenceInstructionPrompt = fs.readFileSync(
+    path.join(__dirname, '../../../public/prompt/design/actions/image-reference-instruction-prompt.txt'),
+    'utf-8'
+).trim();

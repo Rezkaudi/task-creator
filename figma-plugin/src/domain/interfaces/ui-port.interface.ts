@@ -103,8 +103,11 @@ export type PluginMessage =
     history?: Array<{ role: string; content: string }>;
     referenceJson?: any;
     referenceId?: string;
+    references?: Array<{ id: string; name: string; designJson?: any }>;
+    pinnedComponentNames?: string[];
     model?: string;
     designSystemId?: string;
+    imageDataUrl?: string;
   }
   | {
     type: 'import-edited-design';

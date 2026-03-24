@@ -254,13 +254,21 @@ function ChatInterface({
         addMessage('user', message);
 
         if (isBasedOnExistingMode) {
+            if (attachedImage && !modelSupportsVision) {
+                addMessage('assistant', '⚠️ The selected model does not support images. Please switch to a vision-capable model (Gemini 2.5 Flash, Claude Opus, or GPT-5) using the model selector below.');
+                setIsGenerating(false);
+                return;
+            }
             const referenceFrame = selectedFrames[0];
             const pinned = pinnedComponentNames && pinnedComponentNames.size > 0 ? Array.from(pinnedComponentNames) : [];
             const pinnedNote = pinned.length > 0 ? ` (keeping ${pinned.join(', ')})` : '';
             const refNames = selectedFrames.length > 1
                 ? `${selectedFrames.length} references`
                 : `"${referenceFrame.name}"`;
-            addMessage('assistant', `Creating new design based on ${refNames} style${pinnedNote}...`, { isLoading: true });
+            const loadingMsg = attachedImage
+                ? `Recreating image structure with ${refNames} design style${pinnedNote}...`
+                : `Creating new design based on ${refNames} style${pinnedNote}...`;
+            addMessage('assistant', loadingMsg, { isLoading: true });
             sendMessage('ai-generate-based-on-existing', {
                 message,
                 history: [],
@@ -271,7 +279,9 @@ function ChatInterface({
                 })),
                 model: currentModelId,
                 pinnedComponentNames: pinned,
+                ...(attachedImage ? { imageDataUrl: attachedImage } : {}),
             });
+            setAttachedImage(null);
         } else if (currentMode === 'edit') {
             const attachedFrame = selectedFrames[0];
             addMessage('assistant', `Editing "${attachedFrame.name}"...`, { isLoading: true });

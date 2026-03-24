@@ -131,7 +131,8 @@ export class PluginMessageHandler {
                 message.history,
                 rawRefs,
                 message.model,
-                (message as any).pinnedComponentNames as string[] | undefined
+                (message as any).pinnedComponentNames as string[] | undefined,
+                (message as any).imageDataUrl as string | undefined,
               );
             }
           }
@@ -678,7 +679,8 @@ export class PluginMessageHandler {
     history: Array<{ role: string; content: string }> | undefined,
     references: Array<{ id: string; name: string; designJson?: any }>,
     model?: string,
-    pinnedComponentNames?: string[]
+    pinnedComponentNames?: string[],
+    imageDataUrl?: string,
   ): Promise<void> {
     try {
       const conversationHistory = history && history.length > 0 ? history : [];
@@ -707,7 +709,8 @@ export class PluginMessageHandler {
           history: conversationHistory,
           referenceDesigns: cleanedReferences,
           modelId: selectedModel,
-          pinnedComponentNames: pinnedComponentNames ?? []
+          pinnedComponentNames: pinnedComponentNames ?? [],
+          ...(imageDataUrl ? { imageDataUrl } : {}),
         })
       });
 

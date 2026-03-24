@@ -203,7 +203,7 @@ export class DesignController {
 
     // Generate design based on existing design's style
     async generateBasedOnExisting(req: Request, res: Response): Promise<void> {
-        const { message, history, referenceDesigns, modelId, pinnedComponentNames } = req.body;
+        const { message, history, referenceDesigns, modelId, pinnedComponentNames, imageDataUrl } = req.body;
 
         try {
 
@@ -220,7 +220,8 @@ export class DesignController {
                 history || [],
                 allReferences,
                 modelId,
-                Array.isArray(pinnedComponentNames) ? pinnedComponentNames : undefined
+                Array.isArray(pinnedComponentNames) ? pinnedComponentNames : undefined,
+                imageDataUrl,
             );
 
             const points = await this.applyPointsDeduction(
