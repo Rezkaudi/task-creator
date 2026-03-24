@@ -11,7 +11,8 @@ import {
     createDesignPrompt,
     editDesignPrompt,
     basedOnExistingPrompt,
-    prototypeConnectionsPrompt
+    prototypeConnectionsPrompt,
+    imageInstructionPrompt,
 } from '../../config/prompt.config';
 
 
@@ -31,7 +32,7 @@ export class MessageBuilderService {
 
     buildConversationMessages(
         currentMessage: string,
-        history: ConversationMessage[],
+        _history: ConversationMessage[],
         designSystemId: string,
         imageDataUrl?: string,
     ): AiMessage[] {
@@ -53,7 +54,7 @@ export class MessageBuilderService {
                 role: 'user',
                 content: [
                     { type: 'image_url', image_url: { url: imageDataUrl } },
-                    { type: 'text', text: currentMessage },
+                    { type: 'text', text: `${imageInstructionPrompt} ${currentMessage}` },
                 ],
             });
         } else {

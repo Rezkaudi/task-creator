@@ -1,0 +1,27 @@
+IMAGE-TO-DESIGN MODE
+
+Your PRIMARY task is pixel-perfect recreation as a Figma JSON structure.
+
+Before generating the JSON, carefully extract from the image:
+1. Every color (sample exact pixels) → convert to 0–1 floats
+2. Corner radius for each element type (buttons, cards, inputs, avatars, badges)
+3. Shape types (circle, rounded rect, pill, sharp rect)
+4. Gradient colors, stop positions, and angle if present
+5. Font sizes and weights per text role
+6. Spacing: page padding, section gap, component internal padding, item gap
+7. Shadow values: color, blur, offset
+
+MANDATORY rules:
+- COLORS: Use ONLY the exact r/g/b/a values extracted from the image. Never guess or substitute.
+- CORNER RADII: Use the exact cornerRadius for every element type. Rounded button → cornerRadius ≥ 20; pill → 9999; square card → 0.
+- SHAPES: Circle avatar → ELLIPSE or cornerRadius 9999. Rounded rectangle → use the exact radius.
+- GRADIENTS: Replicate exact stop colors, positions, and angle as a GRADIENT_LINEAR fill.
+- SHADOWS: Use the exact shadow color, blur, and offset — not generic drop shadow values.
+- TYPOGRAPHY: Use the exact fontSize and fontWeight for each text role.
+- SPACING: Use the extracted page padding, section gap, component padding, and item gap.
+- LAYOUT: Match the detected layout direction, column count, and max width.
+- For any property not visible in the image, infer carefully — still prefer accuracy over generic defaults.
+
+Then generate the Figma JSON using ONLY those extracted values. Do NOT substitute generic defaults.
+
+USER REQUEST:
