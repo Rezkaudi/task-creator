@@ -65,7 +65,7 @@ export class PluginMessageHandler {
           break;
         case 'ai-chat-message':
           if (message.message !== undefined) {
-            await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId);
+            await this.handleAIChatMessage(message.message, message.history, message.model, message.designSystemId, message.imageDataUrl as string | undefined);
           }
           break;
         case 'request-layer-selection-for-edit':
@@ -131,7 +131,8 @@ export class PluginMessageHandler {
                 message.history,
                 rawRefs,
                 message.model,
-                (message as any).pinnedComponentNames as string[] | undefined
+                (message as any).pinnedComponentNames as string[] | undefined,
+                (message as any).imageDataUrl as string | undefined,
               );
             }
           }
@@ -678,7 +679,8 @@ export class PluginMessageHandler {
     history: Array<{ role: string; content: string }> | undefined,
     references: Array<{ id: string; name: string; designJson?: any }>,
     model?: string,
-    pinnedComponentNames?: string[]
+    pinnedComponentNames?: string[],
+    imageDataUrl?: string,
   ): Promise<void> {
     try {
       const conversationHistory = history && history.length > 0 ? history : [];
@@ -707,7 +709,8 @@ export class PluginMessageHandler {
           history: conversationHistory,
           referenceDesigns: cleanedReferences,
           modelId: selectedModel,
-          pinnedComponentNames: pinnedComponentNames ?? []
+          pinnedComponentNames: pinnedComponentNames ?? [],
+          ...(imageDataUrl ? { imageDataUrl } : {}),
         })
       });
 
@@ -776,7 +779,8 @@ export class PluginMessageHandler {
     userMessage: string,
     history?: Array<{ role: string; content: string }>,
     model?: string,
-    designSystemId?: string
+    designSystemId?: string,
+    imageDataUrl?: string,
   ): Promise<void> {
     try {
       if (history && history.length > 0) {
@@ -792,7 +796,8 @@ export class PluginMessageHandler {
           message: userMessage,
           history: this.conversationHistory,
           modelId: selectedModel,
-          designSystemId: designSystemId
+          designSystemId: designSystemId,
+          ...(imageDataUrl ? { imageDataUrl } : {}),
         })
       });
 

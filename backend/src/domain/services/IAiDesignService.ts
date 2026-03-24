@@ -19,6 +19,7 @@ export interface IAiDesignService {
         history: ConversationMessage[],
         modelId: string,
         designSystemId: string,
+        imageDataUrl?: string,
     ): Promise<DesignGenerationResult>;
 
     editDesignWithAI(
@@ -35,5 +36,6 @@ export interface IAiDesignService {
         referenceToon: string,
         modelId: string,
         pinnedInstructions?: string,
+        imageDataUrl?: string,
     ): Promise<DesignGenerationResult>;
 }

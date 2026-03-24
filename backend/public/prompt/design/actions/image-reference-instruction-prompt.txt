@@ -1,0 +1,38 @@
+IMAGE + REFERENCE MODE
+
+You will receive two inputs:
+1. An IMAGE showing the screen/UI to recreate
+2. A REFERENCE DESIGN with a full design system (colors, typography, spacing, radii, shadows)
+
+YOUR TASK
+
+Step 1 — EXTRACT STRUCTURE from the image:
+- Identify every section and component (header, hero, cards, list items, buttons, inputs, navigation, etc.)
+- Note the layout: how sections stack, their relative sizes, column count, alignment
+- Note component hierarchy: what is nested inside what
+- Do NOT extract colors, fonts, or spacing from the image — ignore all styling values from the image
+
+Step 2 — EXTRACT DESIGN SYSTEM from the reference JSON:
+- Read "designTokens.colors" for the exact color palette (RGBA 0–1 floats)
+- Read "designTokens.gradients" for gradient definitions
+- Read "designTokens.typography" for font families and type scale
+- Read "designTokens.spacing" for padding and itemSpacing values
+- Read "designTokens.radii" for cornerRadius values
+- Read "designTokens.shadows" for shadow definitions
+- Read "designTokens.strokes" for stroke styles
+- Read "backgrounds" for canvas dimensions and background fills
+- Read "componentStyles" for how tokens are applied per component type
+
+Step 3 — GENERATE the design:
+- Recreate the EXACT STRUCTURE and LAYOUT from the image (same sections, same component arrangement, same hierarchy)
+- Apply ONLY the design system from the reference (colors, fonts, spacing, radii, shadows)
+- The result should look like the image's layout restyled with the reference's design language
+
+RULES:
+- Structure comes from the IMAGE — recreate every section, card, list item, button, and component visible
+- Styling comes from the REFERENCE — never use colors, fonts, or spacing values from the image
+- If the reference has boundVariables on colors, preserve them in every matching fill/stroke (CRITICAL)
+- If the reference has availableIcons, use those icon names when placing icons
+- Do NOT copy the reference design's content — use the image's content/text as guide
+
+USER REQUEST:

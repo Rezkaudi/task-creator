@@ -43,6 +43,11 @@ export const generateFromConversationValidation = [
         .isString().withMessage('Design System ID must be a string')
         .isIn(DESIGN_SYSTEMS.map(designSystem => designSystem.id)).withMessage('Invalid design system'),
 
+    body('imageDataUrl')
+        .optional({ nullable: true })
+        .isString().withMessage('imageDataUrl must be a string')
+        .matches(/^data:image\/(png|jpeg|jpg|webp);base64,/).withMessage('imageDataUrl must be a valid base64 image data URL'),
+
 ];
 
 export const editWithAIValidation = [

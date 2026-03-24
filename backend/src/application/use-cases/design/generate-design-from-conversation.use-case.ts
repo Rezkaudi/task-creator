@@ -8,7 +8,8 @@ export class GenerateDesignFromConversationUseCase {
         message: string,
         history: ConversationMessage[],
         modelId: string,
-        designSystemId: string
+        designSystemId: string,
+        imageDataUrl?: string,
     ): Promise<DesignGenerationResult> {
         if (!message || message.trim().length === 0) {
             throw new Error('Message is required to generate a design.');
@@ -20,7 +21,8 @@ export class GenerateDesignFromConversationUseCase {
             message,
             validHistory,
             modelId,
-            designSystemId
+            designSystemId,
+            imageDataUrl,
         );
     }
 }

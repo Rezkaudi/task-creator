@@ -23,7 +23,8 @@ export class GenerateDesignBasedOnExistingUseCase {
         history: ConversationMessage[],
         referenceDesign: any,
         modelId: string,
-        pinnedComponentNames?: string[]
+        pinnedComponentNames?: string[],
+        imageDataUrl?: string,
     ): Promise<DesignGenerationResult> {
 
         // Build icon map server-side — full nodes kept in memory, NOT sent to AI
@@ -64,6 +65,7 @@ export class GenerateDesignBasedOnExistingUseCase {
             referenceContext,
             modelId,
             pinnedInstructions || undefined,
+            imageDataUrl,
         );
 
         // fs.writeFileSync('resultllm.json', JSON.stringify(result, null, 2));

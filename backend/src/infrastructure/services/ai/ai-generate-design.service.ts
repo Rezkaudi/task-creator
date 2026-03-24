@@ -44,7 +44,8 @@ export class AiGenerateDesignService implements IAiDesignService {
         userMessage: string,
         history: ConversationMessage[],
         modelId: string,
-        designSystemId: string
+        designSystemId: string,
+        imageDataUrl?: string,
     ): Promise<DesignGenerationResult> {
 
         const aiModel = getModelById(modelId);
@@ -55,7 +56,8 @@ export class AiGenerateDesignService implements IAiDesignService {
         const messages = this.messageBuilder.buildConversationMessages(
             userMessage,
             history,
-            designSystemId
+            designSystemId,
+            imageDataUrl,
         );
 
         console.log('--- 2. Sending messages to AI  ---');
@@ -78,7 +80,8 @@ export class AiGenerateDesignService implements IAiDesignService {
                 aiModel,
                 usage,
                 JSON.stringify(messages),
-                responseText
+                responseText,
+                !!imageDataUrl,
             );
 
             return {
@@ -149,6 +152,7 @@ export class AiGenerateDesignService implements IAiDesignService {
         referenceToon: string,
         modelId: string,
         pinnedInstructions?: string,
+        imageDataUrl?: string,
     ): Promise<DesignGenerationResult> {
         const aiModel = getModelById(modelId);
         const openai = this.clientFactory.createClient(aiModel);
@@ -160,6 +164,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             history,
             referenceToon,
             pinnedInstructions,
+            imageDataUrl,
         );
 
         console.log('--- 2. Sending messages to AI  ---');
@@ -212,7 +217,7 @@ export class AiGenerateDesignService implements IAiDesignService {
         try {
             const completion = await openai.chat.completions.create({
                 model: aiModel.id,
-                messages,
+                messages: messages as any,
                 // response_format: { type: 'json_object' },
             });
 
@@ -275,7 +280,7 @@ export class AiGenerateDesignService implements IAiDesignService {
         // let completion = await this.createCompletionWithRetry(openai, {
         let completion = await openai.chat.completions.create({
             model: aiModel.id,
-            messages: messages,
+            messages: messages as any,
             tools: iconTools,
         });
 
@@ -303,7 +308,7 @@ export class AiGenerateDesignService implements IAiDesignService {
             // completion = await this.createCompletionWithRetry(openai, {
             completion = await openai.chat.completions.create({
                 model: aiModel.id,
-                messages: messages,
+                messages: messages as any,
                 tools: iconTools,
             });
 
@@ -331,10 +336,15 @@ export class AiGenerateDesignService implements IAiDesignService {
         aiModel: AIModelConfig,
         usage: OpenAI.Completions.CompletionUsage | undefined,
         inputContent: string,
-        outputContent: string
+        outputContent: string,
+        hasImage = false,
     ): CostBreakdown {
+        // const IMAGE_TOKEN_ESTIMATE = 765;
         console.log("usage:", usage);
-        const inputTokens = usage?.prompt_tokens ?? this.costCalculator.estimateTokens(inputContent);
+        let inputTokens = usage?.prompt_tokens ?? this.costCalculator.estimateTokens(inputContent);
+        // if (hasImage) {
+        //     inputTokens += IMAGE_TOKEN_ESTIMATE;
+        // }
         const outputTokens = usage?.completion_tokens ?? this.costCalculator.estimateTokens(outputContent);
 
         const costBreakdown = this.costCalculator.calculateCost(aiModel, inputTokens, outputTokens);
