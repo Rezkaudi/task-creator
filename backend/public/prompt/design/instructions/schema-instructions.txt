@@ -442,7 +442,7 @@ NEVER use VECTOR nodes for icons.
   "x": 0, "y": 0,
   "width": 24, "height": 24,
   "fills": [
-    {"type": "IMAGE", "scaleMode": "FILL", "imageUrl": "https://api.iconify.design/solar/home-bold.svg"}
+    {"type": "IMAGE", "scaleMode": "FILL", "imageUrl": "https://api.iconify.design/mdi/home.svg"}
   ]
 }
 
@@ -726,7 +726,7 @@ Position all top-level frames at x: 0, y: 0 (the plugin handles canvas placement
                 "x": 0, "y": 0,
                 "width": 20, "height": 20,
                 "fills": [
-                  {"type": "IMAGE", "scaleMode": "FILL", "imageUrl": "https://api.iconify.design/solar/arrow-right-linear.svg?color=white"}
+                  {"type": "IMAGE", "scaleMode": "FILL", "imageUrl": "https://api.iconify.design/mdi/arrow-right.svg?color=red"}
                 ]
               }
             ]

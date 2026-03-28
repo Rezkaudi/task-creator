@@ -17,7 +17,7 @@ export const iconTools = [
                             - Material Design → prefer 'mdi:' or 'ic:' icons
                             - Shadcn/Tailwind → prefer 'lucide:' or 'radix-icons:' icons
                             - Ant Design → prefer 'ant-design:' icons
-                            - Modern/Clean → prefer 'solar:' or 'tabler:' icons
+                            - Modern/Clean → prefer 'mdi:' icons
                             2. Style: Bold/Filled for buttons; Outline/Linear for navigation
                             3. Match overall design aesthetic`,
             parameters: {
