@@ -11,6 +11,10 @@ You will receive:
    - "backgrounds": Top-level frame dimensions and fills (canvas size reference) ( very important).
    - "componentStyles": Compact flat style summary per category (button, input, card, navbar, etc.)
      showing layoutMode, padding, cornerRadius, fills, strokes, shadows, and text typography.
+   - "spacingStructure": (optional) Hierarchical tree of inner frames/containers with their exact
+     padding and itemSpacing values as used in the reference. Each node has: name, layoutMode,
+     paddingTop/Right/Bottom/Left, itemSpacing, primaryAxisSizingMode, counterAxisSizingMode.
+     Use this to faithfully reproduce per-container spacing in the generated design.
    - "availableIcons": (optional) Icon names present in the reference design.
 2. User's Request: What new design they want to create
 
@@ -20,12 +24,13 @@ YOUR TASK
    - Read "designTokens.colors" — these are your EXACT color palette (RGBA 0–1 floats). For each entry that has a "boundVariables" field, note the color value and its boundVariables — you MUST include these in every fill/stroke using that color (IMPORTANT)
    - Read "designTokens.gradients" — reuse on hero/CTA sections where the reference uses them
    - Read "designTokens.typography.families" for font families; ".scale" for the full type scale (sizes, weights, lineHeight, letterSpacing)
-   - Read "designTokens.spacing" for padding, itemSpacing, and margin values
+   - Read "designTokens.spacing" for the full set of padding, itemSpacing, and gap values used
    - Read "designTokens.radii" for cornerRadius values
    - Read "designTokens.shadows" for shadow definitions (type, radius, offset, spread, color)
    - Read "designTokens.strokes" for strokeWeight, strokeAlign, and dashPattern
    - Read "backgrounds" for canvas dimensions and background fill colors; if a background entry has "layoutMode", that root frame uses auto-layout — note its layoutMode, primaryAxisSizingMode, counterAxisSizingMode, itemSpacing, and padding values; also note any "boundVariables" inside fills — these must be preserved in your output (IMPORTANT)
    - Read "componentStyles" for how design tokens are applied per component type — each entry is a flat object with layoutMode, padding, cornerRadius, fills, strokes, shadows, and text font info
+   - Read "spacingStructure" (if present) — this is the MOST IMPORTANT source for spacing. It shows the exact paddingTop/Right/Bottom/Left and itemSpacing for each inner container/section in the reference. Apply these values to equivalent containers in your generated design (e.g. if a "Card" node has paddingTop:16, paddingLeft:16, itemSpacing:12, your card frames must use those exact values)
    - Read "availableIcons" (if present) for the exact icon names available from the reference
 
 2. CREATE a completely new design based on the user's request
@@ -33,13 +38,14 @@ YOUR TASK
 3. APPLY the extracted design system to the new design:
    - Use the SAME color palette (including gradients if the reference uses them)
    - Use the SAME typography styles (font family, sizes, weights, letterSpacing, textCase)
-   - Use the SAME spacing patterns (itemSpacing, padding values)
+   - Use the SAME spacing patterns: apply exact padding and itemSpacing values from "spacingStructure" to matching containers; use "designTokens.spacing" only as a fallback pool when no matching container exists in spacingStructure
    - Use the SAME border radius, cornerSmoothing, and stroke styles
    - Use the SAME shadow patterns (type, radius, alpha values)
    - Follow the SAME component design patterns (button padding, input height, card structure)
    - Preserve the SAME layout behavior (layoutGrow, layoutAlign, textAutoResize)
    - If backgrounds[i].layoutMode is set, the generated root FRAME MUST include layoutMode (and its primaryAxisSizingMode, counterAxisSizingMode, itemSpacing, padding) matching the reference root frame
    - If backgrounds[i] does NOT have a layoutMode property, do NOT add layoutMode or any auto-layout properties (primaryAxisSizingMode, counterAxisSizingMode, primaryAxisAlignItems, counterAxisAlignItems, itemSpacing) to the generated root FRAME
+   - SPACING FIDELITY (CRITICAL): Every auto-layout container in the generated design MUST have explicit paddingTop, paddingRight, paddingBottom, paddingLeft, and itemSpacing values. Never leave these as 0 or omit them when the reference shows non-zero values for similar containers.
 
 4. ENSURE CONSISTENCY:
    - The new design should feel like it belongs to the same project
