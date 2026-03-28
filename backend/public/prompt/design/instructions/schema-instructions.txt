@@ -446,7 +446,7 @@ NEVER use VECTOR nodes for icons.
   ]
 }
 
-Use the searchIcons and getIconUrl tools to find the right icon URL.
+Use the searchIcons tool to find the right icon — it returns icon IDs (e.g. "mdi:home"). Construct the URL as: https://api.iconify.design/{prefix}/{name}.svg (split the ID by ':').
 See the separate icon instructions for full details.
 
 ══════════════════════════════════════════

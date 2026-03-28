@@ -6,5 +6,4 @@ export interface IconSearchResult {
 
 export interface IIconService {
     searchIcons(query: string): Promise<IconSearchResult>;
-    getIconUrl(iconData: string): string;
 }

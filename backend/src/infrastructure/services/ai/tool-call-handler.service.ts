@@ -18,20 +18,23 @@ export interface ToolResult {
 }
 
 export class ToolCallHandlerService {
-    constructor(private readonly iconService: IIconService) {}
+    constructor(private readonly iconService: IIconService) { }
 
     async handleToolCalls(toolCalls: FunctionToolCall[]): Promise<ToolResult[]> {
-        // Process tool calls in parallel for better performance
+        console.log(`🛠️ [tools] start — ${toolCalls.length} tool call(s)`);
+        const start = Date.now();
+
         const results = await Promise.all(
             toolCalls.map(toolCall => this.handleSingleToolCall(toolCall))
         );
 
+        console.log(`✅ [tools] done — ${toolCalls.length} tool call(s) in ${Date.now() - start}ms`);
         return results;
     }
 
     private async handleSingleToolCall(toolCall: FunctionToolCall): Promise<ToolResult> {
         const { name, arguments: args } = toolCall.function;
-        
+
         let result: string;
 
         try {
@@ -43,18 +46,13 @@ export class ToolCallHandlerService {
                     result = JSON.stringify(searchResult);
                     break;
 
-                case 'getIconUrl':
-                    const url = this.iconService.getIconUrl(parsedArgs.iconData);
-                    result = JSON.stringify({ url });
-                    break;
-
                 default:
                     result = JSON.stringify({ error: `Unknown tool: ${name}` });
             }
         } catch (error) {
-            console.error(`Error handling tool call ${name}:`, error);
-            result = JSON.stringify({ 
-                error: `Tool call failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+            console.error(`❌ [tools] error in ${name}:`, error);
+            result = JSON.stringify({
+                error: `Tool call failed: ${error instanceof Error ? error.message : 'Unknown error'}`
             });
         }
 

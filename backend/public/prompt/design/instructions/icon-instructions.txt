@@ -6,11 +6,19 @@ If an "AVAILABLE ICONS FROM REFERENCE" list is provided in the user message:
 - Still use RECTANGLE with IMAGE fill from Iconify as usual — the system will automatically restore the original icons after generation
 - DO NOT call searchIcons for these — pick the closest matching Iconify icon visually and name the node with the exact reference name
 
-When you need an icon NOT in the reference list (or when no list is provided):
+When you need icons NOT in the reference list (or when no list is provided):
 
-1. FIRST: Call the `searchIcons` tool with a keyword (e.g., "home", "arrow", "user")
-2. THEN: Call the `getIconUrl` tool with the best matching icon from results
-3. FINALLY: Use RECTANGLE with IMAGE fill:
+⚡ BATCH ALL ICON SEARCHES IN ONE ROUND:
+Before generating the design, scan the entire layout and identify every icon you will need.
+Then call searchIcons for ALL of them simultaneously in a SINGLE response — do NOT search incrementally across multiple rounds.
+
+Each searchIcons call returns objects with 'id' and 'url' fields.
+Use the 'url' value directly as the imageUrl — no additional tool calls needed.
+
+Example result from searchIcons:
+  { "icons": [{ "id": "solar:home-bold", "url": "https://api.iconify.design/solar/home-bold.svg" }, ...] }
+
+Then use RECTANGLE with IMAGE fill:
 
 ```json
 {

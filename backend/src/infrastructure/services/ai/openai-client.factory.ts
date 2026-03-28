@@ -11,7 +11,7 @@ export class OpenAIClientFactory implements IOpenAIClientFactory {
 
     createClient(aiModel: AIModelConfig, timeoutMs: number = DEFAULT_TIMEOUT_MS): OpenAI {
         const cacheKey = `${aiModel.id}-${timeoutMs}`;
-        
+
         // Reuse existing client if available
         const cached = this.clientCache.get(cacheKey);
         if (cached) {
@@ -22,7 +22,7 @@ export class OpenAIClientFactory implements IOpenAIClientFactory {
             baseURL: aiModel.baseURL,
             apiKey: aiModel.apiKey,
             timeout: timeoutMs,
-            maxRetries: 2,
+            maxRetries: 0,
         });
 
         this.clientCache.set(cacheKey, client);

@@ -248,27 +248,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
     }
 
-    private async createCompletionWithRetry(
-        openai: OpenAI,
-        params: Parameters<OpenAI['chat']['completions']['create']>[0],
-        maxRetries = 3
-    ): Promise<OpenAI.Chat.Completions.ChatCompletion> {
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            try {
-                return await openai.chat.completions.create(params) as OpenAI.Chat.Completions.ChatCompletion;
-            } catch (error: any) {
-                if (error?.status === 429 && attempt < maxRetries) {
-                    const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-                    console.warn(`Rate limit hit. Retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                } else {
-                    throw error;
-                }
-            }
-        }
-        throw new Error('Max retries exceeded');
-    }
-
     private async executeWithToolCalls(
         openai: OpenAI,
         aiModel: AIModelConfig,
@@ -277,7 +256,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
 
-        // let completion = await this.createCompletionWithRetry(openai, {
         let completion = await openai.chat.completions.create({
             model: aiModel.id,
             messages: messages as any,
@@ -293,7 +271,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             console.log(`--- Processing ${toolCalls.length} tool calls ---`);
 
             const toolResults = await this.toolCallHandler.handleToolCalls(toolCalls);
-
             // Add assistant message with tool calls
             messages.push({
                 role: 'assistant',
@@ -305,7 +282,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             messages.push(...toolResults as any);
 
             // Get next completion
-            // completion = await this.createCompletionWithRetry(openai, {
             completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages as any,
