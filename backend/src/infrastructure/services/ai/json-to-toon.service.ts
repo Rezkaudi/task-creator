@@ -336,6 +336,69 @@ export class JsonToToonService {
   // Extracts design tokens + backgrounds + compact component styles + icons
   // ---------------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------------
+  // Spacing structure — hierarchical view of frames with their padding/spacing
+  // Captures per-node spacing context (up to maxDepth levels) for AI reference
+  // ---------------------------------------------------------------------------
+
+  private buildSpacingStructure(nodes: any[], depth = 0, maxDepth = 4): any[] {
+    if (depth >= maxDepth) return [];
+
+    const result: any[] = [];
+
+    for (const node of nodes) {
+      if (!node || typeof node !== 'object') continue;
+      if (node.type !== 'FRAME' && node.type !== 'COMPONENT' && node.type !== 'COMPONENT_SET') continue;
+
+      const hasPadding =
+        (typeof node.paddingTop === 'number' && node.paddingTop > 0) ||
+        (typeof node.paddingRight === 'number' && node.paddingRight > 0) ||
+        (typeof node.paddingBottom === 'number' && node.paddingBottom > 0) ||
+        (typeof node.paddingLeft === 'number' && node.paddingLeft > 0);
+      const hasSpacing = typeof node.itemSpacing === 'number' && node.itemSpacing > 0;
+      const hasAutoLayout = !!node.layoutMode && node.layoutMode !== 'NONE';
+
+      // Skip top-level frames (depth 0) — already captured in `backgrounds`
+      // For deeper nodes: only include if they have auto-layout with padding or spacing
+      if (depth === 0) {
+        if (Array.isArray(node.children)) {
+          const childSpacing = this.buildSpacingStructure(node.children, depth + 1, maxDepth);
+          result.push(...childSpacing);
+        }
+        continue;
+      }
+
+      if (!hasAutoLayout && !hasPadding && !hasSpacing) {
+        if (Array.isArray(node.children)) {
+          const childSpacing = this.buildSpacingStructure(node.children, depth + 1, maxDepth);
+          result.push(...childSpacing);
+        }
+        continue;
+      }
+
+      const entry: any = { name: node.name };
+      if (node.layoutMode) entry.layoutMode = node.layoutMode;
+      if (node.primaryAxisSizingMode) entry.primaryAxisSizingMode = node.primaryAxisSizingMode;
+      if (node.counterAxisSizingMode) entry.counterAxisSizingMode = node.counterAxisSizingMode;
+      if (node.primaryAxisAlignItems) entry.primaryAxisAlignItems = node.primaryAxisAlignItems;
+      if (node.counterAxisAlignItems) entry.counterAxisAlignItems = node.counterAxisAlignItems;
+      if (hasSpacing) entry.itemSpacing = node.itemSpacing;
+      if (typeof node.paddingTop === 'number' && node.paddingTop > 0) entry.paddingTop = node.paddingTop;
+      if (typeof node.paddingRight === 'number' && node.paddingRight > 0) entry.paddingRight = node.paddingRight;
+      if (typeof node.paddingBottom === 'number' && node.paddingBottom > 0) entry.paddingBottom = node.paddingBottom;
+      if (typeof node.paddingLeft === 'number' && node.paddingLeft > 0) entry.paddingLeft = node.paddingLeft;
+
+      if (Array.isArray(node.children)) {
+        const childSpacing = this.buildSpacingStructure(node.children, depth + 1, maxDepth);
+        if (childSpacing.length > 0) entry.children = childSpacing;
+      }
+
+      result.push(entry);
+    }
+
+    return result;
+  }
+
   buildReferenceContext(data: any, iconNames?: string[]): string {
     const nodes = Array.isArray(data) ? data : [data];
 
@@ -490,6 +553,9 @@ export class JsonToToonService {
       backgrounds,
       componentStyles,
     };
+
+    const spacingStructure = this.buildSpacingStructure(nodes);
+    if (spacingStructure.length > 0) output.spacingStructure = spacingStructure;
 
     if (iconNames && iconNames.length > 0) output.availableIcons = iconNames;
 

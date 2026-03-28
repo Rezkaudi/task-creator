@@ -57,6 +57,9 @@ export class ImportAIDesignUseCase {
         if (nodeData && typeof nodeData === 'object') {
           const node = await this.nodeRepository.createNode(nodeData);
           if (node) {
+            if (createdNodes.length === 0) {
+              this.nodeRepository.focusOnNodes([node]);
+            }
             createdNodes.push(node);
           }
         }
@@ -67,6 +70,9 @@ export class ImportAIDesignUseCase {
         if (nodeData && typeof nodeData === 'object') {
           const node = await this.nodeRepository.createNode(nodeData);
           if (node) {
+            if (createdNodes.length === 0) {
+              this.nodeRepository.focusOnNodes([node]);
+            }
             createdNodes.push(node);
           }
         }
@@ -82,7 +88,7 @@ export class ImportAIDesignUseCase {
 
       this.positionNewDesign(createdNodes, designBounds);
 
-      // this.nodeRepository.setSelection(createdNodes);
+      this.nodeRepository.setSelection(createdNodes);
       this.nodeRepository.focusOnNodes(createdNodes);
 
       const message = `✅ Imported ${createdNodes.length} AI-generated page${createdNodes.length > 1 ? 's' : ''}!`;

@@ -52,6 +52,9 @@ export class ImportDesignUseCase {
       for (const nodeData of componentNodes) {
         const node = await this.nodeRepository.createNode(nodeData);
         if (node) {
+          if (createdNodes.length === 0) {
+            this.nodeRepository.focusOnNodes([node]);
+          }
           createdNodes.push(node);
         }
       }
@@ -60,6 +63,9 @@ export class ImportDesignUseCase {
       for (const nodeData of otherNodes) {
         const node = await this.nodeRepository.createNode(nodeData);
         if (node) {
+          if (createdNodes.length === 0) {
+            this.nodeRepository.focusOnNodes([node]);
+          }
           createdNodes.push(node);
         }
       }
@@ -71,7 +77,7 @@ export class ImportDesignUseCase {
       this.arrangeNodesHorizontally(createdNodes);
       this.placeAfterExisting(createdNodes);
 
-      // this.nodeRepository.setSelection(createdNodes);
+      this.nodeRepository.setSelection(createdNodes);
       this.nodeRepository.focusOnNodes(createdNodes);
 
       const message = `✅ Imported ${createdNodes.length} design element${createdNodes.length > 1 ? 's' : ''}!`;

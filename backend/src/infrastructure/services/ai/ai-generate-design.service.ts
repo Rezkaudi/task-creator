@@ -13,6 +13,7 @@ import { AIModelConfig, getModelById } from '../../config/ai-models.config';
 import { ToolCallHandlerService, FunctionToolCall } from './tool-call-handler.service';
 import { ResponseParserService } from './response-parser.service';
 import { MessageBuilderService, AiMessage } from './message-builder.service';
+import { S3Service } from '../storage/s3.service';
 
 interface CompletionResult {
     responseText: string;
@@ -25,6 +26,7 @@ export class AiGenerateDesignService implements IAiDesignService {
     private readonly toolCallHandler: ToolCallHandlerService;
     private readonly responseParser: ResponseParserService;
     private readonly messageBuilder: MessageBuilderService;
+    private readonly s3Service: S3Service;
 
     constructor(
         costCalculator: IAiCostCalculator,
@@ -32,12 +34,14 @@ export class AiGenerateDesignService implements IAiDesignService {
         toolCallHandler: ToolCallHandlerService,
         responseParser: ResponseParserService,
         messageBuilder: MessageBuilderService,
+        s3Service: S3Service,
     ) {
         this.costCalculator = costCalculator;
         this.clientFactory = clientFactory;
         this.toolCallHandler = toolCallHandler;
         this.responseParser = responseParser;
         this.messageBuilder = messageBuilder;
+        this.s3Service = s3Service;
     }
 
     async generateDesignFromConversation(
@@ -53,11 +57,17 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         console.log('--- 1. Prepare messages  ---');
 
+        let uploadedImageUrl: string | undefined;
+        if (imageDataUrl) {
+            console.log('--- Uploading image to S3 ---');
+            uploadedImageUrl = await this.s3Service.uploadBase64Image(imageDataUrl, 'vision-temp');
+        }
+
         const messages = this.messageBuilder.buildConversationMessages(
             userMessage,
             history,
             designSystemId,
-            imageDataUrl,
+            uploadedImageUrl ?? imageDataUrl,
         );
 
         console.log('--- 2. Sending messages to AI  ---');
@@ -91,7 +101,15 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         } catch (error) {
             this.handleError(error, 'generateDesignFromConversation');
+        } finally {
+            if (uploadedImageUrl) {
+                console.log('--- Deleting temp image from S3 ---');
+                this.s3Service.deleteImageByUrl(uploadedImageUrl).catch(err =>
+                    console.error('Failed to delete temp image from S3:', err)
+                );
+            }
         }
+        return undefined as never;
     }
 
     async editDesignWithAI(
@@ -159,12 +177,18 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         console.log('--- 1. Prepare messages  ---');
 
+        let uploadedImageUrl: string | undefined;
+        if (imageDataUrl) {
+            console.log('--- Uploading image to S3 ---');
+            uploadedImageUrl = await this.s3Service.uploadBase64Image(imageDataUrl, 'vision-temp');
+        }
+
         const messages = this.messageBuilder.buildBasedOnExistingMessages(
             userMessage,
             history,
             referenceToon,
             pinnedInstructions,
-            imageDataUrl,
+            uploadedImageUrl ?? imageDataUrl,
         );
 
         console.log('--- 2. Sending messages to AI  ---');
@@ -196,7 +220,15 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         } catch (error) {
             this.handleError(error, 'generateDesignBasedOnExisting');
+        } finally {
+            if (uploadedImageUrl) {
+                console.log('--- Deleting temp image from S3 ---');
+                this.s3Service.deleteImageByUrl(uploadedImageUrl).catch(err =>
+                    console.error('Failed to delete temp image from S3:', err)
+                );
+            }
         }
+        return undefined as never;
     }
 
     async generateConnections(
@@ -248,27 +280,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
     }
 
-    private async createCompletionWithRetry(
-        openai: OpenAI,
-        params: Parameters<OpenAI['chat']['completions']['create']>[0],
-        maxRetries = 3
-    ): Promise<OpenAI.Chat.Completions.ChatCompletion> {
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            try {
-                return await openai.chat.completions.create(params) as OpenAI.Chat.Completions.ChatCompletion;
-            } catch (error: any) {
-                if (error?.status === 429 && attempt < maxRetries) {
-                    const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-                    console.warn(`Rate limit hit. Retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                } else {
-                    throw error;
-                }
-            }
-        }
-        throw new Error('Max retries exceeded');
-    }
-
     private async executeWithToolCalls(
         openai: OpenAI,
         aiModel: AIModelConfig,
@@ -277,7 +288,6 @@ export class AiGenerateDesignService implements IAiDesignService {
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
 
-        // let completion = await this.createCompletionWithRetry(openai, {
         let completion = await openai.chat.completions.create({
             model: aiModel.id,
             messages: messages as any,
@@ -293,7 +303,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             console.log(`--- Processing ${toolCalls.length} tool calls ---`);
 
             const toolResults = await this.toolCallHandler.handleToolCalls(toolCalls);
-
             // Add assistant message with tool calls
             messages.push({
                 role: 'assistant',
@@ -305,7 +314,6 @@ export class AiGenerateDesignService implements IAiDesignService {
             messages.push(...toolResults as any);
 
             // Get next completion
-            // completion = await this.createCompletionWithRetry(openai, {
             completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages as any,

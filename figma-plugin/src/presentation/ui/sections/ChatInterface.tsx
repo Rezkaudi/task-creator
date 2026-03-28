@@ -221,11 +221,17 @@ function ChatInterface({
     const handleImageAttach = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        if (file.size > MAX_SIZE) {
+            addMessage('assistant', '⚠️ Image is too large. Please select an image under 5MB.');
+            e.target.value = '';
+            return;
+        }
         const reader = new FileReader();
         reader.onload = () => setAttachedImage(reader.result as string);
         reader.readAsDataURL(file);
         e.target.value = '';
-    }, []);
+    }, [addMessage]);
 
     const sendChatMessage = useCallback(() => {
         const message = inputValue.trim();
