@@ -120,6 +120,7 @@ export const setupDependencies = () => {
         toolCallHandler,
         responseParser,
         messageBuilder,
+        s3Service,
     );
 
     const generateDesignFromConversationUseCase = new GenerateDesignFromConversationUseCase(defaultAiDesignService);

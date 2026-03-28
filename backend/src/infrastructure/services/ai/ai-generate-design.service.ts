@@ -13,6 +13,7 @@ import { AIModelConfig, getModelById } from '../../config/ai-models.config';
 import { ToolCallHandlerService, FunctionToolCall } from './tool-call-handler.service';
 import { ResponseParserService } from './response-parser.service';
 import { MessageBuilderService, AiMessage } from './message-builder.service';
+import { S3Service } from '../storage/s3.service';
 
 interface CompletionResult {
     responseText: string;
@@ -25,6 +26,7 @@ export class AiGenerateDesignService implements IAiDesignService {
     private readonly toolCallHandler: ToolCallHandlerService;
     private readonly responseParser: ResponseParserService;
     private readonly messageBuilder: MessageBuilderService;
+    private readonly s3Service: S3Service;
 
     constructor(
         costCalculator: IAiCostCalculator,
@@ -32,12 +34,14 @@ export class AiGenerateDesignService implements IAiDesignService {
         toolCallHandler: ToolCallHandlerService,
         responseParser: ResponseParserService,
         messageBuilder: MessageBuilderService,
+        s3Service: S3Service,
     ) {
         this.costCalculator = costCalculator;
         this.clientFactory = clientFactory;
         this.toolCallHandler = toolCallHandler;
         this.responseParser = responseParser;
         this.messageBuilder = messageBuilder;
+        this.s3Service = s3Service;
     }
 
     async generateDesignFromConversation(
@@ -53,11 +57,17 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         console.log('--- 1. Prepare messages  ---');
 
+        let uploadedImageUrl: string | undefined;
+        if (imageDataUrl) {
+            console.log('--- Uploading image to S3 ---');
+            uploadedImageUrl = await this.s3Service.uploadBase64Image(imageDataUrl, 'vision-temp');
+        }
+
         const messages = this.messageBuilder.buildConversationMessages(
             userMessage,
             history,
             designSystemId,
-            imageDataUrl,
+            uploadedImageUrl ?? imageDataUrl,
         );
 
         console.log('--- 2. Sending messages to AI  ---');
@@ -91,7 +101,15 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         } catch (error) {
             this.handleError(error, 'generateDesignFromConversation');
+        } finally {
+            if (uploadedImageUrl) {
+                console.log('--- Deleting temp image from S3 ---');
+                this.s3Service.deleteImageByUrl(uploadedImageUrl).catch(err =>
+                    console.error('Failed to delete temp image from S3:', err)
+                );
+            }
         }
+        return undefined as never;
     }
 
     async editDesignWithAI(
@@ -159,12 +177,18 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         console.log('--- 1. Prepare messages  ---');
 
+        let uploadedImageUrl: string | undefined;
+        if (imageDataUrl) {
+            console.log('--- Uploading image to S3 ---');
+            uploadedImageUrl = await this.s3Service.uploadBase64Image(imageDataUrl, 'vision-temp');
+        }
+
         const messages = this.messageBuilder.buildBasedOnExistingMessages(
             userMessage,
             history,
             referenceToon,
             pinnedInstructions,
-            imageDataUrl,
+            uploadedImageUrl ?? imageDataUrl,
         );
 
         console.log('--- 2. Sending messages to AI  ---');
@@ -196,7 +220,15 @@ export class AiGenerateDesignService implements IAiDesignService {
 
         } catch (error) {
             this.handleError(error, 'generateDesignBasedOnExisting');
+        } finally {
+            if (uploadedImageUrl) {
+                console.log('--- Deleting temp image from S3 ---');
+                this.s3Service.deleteImageByUrl(uploadedImageUrl).catch(err =>
+                    console.error('Failed to delete temp image from S3:', err)
+                );
+            }
         }
+        return undefined as never;
     }
 
     async generateConnections(
