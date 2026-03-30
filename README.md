@@ -762,7 +762,7 @@ flowchart TD
 
     E --> F[Inline CSS into\n&lt;style&gt; tag]
     F --> G[Escape &lt;/script&gt;\ninjection sequences]
-    G --> H[Write dist/ui.html\n(self-contained)]
+    G --> H["Write dist/ui.html\n(self-contained)"]
 
     C & D --> I[esbuild: bundle Plugin\nentryPoint: main.ts\nplatform: browser\ntarget: es2017]
     I --> J[Write dist/code.js]
@@ -1283,7 +1283,7 @@ flowchart LR
 flowchart TD
     subgraph Plugin["Plugin (Client Side)"]
         ERR_UI[React error boundary\nor try/catch in hook]
-        ERR_UI --> REPORT[POST /api/errors\n{ errorType, message, stack }]
+        ERR_UI --> REPORT["POST /api/errors\n{ errorType, message, stack }"]
         ERR_UI --> TOAST[react-toastify\nshow user-friendly message]
     end
 
