@@ -1298,7 +1298,7 @@ flowchart TD
     end
 
     REPORT --> DB_ERR[("INSERT client_errors\ntable")]
-    MWARE --> RES([HTTP error response\n{ error, message, status }])
+    MWARE --> RES(["HTTP error response\n{ error, message, status }"])
 ```
 
 ---
