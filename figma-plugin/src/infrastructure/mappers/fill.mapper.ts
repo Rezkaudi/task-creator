@@ -189,11 +189,11 @@ export class FillMapper {
         if (fill.imageUrl) {
           image = await FillMapper.fetchImageFromUrl(fill.imageUrl);
         }
-        // Priority 2: If we have base64 image data, create the image
-        else if (fill.imageData) {
-          const bytes = FillMapper.base64ToBytes(fill.imageData);
-          image = await figma.createImage(bytes);
-        }
+        // Priority 2: imageData disabled
+        // else if (fill.imageData) {
+        //   const bytes = FillMapper.base64ToBytes(fill.imageData);
+        //   image = await figma.createImage(bytes);
+        // }
         // Priority 3: Try to get existing image by hash
         else if (fill.imageHash) {
           image = figma.getImageByHash(fill.imageHash);

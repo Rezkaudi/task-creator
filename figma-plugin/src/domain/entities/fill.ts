@@ -63,7 +63,7 @@ export interface Fill {
   // Image fill
   scaleMode?: 'FILL' | 'FIT' | 'CROP' | 'TILE';
   imageHash?: string;
-  imageData?: string; // Base64 encoded image data for export/import
+  // imageData?: string; // Base64 encoded image data for export/import (disabled)
   imageUrl?: string; // URL to fetch image from (for import)
   imageTransform?: [[number, number, number], [number, number, number]];
   scalingFactor?: number;

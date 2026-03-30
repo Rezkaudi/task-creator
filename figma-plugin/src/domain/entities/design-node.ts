@@ -315,8 +315,8 @@ export interface DesignNode {
   // Children
   children?: DesignNode[];
 
-  // Image data (for embedded images)
-  imageData?: string;
+  // Image data (for embedded images) (disabled)
+  // imageData?: string;
 
   // SVG URL for icon nodes (uses figma.createNodeFromSvg instead of image fill)
   svgUrl?: string;
