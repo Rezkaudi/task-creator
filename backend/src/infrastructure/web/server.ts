@@ -32,6 +32,7 @@ import {
   paymentLimiter,
   webhookLimiter,
 } from './middleware/rate-limit.middleware';
+import { aiConcurrencyLimiter } from './middleware/concurrency-limit.middleware';
 
 export class Server {
   private app: Application;
@@ -83,7 +84,7 @@ export class Server {
     });
 
     this.app.use('/auth', authLimiter, authRoutes(this.container.authController));
-    this.app.use('/api/designs', aiLimiterPerMinute, designRoutes(this.container.designController));
+    this.app.use('/api/designs', aiLimiterPerMinute, aiConcurrencyLimiter, designRoutes(this.container.designController));
     this.app.use('/api/ai-models', aiModelsRoutes(this.container.aiModelsController));
     this.app.use('/api/design-systems', designSystemsRoutes(this.container.designSystemsController));
     this.app.use('/api/errors', clientErrorRoutes(this.container.clientErrorController));
