@@ -17,6 +17,7 @@ export default function SaveModal(): React.JSX.Element | null {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoadingProjects, setIsLoadingProjects] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     const componentName = useMemo(() => getComponentNameFromExportData(currentExportData), [currentExportData]);
     const componentNames = useMemo(() => getComponentNamesFromExportData(currentExportData), [currentExportData]);
@@ -65,6 +66,7 @@ export default function SaveModal(): React.JSX.Element | null {
 
         try {
             setIsSaving(true);
+            setSaveError(null);
 
             let previewImageUrl: string | null = null;
             try {
@@ -103,7 +105,7 @@ export default function SaveModal(): React.JSX.Element | null {
             setDescription('');
             setSelectedProjectId('');
         } catch (error) {
-            notify(`❌ ${(error as Error).message}`, 'error');
+            setSaveError((error as Error).message);
             reportErrorAsync(error, {
                 actionType: 'saveComponent',
             });
@@ -116,6 +118,7 @@ export default function SaveModal(): React.JSX.Element | null {
         dispatch({ type: 'CLOSE_SAVE_MODAL' });
         setDescription('');
         setSelectedProjectId('');
+        setSaveError(null);
     };
 
     return (
@@ -209,6 +212,12 @@ export default function SaveModal(): React.JSX.Element | null {
                     autoFocus
                     disabled={isSaving}
                 />
+
+                {saveError && (
+                    <div style={{ marginBottom: '12px', padding: '10px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', fontSize: '13px', color: '#dc2626' }}>
+                        {saveError}
+                    </div>
+                )}
 
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <button className="btn-primary" style={{ flex: 1, padding: '12px' }} onClick={handleSave} disabled={isSaving || projects.length === 0}>

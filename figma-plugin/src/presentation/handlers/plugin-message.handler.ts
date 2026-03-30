@@ -7,7 +7,7 @@ import {
   ExportSelectedUseCase,
   ExportAllUseCase,
 } from '../../application/use-cases';
-import { ApiConfig, defaultModel } from '../../shared/constants/plugin-config.js';
+import { ApiConfig, defaultModel, MAX_PAYLOAD_BYTES } from '../../shared/constants/plugin-config.js';
 import { NodeExporter } from '../../infrastructure/figma/exporters/node.exporter';
 import { GetUserInfoUseCase } from '@application/use-cases/getUserInfoUseCase';
 import { errorReporter } from '../../infrastructure/services/error-reporter.service';
@@ -596,16 +596,22 @@ export class PluginMessageHandler {
       const requestKey = `edit_request_${Date.now()}`;
       this.imageReferencesStore.set(requestKey, imageReferences);
 
+      const editBody = JSON.stringify({
+        message: userMessage,
+        history: this.conversationHistory,
+        currentDesign: cleanedDesign,
+        modelId: selectedModel,
+        designSystemId: designSystemId
+      });
+
+      if (editBody.length > MAX_PAYLOAD_BYTES) {
+        throw new Error('Selected layer is too large to edit (exceeds 5MB). Please select a smaller layer.');
+      }
+
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/edit-with-ai`, {
         method: 'POST',
         headers: await this.getUserInfoUseCase.execute(),
-        body: JSON.stringify({
-          message: userMessage,
-          history: this.conversationHistory,
-          currentDesign: cleanedDesign,
-          modelId: selectedModel,
-          designSystemId: designSystemId
-        })
+        body: editBody,
       });
 
       if (!response.ok) {
@@ -701,17 +707,23 @@ export class PluginMessageHandler {
 
       console.log(`Plugin: sending ${cleanedReferences.length} references to backend`);
 
+      const basedOnExistingBody = JSON.stringify({
+        message: userMessage,
+        history: conversationHistory,
+        referenceDesigns: cleanedReferences,
+        modelId: selectedModel,
+        pinnedComponentNames: pinnedComponentNames ?? [],
+        ...(imageDataUrl ? { imageDataUrl } : {}),
+      });
+
+      if (basedOnExistingBody.length > MAX_PAYLOAD_BYTES) {
+        throw new Error('References are too large to send (exceeds 5MB). Please attach fewer layers or components.');
+      }
+
       const response = await fetch(`${ApiConfig.BASE_URL}/api/designs/generate-based-on-existing`, {
         method: 'POST',
         headers: await this.getUserInfoUseCase.execute(),
-        body: JSON.stringify({
-          message: userMessage,
-          history: conversationHistory,
-          referenceDesigns: cleanedReferences,
-          modelId: selectedModel,
-          pinnedComponentNames: pinnedComponentNames ?? [],
-          ...(imageDataUrl ? { imageDataUrl } : {}),
-        })
+        body: basedOnExistingBody,
       });
 
       if (!response.ok) {
