@@ -9,6 +9,7 @@ import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '.
 
 import { iconTools } from '../../config/ai-tools.config';
 import { AIModelConfig, getModelById } from '../../config/ai-models.config';
+import { ENV_CONFIG } from '../../config/env.config';
 
 import { ToolCallHandlerService, FunctionToolCall } from './tool-call-handler.service';
 import { ResponseParserService } from './response-parser.service';
@@ -297,10 +298,13 @@ export class AiGenerateDesignService implements IAiDesignService {
         totalInputTokens += completion.usage?.prompt_tokens ?? 0;
         totalOutputTokens += completion.usage?.completion_tokens ?? 0;
 
-        // Handle tool calls loop
-        while (completion.choices[0]?.message?.tool_calls) {
+        // Handle tool calls loop (capped to prevent runaway token costs)
+        const maxRounds = ENV_CONFIG.MAX_TOOL_CALL_ROUNDS;
+        let round = 0;
+        while (completion.choices[0]?.message?.tool_calls && round < maxRounds) {
+            round++;
             const toolCalls = completion.choices[0].message.tool_calls as FunctionToolCall[];
-            console.log(`--- Processing ${toolCalls.length} tool calls ---`);
+            console.log(`--- Processing ${toolCalls.length} tool calls (round ${round}/${maxRounds}) ---`);
 
             const toolResults = await this.toolCallHandler.handleToolCalls(toolCalls);
             // Add assistant message with tool calls
@@ -320,6 +324,17 @@ export class AiGenerateDesignService implements IAiDesignService {
                 tools: iconTools,
             });
 
+            totalInputTokens += completion.usage?.prompt_tokens ?? 0;
+            totalOutputTokens += completion.usage?.completion_tokens ?? 0;
+        }
+
+        if (round >= maxRounds && completion.choices[0]?.message?.tool_calls) {
+            console.warn(`⚠️ Tool call loop hit max rounds (${maxRounds}). Forcing final completion without tools.`);
+            // Request one final completion without tools to get the text response
+            completion = await openai.chat.completions.create({
+                model: aiModel.id,
+                messages: messages as any,
+            });
             totalInputTokens += completion.usage?.prompt_tokens ?? 0;
             totalOutputTokens += completion.usage?.completion_tokens ?? 0;
         }

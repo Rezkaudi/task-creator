@@ -39,11 +39,11 @@ export class IconExtractorService {
      */
     normalizeName(name: string): string {
         return (name || '')
-        // .toLowerCase()
-        // .replace(/^(icon[s]?[\s/\-_]+|logo[s]?[\s/\-_]+|ic[\s/\-_]+)/i, '')
-        // .replace(/([\s/\-_]+icon[s]?$|[\s/\-_]+logo[s]?$)/i, '')
-        // .replace(/[\s\-_/]+/g, '')
-        // .trim();
+            .toLowerCase()
+            .replace(/^(icon[s]?[\s/\-_]+|logo[s]?[\s/\-_]+|ic[\s/\-_]+)/i, '')
+            .replace(/([\s/\-_]+icon[s]?$|[\s/\-_]+logo[s]?$)/i, '')
+            .replace(/[\s\-_/]+/g, '')
+            .trim();
     }
 
     private walk(node: any, map: Map<string, any>): void {

@@ -1,6 +1,7 @@
 // src/infrastructure/services/tool-call-handler.service.ts
 
 import { IIconService } from '../../../domain/services/IIconService';
+import { ENV_CONFIG } from '../../config/env.config';
 
 export interface FunctionToolCall {
     id: string;
@@ -24,8 +25,11 @@ export class ToolCallHandlerService {
         console.log(`🛠️ [tools] start — ${toolCalls.length} tool call(s)`);
         const start = Date.now();
 
-        const results = await Promise.all(
-            toolCalls.map(toolCall => this.handleSingleToolCall(toolCall))
+        // Run with concurrency throttle to avoid overwhelming external APIs
+        const results = await this.runWithConcurrency(
+            toolCalls,
+            tc => this.handleSingleToolCall(tc),
+            ENV_CONFIG.MAX_CONCURRENT_TOOL_CALLS
         );
 
         console.log(`✅ [tools] done — ${toolCalls.length} tool call(s) in ${Date.now() - start}ms`);
@@ -61,5 +65,33 @@ export class ToolCallHandlerService {
             role: 'tool' as const,
             content: result,
         };
+    }
+
+    /**
+     * Runs async tasks with a concurrency limit.
+     * Avoids blasting external APIs with unbounded parallel requests.
+     */
+    private async runWithConcurrency<T, R>(
+        items: T[],
+        fn: (item: T) => Promise<R>,
+        limit: number
+    ): Promise<R[]> {
+        if (items.length <= limit) {
+            return Promise.all(items.map(fn));
+        }
+
+        const results: R[] = new Array(items.length);
+        let nextIndex = 0;
+
+        async function worker() {
+            while (nextIndex < items.length) {
+                const idx = nextIndex++;
+                results[idx] = await fn(items[idx]);
+            }
+        }
+
+        const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
+        await Promise.all(workers);
+        return results;
     }
 }
