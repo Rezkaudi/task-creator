@@ -62,7 +62,9 @@ export class UILibraryController {
                 message: 'Project deleted successfully',
             });
         } catch (error) {
-            next(error);
+            const message = error instanceof Error ? error.message : 'Failed to delete project';
+            const statusCode = message.toLowerCase().includes('not found') ? 404 : 500;
+            res.status(statusCode).json({ success: false, message });
         }
     }
 
@@ -119,7 +121,9 @@ export class UILibraryController {
                 message: 'Component deleted successfully',
             });
         } catch (error) {
-            next(error);
+            const message = error instanceof Error ? error.message : 'Failed to delete component';
+            const statusCode = message.toLowerCase().includes('not found') ? 404 : 500;
+            res.status(statusCode).json({ success: false, message });
         }
     }
 

@@ -140,6 +140,7 @@ export const uploadComponentImageValidation = [
     body('image')
         .notEmpty().withMessage('Image is required')
         .isString().withMessage('Image must be a string')
+        .isLength({ max: 5 * 1024 * 1024 }).withMessage('Image must be less than 5MB')
         .matches(/^data:image\/(png|jpeg|jpg|webp);base64,/).withMessage('Image must be a valid base64 data URL'),
 ];
 

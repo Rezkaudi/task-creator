@@ -52,4 +52,11 @@ export const ENV_CONFIG = {
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
     AWS_REGION: process.env.AWS_REGION || 'us-east-1',
     AWS_S3_BUCKET: process.env.AWS_S3_BUCKET!,
+
+    // Icon & Tool Call Configuration
+    ICON_SEARCH_TIMEOUT_MS: Number(process.env.ICON_SEARCH_TIMEOUT_MS || 5000),
+    ICON_SEARCH_LIMIT: Number(process.env.ICON_SEARCH_LIMIT || 10),
+    ICON_CACHE_TTL_MS: Number(process.env.ICON_CACHE_TTL_MS || 600000), // 10 minutes
+    MAX_CONCURRENT_TOOL_CALLS: Number(process.env.MAX_CONCURRENT_TOOL_CALLS || 5),
+    MAX_TOOL_CALL_ROUNDS: Number(process.env.MAX_TOOL_CALL_ROUNDS || 3),
 };

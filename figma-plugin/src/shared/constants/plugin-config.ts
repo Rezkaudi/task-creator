@@ -49,3 +49,5 @@ export const defaultDesignSystem = {
   id: 'default-design-system',
   name: 'Default Design System',
 }
+
+export const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024; // 5MB — max JSON body size for backend requests

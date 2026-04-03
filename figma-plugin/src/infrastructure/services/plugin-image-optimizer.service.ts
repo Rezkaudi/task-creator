@@ -12,7 +12,7 @@
 export interface ImageReference {
     path: string[];
     imageHash: string;
-    imageData: string;
+    // imageData: string; // disabled
     scaleMode?: string;
 }
 
@@ -89,18 +89,16 @@ export class ImageOptimizerService {
         if (node.fills && Array.isArray(node.fills)) {
             node.fills.forEach((fill: any, fillIndex: number) => {
                 if (fill.type === 'IMAGE' && fill.imageData) {
-                    const imagePath = [...currentPath, 'fills', fillIndex];
-                    
-                    imageReferences.push({
-                        path: imagePath,
-                        imageHash: fill.imageHash || '',
-                        imageData: fill.imageData,
-                        scaleMode: fill.scaleMode
-                    });
-                    
-                    // Remove imageData
-                    delete fill.imageData;
-                    fill._imageStripped = true;
+                    // imageData disabled — skipping strip/restore cycle
+                    // const imagePath = [...currentPath, 'fills', fillIndex];
+                    // imageReferences.push({
+                    //     path: imagePath,
+                    //     imageHash: fill.imageHash || '',
+                    //     imageData: fill.imageData,
+                    //     scaleMode: fill.scaleMode
+                    // });
+                    // delete fill.imageData;
+                    // fill._imageStripped = true;
                 }
             });
         }
@@ -142,14 +140,16 @@ export class ImageOptimizerService {
             
             // Verify this is still an IMAGE fill
             if (fill.type === 'IMAGE' && fill._imageStripped === true) {
-                fill.imageData = imageRef.imageData;
+                // imageData disabled
+                // fill.imageData = imageRef.imageData;
                 if (imageRef.scaleMode) {
                     fill.scaleMode = imageRef.scaleMode;
                 }
                 delete fill._imageStripped;
                 return true;
             } else if (fill.type === 'IMAGE' && fill.imageHash === imageRef.imageHash) {
-                fill.imageData = imageRef.imageData;
+                // imageData disabled
+                // fill.imageData = imageRef.imageData;
                 if (imageRef.scaleMode) {
                     fill.scaleMode = imageRef.scaleMode;
                 }
@@ -167,7 +167,8 @@ export class ImageOptimizerService {
         const found = this.findImageFillByHash(design, imageRef.imageHash);
         
         if (found && found.fill) {
-            found.fill.imageData = imageRef.imageData;
+            // imageData disabled
+            // found.fill.imageData = imageRef.imageData;
             if (imageRef.scaleMode) {
                 found.fill.scaleMode = imageRef.scaleMode;
             }
@@ -219,11 +220,8 @@ export class ImageOptimizerService {
         return null;
     }
     
-    private estimateTokenSavings(imageReferences: ImageReference[]): number {
-        let totalChars = 0;
-        for (const ref of imageReferences) {
-            totalChars += ref.imageData.length;
-        }
-        return Math.floor(totalChars / 4);
+    private estimateTokenSavings(_imageReferences: ImageReference[]): number {
+        // imageData disabled — always 0 savings
+        return 0;
     }
 }

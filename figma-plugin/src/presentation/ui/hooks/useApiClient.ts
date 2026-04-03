@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { API_BASE_URL } from '../utils/formatters';
+import { MAX_PAYLOAD_BYTES } from '../../../shared/constants/plugin-config.js';
 
 export function useApiClient() {
     const headersPromiseRef = useRef<Promise<Record<string, string>> | null>(null);
@@ -37,11 +38,15 @@ export function useApiClient() {
     }, [getHeaders]);
 
     const apiPost = useCallback(async (path: string, body: unknown) => {
+        const jsonBody = JSON.stringify(body);
+        if (jsonBody.length > MAX_PAYLOAD_BYTES) {
+            throw new Error('Selection is too large to save (exceeds 5MB). Please select fewer layers or components.');
+        }
         const hdrs = await getHeaders();
         const response = await fetch(`${API_BASE_URL}${path}`, {
             method: 'POST',
             headers: hdrs,
-            body: JSON.stringify(body),
+            body: jsonBody,
         });
         return response.json();
     }, [getHeaders]);

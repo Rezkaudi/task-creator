@@ -9,6 +9,9 @@ export class DeleteUILibraryComponentUseCase {
 
     async execute(componentId: string, userId: string): Promise<void> {
         const component = await this.uiLibraryRepository.findComponentById(componentId, userId);
+        if (!component) {
+            throw new Error('Component not found');
+        }
 
         await this.uiLibraryRepository.deleteComponent(componentId, userId);
 

@@ -399,7 +399,7 @@ export class JsonToToonService {
     return result;
   }
 
-  buildReferenceContext(data: any, iconNames?: string[]): string {
+  buildReferenceContext(data: any, iconNames?: string[], wireframe?: import('./wireframe-builder.service').WireframeNode): string {
     const nodes = Array.isArray(data) ? data : [data];
 
     // Token accumulators
@@ -558,6 +558,8 @@ export class JsonToToonService {
     if (spacingStructure.length > 0) output.spacingStructure = spacingStructure;
 
     if (iconNames && iconNames.length > 0) output.availableIcons = iconNames;
+
+    if (wireframe) output.wireframe = wireframe;
 
     return JSON.stringify(output);
   }

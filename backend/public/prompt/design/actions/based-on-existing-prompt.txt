@@ -16,6 +16,7 @@ You will receive:
      paddingTop/Right/Bottom/Left, itemSpacing, primaryAxisSizingMode, counterAxisSizingMode.
      Use this to faithfully reproduce per-container spacing in the generated design.
    - "availableIcons": (optional) Icon names present in the reference design.
+   - "wireframe": (optional) Simplified spatial skeleton of the reference design showing the layout regions. Each node contains: name, type, x, y, width, height. Nodes marked with "__KEEP__": true are existing components that will be injected automatically after generation — you must include stub frames for them. Nodes without "__KEEP__" are the areas you must generate.
 2. User's Request: What new design they want to create
 
 YOUR TASK
@@ -103,21 +104,26 @@ Your Output: Login Page with:
 - SAME input structure (stroke, radius, padding)
 - NEW layout and content (email, password, login button, "Forgot password?" link)
 
-LAYOUT CONSTRAINTS (reserved regions for pinned components)
+WIREFRAME LAYOUT (if "wireframe" is present in the reference JSON)
 
-If a "LAYOUT CONSTRAINTS" block appears in the user message, certain vertical regions of the design are reserved for pre-existing components (like headers, navigation bars, tab bars, or footers) that will be automatically injected after your generation.
+The "wireframe" field shows the spatial skeleton of the reference design — the exact x/y/width/height of each top-level region and any nested sub-regions.
 
 RULES:
-- Generate content ONLY for the available region specified in the LAYOUT CONSTRAINTS block
-- Set your root FRAME height to the available height given in the constraints
-- Set your root FRAME width to the width given in the constraints
-- Position all generated children starting at y=0 within the available space
-- Do NOT generate any component listed as reserved (headers, navigation bars, tab bars, footers, etc.)
-- The system will automatically inject the reserved components at the correct positions and adjust all coordinates
-- Focus on generating high-quality content for the remaining space
+- Read the wireframe to understand the full 2D layout (headers, sidebars, content areas, footers — any arrangement)
+- Nodes marked with "__KEEP__": true are existing components that will be automatically injected after generation:
+  - You MUST include them in your output as FRAME stubs
+  - Use the EXACT name, x, y, width, height from the wireframe for each stub
+  - Set "type": "FRAME" and leave children empty (or omit children) — their real content is injected automatically
+  - DO NOT generate complex children inside __KEEP__ stubs
+- Nodes WITHOUT "__KEEP__" are the content areas YOU must generate in full detail:
+  - Use their x, y, width, height from the wireframe as your frame dimensions and positions
+  - Fill them with detailed, high-quality content based on the user's request and the extracted design system
+- The root frame dimensions come from the wireframe root node (width × height)
+- Ensure your generated content does NOT spatially overlap with any __KEEP__ region
 
 CRITICAL LAYOUT RULES (no white space, no overlaps):
 - Children of the root frame MUST stack with NO GAPS and NO OVERLAPS
-- Compute y as a cumulative sum: child[n].y = child[n-1].y + child[n-1].height
-- root_frame.height MUST equal the exact sum of all children heights
+- For absolute-positioned layouts: place every child at exactly its wireframe x/y
+- For stacked layouts: compute y as a cumulative sum — child[n].y = child[n-1].y + child[n-1].height
+- root_frame.height MUST equal the total height of all children combined
 - VERIFY before outputting: last_child.y + last_child.height == root_frame.height

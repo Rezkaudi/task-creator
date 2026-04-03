@@ -961,23 +961,23 @@ export class NodeExporter {
         if (imagePaint.imageHash) {
           fill.imageHash = imagePaint.imageHash;
 
-          // Try to get base64 image data
-          if (!this.imageCache.has(imagePaint.imageHash)) {
-            try {
-              const image = figma.getImageByHash(imagePaint.imageHash);
-              if (image) {
-                const bytes = await image.getBytesAsync();
-                const base64 = this.bytesToBase64(bytes);
-                this.imageCache.set(imagePaint.imageHash, base64);
-              }
-            } catch (e) {
-              console.warn('Failed to export image:', e);
-            }
-          }
+          // imageData export disabled — not included in exported JSON
+          // if (!this.imageCache.has(imagePaint.imageHash)) {
+          //   try {
+          //     const image = figma.getImageByHash(imagePaint.imageHash);
+          //     if (image) {
+          //       const bytes = await image.getBytesAsync();
+          //       const base64 = this.bytesToBase64(bytes);
+          //       this.imageCache.set(imagePaint.imageHash, base64);
+          //     }
+          //   } catch (e) {
+          //     console.warn('Failed to export image:', e);
+          //   }
+          // }
 
-          if (this.imageCache.has(imagePaint.imageHash)) {
-            fill.imageData = this.imageCache.get(imagePaint.imageHash);
-          }
+          // if (this.imageCache.has(imagePaint.imageHash)) {
+          //   fill.imageData = this.imageCache.get(imagePaint.imageHash);
+          // }
         }
 
         if (imagePaint.imageTransform) {

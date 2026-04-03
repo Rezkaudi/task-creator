@@ -19,6 +19,7 @@ import { IconExtractorService } from "../../services/ai/icon-extractor.service";
 import { IconPostProcessorService } from "../../services/ai/icon-post-processor.service";
 import { PinnedComponentExtractorService } from "../../services/ai/pinned-component-extractor.service";
 import { PinnedComponentPostProcessorService } from "../../services/ai/pinned-component-post-processor.service";
+import { WireframeBuilderService } from "../../services/ai/wireframe-builder.service";
 
 
 // Repositories
@@ -113,6 +114,7 @@ export const setupDependencies = () => {
     const iconPostProcessorService = new IconPostProcessorService(iconExtractorService);
     const pinnedComponentExtractorService = new PinnedComponentExtractorService();
     const pinnedComponentPostProcessorService = new PinnedComponentPostProcessorService();
+    const wireframeBuilderService = new WireframeBuilderService();
 
     const defaultAiDesignService = new AiGenerateDesignService(
         aiCostCalculatorService,
@@ -131,7 +133,8 @@ export const setupDependencies = () => {
         iconExtractorService,
         iconPostProcessorService,
         pinnedComponentExtractorService,
-        pinnedComponentPostProcessorService
+        pinnedComponentPostProcessorService,
+        wireframeBuilderService,
     );
 
     const generatePrototypeConnectionsUseCase = new GeneratePrototypeConnectionsUseCase(

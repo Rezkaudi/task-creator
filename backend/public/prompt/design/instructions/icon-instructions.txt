@@ -12,11 +12,14 @@ When you need icons NOT in the reference list (or when no list is provided):
 Before generating the design, scan the entire layout and identify every icon you will need.
 Then call searchIcons for ALL of them simultaneously in a SINGLE response — do NOT search incrementally across multiple rounds.
 
-Each searchIcons call returns objects with 'id' and 'url' fields.
-Use the 'url' value directly as the imageUrl — no additional tool calls needed.
+Each searchIcons call returns an array of icon ID strings (e.g. "mdi:home", "lucide:arrow-right").
+Construct the icon URL from the ID using this pattern:
+https://api.iconify.design/{prefix}/{name}.svg
+where prefix and name are the two parts split by ':'.
+Example: "mdi:home" → https://api.iconify.design/mdi/home.svg
 
 Example result from searchIcons:
-  { "icons": [{ "id": "mdi:home", "url": "https://api.iconify.design/mdi/home.svg" }, ...] }
+  { "icons": ["mdi:home", "mdi:home-outline", "mdi:home-variant"] }
 
 Then use RECTANGLE with IMAGE fill:
 
