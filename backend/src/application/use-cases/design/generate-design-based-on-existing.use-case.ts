@@ -7,6 +7,7 @@ import { IconExtractorService } from "../../../infrastructure/services/ai/icon-e
 import { IconPostProcessorService } from "../../../infrastructure/services/ai/icon-post-processor.service";
 import { PinnedComponentExtractorService } from "../../../infrastructure/services/ai/pinned-component-extractor.service";
 import { PinnedComponentPostProcessorService } from "../../../infrastructure/services/ai/pinned-component-post-processor.service";
+import { WireframeBuilderService } from "../../../infrastructure/services/ai/wireframe-builder.service";
 
 export class GenerateDesignBasedOnExistingUseCase {
     constructor(
@@ -15,7 +16,8 @@ export class GenerateDesignBasedOnExistingUseCase {
         private iconExtractorService: IconExtractorService,
         private iconPostProcessorService: IconPostProcessorService,
         private pinnedComponentExtractorService: PinnedComponentExtractorService,
-        private pinnedComponentPostProcessorService: PinnedComponentPostProcessorService
+        private pinnedComponentPostProcessorService: PinnedComponentPostProcessorService,
+        private wireframeBuilderService: WireframeBuilderService,
     ) { }
 
     async execute(
@@ -36,21 +38,22 @@ export class GenerateDesignBasedOnExistingUseCase {
             ? this.pinnedComponentExtractorService.extract(referenceDesign, pinnedComponentNames)
             : new Map<string, any>();
 
-        // Classify pinned components by position (top/bottom) and compute available space
-        const pinnedLayout = this.pinnedComponentExtractorService.classifyLayout(referenceDesign, pinnedMap);
-
-        // Build space constraint instructions (tells AI to generate for available space only)
-        const pinnedInstructions = this.pinnedComponentExtractorService.buildSpaceConstraints(pinnedLayout);
+        // Build wireframe JSON with __KEEP__ markers for pinned nodes.
+        // This gives the LLM the full 2D spatial layout so it can generate
+        // content for the correct areas regardless of sidebar/nested layouts.
+        const wireframe = (pinnedComponentNames && pinnedComponentNames.length > 0)
+            ? this.wireframeBuilderService.build(referenceDesign, pinnedComponentNames)
+            : undefined;
 
         if (pinnedMap.size > 0) {
             console.log(`📌 Pinned components: ${Array.from(pinnedMap.keys()).join(', ')}`);
-            console.log(`📐 Layout: top=${pinnedLayout.topReservedHeight}px, available=${pinnedLayout.availableHeight}px, bottom=${pinnedLayout.bottomReservedHeight}px`);
         }
 
-        // Build rich reference context: design tokens + backgrounds + component samples + icon names
+        // Build rich reference context: design tokens + backgrounds + component samples + icon names + wireframe
         const referenceContext = this.jsonToToonService.buildReferenceContext(
             referenceDesign,
-            iconNames.length > 0 ? iconNames : undefined
+            iconNames.length > 0 ? iconNames : undefined,
+            wireframe ?? undefined,
         );
 
         // fs.writeFileSync('referenceContext.txt', referenceContext);
@@ -64,7 +67,7 @@ export class GenerateDesignBasedOnExistingUseCase {
             validHistory,
             referenceContext,
             modelId,
-            pinnedInstructions || undefined,
+            undefined,
             imageDataUrl,
         );
 
@@ -75,14 +78,10 @@ export class GenerateDesignBasedOnExistingUseCase {
             result.design = this.iconPostProcessorService.restore(result.design, iconMap);
         }
 
-        // Post-process: deterministically inject pinned components at correct positions
-        if ((pinnedLayout.top.length > 0 || pinnedLayout.bottom.length > 0) && result.design) {
-            result.design = this.pinnedComponentPostProcessorService.inject(result.design, pinnedLayout);
-        }
-
-        // Fallback: also run legacy __KEEP__ placeholder restoration
+        // Post-process: recursively inject pinned components at their original positions.
+        // Handles both flat (header/sidebar) and nested (logo inside sidebar) cases.
         if (pinnedMap.size > 0 && result.design) {
-            result.design = this.pinnedComponentPostProcessorService.restore(result.design, pinnedMap);
+            result.design = this.pinnedComponentPostProcessorService.recursiveInject(result.design, pinnedMap);
         }
 
         // fs.writeFileSync('result.json', JSON.stringify(result, null, 2));

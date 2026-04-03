@@ -120,11 +120,50 @@ export class PinnedComponentPostProcessorService {
         return result;
     }
 
+    // ==================== WIREFRAME-BASED INJECTION ====================
+
+    /**
+     * Recursively injects pinned components by name.
+     *
+     * Handles both flat pinned (Header, Sidebar at root level) and nested pinned
+     * (Logo inside Sidebar). Walks the AI-generated tree; when a node's name
+     * matches a key in pinnedMap, replaces the entire node with the original.
+     * Unmatched nodes are recursed into so nested matches are found.
+     */
+    recursiveInject(design: any, pinnedMap: Map<string, any>): any {
+        if (!design || !pinnedMap.size) return design;
+        if (Array.isArray(design)) {
+            return design.map(node => this.injectIntoNode(node, pinnedMap));
+        }
+        return this.injectIntoNode(design, pinnedMap);
+    }
+
+    private injectIntoNode(node: any, pinnedMap: Map<string, any>): any {
+        if (!node || typeof node !== 'object') return node;
+
+        // Replace this node wholesale with the original pinned node
+        if (pinnedMap.has(node.name)) {
+            const original = pinnedMap.get(node.name);
+            console.log(`📌 Injecting pinned component: "${node.name}"`);
+            return original;
+        }
+
+        // Recurse into children to find nested pinned components
+        if (Array.isArray(node.children) && node.children.length > 0) {
+            return {
+                ...node,
+                children: node.children.map((child: any) => this.injectIntoNode(child, pinnedMap)),
+            };
+        }
+
+        return node;
+    }
+
     // ==================== LEGACY FALLBACK ====================
 
     /**
      * @deprecated Kept as fallback for AI-generated __KEEP__ placeholders.
-     * The primary path is now `inject()` which doesn't depend on AI output.
+     * The primary path is now `recursiveInject()`.
      */
     restore(generatedDesign: any, pinnedMap: Map<string, any>): any {
         if (!pinnedMap.size || !generatedDesign) return generatedDesign;
