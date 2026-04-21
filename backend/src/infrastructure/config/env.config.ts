@@ -58,5 +58,5 @@ export const ENV_CONFIG = {
     ICON_SEARCH_LIMIT: Number(process.env.ICON_SEARCH_LIMIT || 10),
     ICON_CACHE_TTL_MS: Number(process.env.ICON_CACHE_TTL_MS || 600000), // 10 minutes
     MAX_CONCURRENT_TOOL_CALLS: Number(process.env.MAX_CONCURRENT_TOOL_CALLS || 5),
-    MAX_TOOL_CALL_ROUNDS: Number(process.env.MAX_TOOL_CALL_ROUNDS || 3),
+    MAX_TOOL_CALL_ROUNDS: Number(process.env.MAX_TOOL_CALL_ROUNDS || 5),
 };
