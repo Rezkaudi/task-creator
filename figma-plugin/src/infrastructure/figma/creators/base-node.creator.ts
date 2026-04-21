@@ -373,7 +373,9 @@ export abstract class BaseNodeCreator {
       const fillData = prop === 'fills' ? nodeData.fills : nodeData.strokes;
       if (!fillData?.length || !(prop in node)) continue;
 
-      const paints = [...((node as any)[prop] as Paint[])];
+      const rawPaints = (node as any)[prop];
+      if (!Array.isArray(rawPaints)) continue;
+      const paints = [...rawPaints] as Paint[];
       let changed = false;
 
       for (let i = 0; i < fillData.length && i < paints.length; i++) {
