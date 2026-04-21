@@ -567,11 +567,11 @@ function ChatInterface({
                                             )}
                                         </div>
                                         <button
-                                            className="btn-primary"
-                                            style={{ marginTop: '12px', width: '100%' }}
+                                            className="proto-apply-btn"
                                             onClick={() => sendMessage('apply-prototype-connections', { connections: msg.connections as unknown as Record<string, unknown>[] })}
                                         >
-                                            ✅ Apply Connections
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                            Apply Connections
                                         </button>
                                     </div>
                                 )}
