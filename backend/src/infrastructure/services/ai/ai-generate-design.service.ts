@@ -8,8 +8,13 @@ import { IOpenAIClientFactory } from '../../../domain/services/IOpenAIClientFact
 import { ConversationMessage, DesignGenerationResult, IAiDesignService } from '../../../domain/services/IAiDesignService';
 
 import { iconTools } from '../../config/ai-tools.config';
-import { AIModelConfig, getModelById } from '../../config/ai-models.config';
+import { AIModelConfig, DEFAULT_MODEL_ID, getModelById } from '../../config/ai-models.config';
 import { ENV_CONFIG } from '../../config/env.config';
+
+/** Max silent retries when LLM returns empty content (sporadic API issue). */
+const MAX_EMPTY_RETRIES = 2;
+/** Base delay between retries in ms (multiplied by attempt number). */
+const RETRY_BASE_DELAY_MS = 1000;
 
 import { ToolCallHandlerService, FunctionToolCall } from './tool-call-handler.service';
 import { ResponseParserService } from './response-parser.service';
@@ -239,25 +244,34 @@ export class AiGenerateDesignService implements IAiDesignService {
         connections: PrototypeConnection[];
         cost?: any;
     }> {
-        const aiModel = getModelById(modelId!);
+        const aiModel = getModelById(modelId ?? DEFAULT_MODEL_ID);
         const openai = this.clientFactory.createClient(aiModel);
 
         console.log('--- 1. Prepare messages  ---');
 
-        // FIX: Original code referenced undefined `userMessage` — now uses `frames`
         const messages = this.messageBuilder.buildPrototypeMessages(frames);
 
         try {
-            const completion = await openai.chat.completions.create({
+            let completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages as any,
-                // response_format: { type: 'json_object' },
             });
 
-            const responseText = completion.choices[0]?.message?.content;
+            let responseText = completion.choices[0]?.message?.content;
+
+            // Retry on sporadic empty responses
+            for (let retry = 1; !responseText && retry <= MAX_EMPTY_RETRIES; retry++) {
+                console.warn(`⚠️ Empty response in generateConnections (retry ${retry}/${MAX_EMPTY_RETRIES})`);
+                await new Promise(resolve => setTimeout(resolve, RETRY_BASE_DELAY_MS * retry));
+                completion = await openai.chat.completions.create({
+                    model: aiModel.id,
+                    messages: messages as any,
+                });
+                responseText = completion.choices[0]?.message?.content;
+            }
 
             if (!responseText) {
-                throw new Error('Empty response from AI');
+                throw new Error(`Empty response from AI after ${MAX_EMPTY_RETRIES + 1} attempts`);
             }
 
             const result = this.responseParser.parseAIResponse(responseText);
@@ -329,8 +343,20 @@ export class AiGenerateDesignService implements IAiDesignService {
         }
 
         if (round >= maxRounds && completion.choices[0]?.message?.tool_calls) {
-            console.warn(`⚠️ Tool call loop hit max rounds (${maxRounds}). Forcing final completion without tools.`);
-            // Request one final completion without tools to get the text response
+            console.warn(`⚠️ Tool call loop hit max rounds (${maxRounds}). Processing last tool calls and forcing final response.`);
+
+            // Process the last pending tool calls so the model gets complete context.
+            // Without this, the conversation ends with a dangling assistant tool_calls
+            // message that has no tool results — causing empty/broken responses.
+            const lastToolCalls = completion.choices[0].message.tool_calls as FunctionToolCall[];
+            const lastToolResults = await this.toolCallHandler.handleToolCalls(lastToolCalls);
+            messages.push({
+                role: 'assistant',
+                content: completion.choices[0].message.content || '',
+                tool_calls: lastToolCalls,
+            } as any);
+            messages.push(...lastToolResults as any);
+
             completion = await openai.chat.completions.create({
                 model: aiModel.id,
                 messages: messages as any,
@@ -339,10 +365,43 @@ export class AiGenerateDesignService implements IAiDesignService {
             totalOutputTokens += completion.usage?.completion_tokens ?? 0;
         }
 
-        const responseText = completion.choices[0]?.message?.content;
+        // Retry on empty content — handles sporadic API empty responses
+        // without changing messages or blocking tools (preserves design quality).
+        let responseText = completion.choices[0]?.message?.content;
+
+        for (let retry = 1; !responseText && retry <= MAX_EMPTY_RETRIES; retry++) {
+            const choice = completion.choices[0];
+            console.warn(
+                `⚠️ Empty LLM response (retry ${retry}/${MAX_EMPTY_RETRIES}).`,
+                `finish_reason: ${choice?.finish_reason ?? 'N/A'},`,
+                `has_tool_calls: ${!!choice?.message?.tool_calls},`,
+                `has_refusal: ${!!(choice?.message as any)?.refusal}`,
+            );
+
+            // Fail fast on explicit refusal — retrying won't help
+            const refusal = (choice?.message as any)?.refusal;
+            if (refusal) {
+                throw new Error(`LLM refused the request: ${refusal}`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, RETRY_BASE_DELAY_MS * retry));
+
+            // Replay the exact same request — no message changes, no tool restrictions
+            completion = await openai.chat.completions.create({
+                model: aiModel.id,
+                messages: messages as any,
+            });
+            totalInputTokens += completion.usage?.prompt_tokens ?? 0;
+            totalOutputTokens += completion.usage?.completion_tokens ?? 0;
+
+            responseText = completion.choices[0]?.message?.content;
+        }
 
         if (!responseText) {
-            throw new Error('LLM API returned empty response.');
+            throw new Error(
+                `LLM API returned empty response after ${MAX_EMPTY_RETRIES + 1} attempts. ` +
+                `finish_reason: ${completion.choices[0]?.finish_reason ?? 'N/A'}`
+            );
         }
 
         return {

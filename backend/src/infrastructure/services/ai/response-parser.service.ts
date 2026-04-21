@@ -24,14 +24,17 @@ export class ResponseParserService {
      * Strategy: balance the brackets until depth reaches 0.
      */
     private fixExtraClosingBrackets(json: string): string {
-        while (this.getDepth(json) !== 0) {
-            if (this.getDepth(json) < 0) {
+        let maxIterations = 100;
+        let depth = this.getDepth(json);
+        while (depth !== 0 && maxIterations-- > 0) {
+            if (depth < 0) {
                 const lastClose = Math.max(json.lastIndexOf('}'), json.lastIndexOf(']'));
                 if (lastClose === -1) break;
                 json = json.slice(0, lastClose) + json.slice(lastClose + 1);
             } else {
                 json = json + '}';
             }
+            depth = this.getDepth(json);
         }
         return json;
     }
